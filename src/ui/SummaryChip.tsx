@@ -14,7 +14,6 @@ const styles = stylex.create({
   chip: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: space.sm,
     height: '28px',
     paddingInline: space.md,
     borderRadius: radius.lg,
@@ -31,6 +30,7 @@ const styles = stylex.create({
   },
   detail: {
     color: colors.muted,
+    whiteSpace: 'pre',
   },
   error: {
     color: colors.destructive,

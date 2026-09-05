@@ -39,13 +39,13 @@ const styles = stylex.create({
 
 export function Canvas({ plan, error }: { plan: Plan | null; error: string | null }) {
   return (
-    <div {...stylex.props(styles.canvas)}>
+    <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
       <div {...stylex.props(styles.stage)}>
         <Preview plan={plan} />
       </div>
-    </div>
+    </main>
   );
 }

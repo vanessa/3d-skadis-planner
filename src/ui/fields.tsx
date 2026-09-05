@@ -44,6 +44,15 @@ const styles = stylex.create({
     outlineOffset: '2px',
     transitionProperty: 'border-color',
     transitionDuration: '120ms',
+    '::-webkit-inner-spin-button': {
+      appearance: 'none',
+      margin: 0,
+    },
+    '::-webkit-outer-spin-button': {
+      appearance: 'none',
+      margin: 0,
+    },
+    MozAppearance: 'textfield',
   },
   selectWrap: {
     position: 'relative',
