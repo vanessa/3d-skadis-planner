@@ -14,6 +14,7 @@ const styles = stylex.create({
     minHeight: '100vh',
     backgroundColor: colors.bg,
     color: colors.text,
+    fontFamily: font.family,
     paddingBlock: space.xl,
     paddingInline: space.lg,
   },
