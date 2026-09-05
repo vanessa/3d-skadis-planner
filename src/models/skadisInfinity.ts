@@ -16,4 +16,12 @@ export const skadisInfinity: BoardModel = {
     'Boards with an even hole count are not symmetric. In Bambu Studio, right-click the board, ' +
     'choose Mirror, and pick the axis listed. Lines mixing odd and even boards use the same ' +
     'alternating rule but have not been checked on a physical print.',
+  pattern: {
+    thicknessMm: 5,
+    slotWidthMm: 5,
+    slotHeightMm: 15,
+    isHole: (col, row) => (col + row) % 2 === 1,
+    screwHoleRadiusMm: 1.5,
+    screwInsetMm: 10,
+  },
 };

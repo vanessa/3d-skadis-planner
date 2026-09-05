@@ -1,4 +1,20 @@
 /**
+ * Hole pattern used to generate a board's 3D mesh. Coordinates are
+ * board-local: origin bottom-left, x right, y up, in mm. Cell (col, row) is
+ * centred at (pitchMm * (col + 1), pitchMm * (row + 1)).
+ */
+export interface BoardPattern {
+  thicknessMm: number;
+  slotWidthMm: number;
+  slotHeightMm: number;
+  /** True when the cell at (col, row) has a slot. Indices are 0-based from bottom-left. */
+  isHole(col: number, row: number): boolean;
+  screwHoleRadiusMm: number;
+  /** Distance of each corner screw hole centre from the two nearest edges. */
+  screwInsetMm: number;
+}
+
+/**
  * A printable pegboard model. One file per model in this folder.
  * The solver assumes sizeMm(holes) === pitchMm * (holes + 1) when it
  * enumerates board sizes, so keep that linear form.
@@ -20,4 +36,6 @@ export interface BoardModel {
   needsMirrorY(rows: number): boolean;
   /** One paragraph shown under the print list. */
   mirrorNote: string;
+  /** Geometry used by the 3D view. */
+  pattern: BoardPattern;
 }
