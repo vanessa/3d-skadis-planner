@@ -33,7 +33,11 @@ export function resolveTokenColor(varValue: string, host: Element): string | nul
   const probe = document.createElement('span');
   probe.style.color = varValue;
   host.appendChild(probe);
-  const computed = getComputedStyle(probe).color;
-  probe.remove();
+  let computed: string;
+  try {
+    computed = getComputedStyle(probe).color;
+  } finally {
+    probe.remove();
+  }
   return computed ? resolveCssColor(computed) : null;
 }

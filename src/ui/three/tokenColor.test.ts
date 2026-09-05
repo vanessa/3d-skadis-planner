@@ -12,6 +12,7 @@ function mockCanvasPixel(rgb: [number, number, number] | null) {
       } as unknown as CanvasRenderingContext2D)
     : null;
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(ctx as never);
+  return ctx;
 }
 
 describe('varName', () => {
@@ -38,14 +39,29 @@ describe('resolveCssColor', () => {
 
 describe('resolveTokenColor', () => {
   it('resolves through a probe element and leaves no probe behind', () => {
-    mockCanvasPixel([255, 0, 0]);
+    const ctx = mockCanvasPixel([255, 0, 0]);
     const host = document.createElement('div');
     document.body.appendChild(host);
+    // jsdom does not substitute custom properties into computed `color`
+    // (it reports the literal `var(...)` string back), so make the
+    // computed colour deterministic instead of relying on jsdom's cascade.
+    vi.spyOn(window, 'getComputedStyle').mockReturnValue({ color: 'rgb(1, 2, 3)' } as CSSStyleDeclaration);
     expect(resolveTokenColor('var(--anything)', host)).toBe('#ff0000');
     expect(host.childElementCount).toBe(0);
+    expect(ctx!.fillStyle).toBe('rgb(1, 2, 3)');
     host.remove();
   });
   it('returns null for a value that is not a var()', () => {
     expect(resolveTokenColor('#ff0000', document.body)).toBeNull();
+  });
+  it('removes the probe even when getComputedStyle throws', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(() => {
+      throw new Error('boom');
+    });
+    expect(() => resolveTokenColor('var(--anything)', host)).toThrow();
+    expect(host.childElementCount).toBe(0);
+    host.remove();
   });
 });
