@@ -62,6 +62,7 @@ const styles = stylex.create({
   optionActive: {
     color: colors.text,
     backgroundColor: colors.surface,
+    boxShadow: `0 0 0 1px ${mixes.border}`,
   },
   notice: {
     display: 'flex',
