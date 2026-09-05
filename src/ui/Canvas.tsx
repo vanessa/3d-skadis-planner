@@ -4,6 +4,7 @@ import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
 import { SummaryChip } from './SummaryChip';
+import { IDENTITY } from './viewport';
 
 const MOBILE = '@media (max-width: 800px)';
 
@@ -44,7 +45,7 @@ export function Canvas({ plan, error }: { plan: Plan | null; error: string | nul
         <SummaryChip plan={plan} error={error} />
       </div>
       <div {...stylex.props(styles.stage)}>
-        <Preview plan={plan} />
+        <Preview plan={plan} viewport={IDENTITY} width={0} height={0} />
       </div>
     </main>
   );
