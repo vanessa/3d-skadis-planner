@@ -38,7 +38,7 @@ const styles = stylex.create({
     zIndex: 2,
     display: 'inline-flex',
     padding: '2px',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.mutedBg,
     borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: mixes.border,
