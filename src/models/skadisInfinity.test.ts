@@ -14,12 +14,6 @@ describe('skadisInfinity', () => {
     expect(skadisInfinity.minHoles).toBe(2);
     expect(skadisInfinity.maxHoles).toBe(15);
   });
-  it('is symmetric only when both counts are odd', () => {
-    expect(skadisInfinity.isSymmetric(9, 9)).toBe(true);
-    expect(skadisInfinity.isSymmetric(10, 9)).toBe(false);
-    expect(skadisInfinity.isSymmetric(9, 10)).toBe(false);
-    expect(skadisInfinity.isSymmetric(10, 10)).toBe(false);
-  });
   it('needs mirroring on even counts', () => {
     expect(skadisInfinity.needsMirrorX(10)).toBe(true);
     expect(skadisInfinity.needsMirrorX(11)).toBe(false);

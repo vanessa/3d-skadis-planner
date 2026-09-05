@@ -3,8 +3,8 @@ import type { BoardGroup, PlacedBoard, Plan, PlanRequest } from './types';
 
 export function plan(req: PlanRequest): Plan {
   const { model, printer } = req;
-  const x = splitAxis(req.widthMm, printer.bedWidthMm, model);
-  const y = splitAxis(req.heightMm, printer.bedDepthMm, model);
+  const x = splitAxis(req.widthMm, printer.bedWidthMm, model, 'x');
+  const y = splitAxis(req.heightMm, printer.bedDepthMm, model, 'y');
 
   const colWidths = x.holes.map((h) => model.sizeMm(h));
   const rowHeights = y.holes.map((h) => model.sizeMm(h));

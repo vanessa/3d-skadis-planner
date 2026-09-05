@@ -14,8 +14,6 @@ export interface BoardModel {
   maxHoles: number;
   /** Outer board size along one axis for the given hole count. */
   sizeMm(holes: number): number;
-  /** True when the hole pattern is symmetric and the board tiles without mirroring. */
-  isSymmetric(cols: number, rows: number): boolean;
   /** True when boards of this column count must alternate mirroring along X. */
   needsMirrorX(cols: number): boolean;
   /** True when boards of this row count must alternate mirroring along Y. */

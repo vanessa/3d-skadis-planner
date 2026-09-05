@@ -10,7 +10,6 @@ export const skadisInfinity: BoardModel = {
   minHoles: 2,
   maxHoles: 15,
   sizeMm: (holes) => PITCH_MM * (holes + 1),
-  isSymmetric: (cols, rows) => cols % 2 === 1 && rows % 2 === 1,
   needsMirrorX: (cols) => cols % 2 === 0,
   needsMirrorY: (rows) => rows % 2 === 0,
   mirrorNote:

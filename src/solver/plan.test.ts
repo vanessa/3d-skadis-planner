@@ -59,9 +59,10 @@ describe('plan mirroring', () => {
     expect(p.boards.map((b) => b.mirrorY)).toEqual([false, true, false, true]);
   });
   it('carries the flag across odd boards in a mixed line', () => {
-    // 260 mm on A1 -> columns [9, 2]. 9 is odd (no mirror), 2 is even and first in the flag sequence.
+    // 260 mm on A1 -> columns [6, 5]. 6 is even and first, so it takes the
+    // initial false; 5 is odd (no mirror), leaving the flag alone.
     const p = plan(req(260, 80));
-    expect(p.columns).toEqual([9, 2]);
+    expect(p.columns).toEqual([6, 5]);
     expect(p.boards.map((b) => b.mirrorX)).toEqual([false, false]);
   });
   it('carries the mirror flag across boards that do not need mirroring', () => {
@@ -88,9 +89,10 @@ describe('plan groups', () => {
     ]);
   });
   it('sorts groups by area descending', () => {
+    // 260 x 260 on A1 -> columns and rows both [6, 5].
     const p = plan(req(260, 260));
-    expect(p.groups[0]).toMatchObject({ cols: 9, rows: 9, count: 1 });
-    expect(p.groups.at(-1)).toMatchObject({ cols: 2, rows: 2, count: 1 });
+    expect(p.groups[0]).toMatchObject({ cols: 6, rows: 6, count: 1 });
+    expect(p.groups.at(-1)).toMatchObject({ cols: 5, rows: 5, count: 1 });
     expect(p.groups.reduce((n, g) => n + g.count, 0)).toBe(4);
   });
 });
