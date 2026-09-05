@@ -31,10 +31,10 @@ Taken from the MakerWorld page and its size table (2026-09-05).
 
 | Topic | Decision |
 |---|---|
-| Optimisation goal | Fewest boards. Tie-breaks: more symmetric (odd x odd) boards, then fewer distinct sizes, then larger boards placed first. |
+| Optimisation goal | Fewest boards. Tie-breaks: fewer boards that need mirroring, then fewer distinct sizes, then sizes close to the largest board (no slivers), then larger boards first. |
 | Printers | Preset list plus a custom bed size. Default Bambu Lab A1. |
 | Units | Input in mm, cm or inches. Everything internal is mm. |
-| Fit rule | Boards never overhang the space. Any strip narrower than the smallest board is reported as leftover. |
+| Fit rule | Boards never overhang the space. Any strip narrower than the smallest board is reported as leftover. Width and height are capped at 10 000 mm, custom beds at 2 000 mm. |
 | Stack | Lightweight web app: Vite, React, TypeScript, StyleX for styling, Vitest for tests. Static site, no backend. |
 | Out of scope for v1 | Export, saving, non-rectangular walls, filament or cost estimates, drag editing. |
 
@@ -66,7 +66,6 @@ interface BoardModel {
   minHoles: number;          // 2
   maxHoles: number;          // 15
   sizeMm(holes: number): number;      // 20 * (holes + 1)
-  isSymmetric(cols: number, rows: number): boolean;   // both odd
   needsMirrorX(cols: number): boolean;  // cols even
   needsMirrorY(rows: number): boolean;  // rows even
   mirrorNote: string;        // shown once in the print list
@@ -126,7 +125,9 @@ interface BoardGroup {
 
 Errors: `plan()` throws `PlanError` with a `code` of `too-small` (space
 smaller than the smallest board on either axis) or `bed-too-small` (the bed
-cannot fit even the smallest board). The UI shows the message inline.
+cannot fit even the smallest board). The UI shows the message inline. Any
+other exception is caught by an error boundary around the app, which shows
+a short message and a reload button.
 
 #### Why a per-axis split is optimal
 
@@ -153,14 +154,18 @@ Work in units of `pitchMm`. For one axis with available length `L` mm:
    `maxU - minU`, and subtracting each part from `maxU`. The slack is always
    below `maxU`, so this set is tiny.
 6. Score each split and keep the best. Lower is better, compared in order:
-   1. number of parts whose hole count (`units - 1`) is even;
+   1. number of parts whose hole count needs mirroring on this axis
+      (`needsMirrorX` for width, `needsMirrorY` for height);
    2. number of distinct part sizes;
-   3. parts sorted descending, compared lexicographically, larger first.
+   3. total shortfall below the largest part, `sum(max - part)`, so the
+      remainder is spread across boards instead of becoming a sliver
+      (540 mm on an A1 gives 200+200+140, not 240+240+60);
+   4. parts sorted descending, compared lexicographically, larger first.
 7. Return the parts sorted descending (large boards left/top, remainder
    right/bottom). Leftover is `L - sum(parts) * pitch`.
 
-Maximising odd-hole parts per axis also maximises symmetric boards overall,
-because the symmetric count is `oddCols * oddRows`. Distinct sizes overall
+Minimising mirrored parts per axis also minimises mirrored boards overall,
+because a board is unmirrored only when both its axes are. Distinct sizes overall
 is `distinctCols * distinctRows`, so that is also independent per axis.
 
 #### Mirroring
@@ -190,8 +195,8 @@ Left, the input panel:
 - Model selector (only Skadis Infinity in v1, still a select).
 - Printer selector with presets and "Custom", which reveals bed width and
   depth inputs.
-- Invalid input (empty, non-numeric, zero, negative) shows a short inline
-  message and keeps the last valid plan on screen.
+- Invalid input (empty, non-numeric, zero, negative, above the caps) shows a
+  short inline message and keeps the last valid plan on screen.
 
 Right, the result:
 - Summary line: total boards, coverage in mm, leftover per axis if any.
