@@ -1,4 +1,13 @@
-import { Component, lazy, Suspense, useState, type ErrorInfo, type ReactNode } from 'react';
+import {
+  Component,
+  lazy,
+  Suspense,
+  useRef,
+  useState,
+  type ErrorInfo,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
@@ -29,7 +38,7 @@ const styles = stylex.create({
     zIndex: 2,
     display: 'inline-flex',
     padding: '2px',
-    backgroundColor: mixes.inputBg,
+    backgroundColor: colors.surface,
     borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: mixes.border,
@@ -134,13 +143,26 @@ export function PreviewCard({
   children: ReactNode;
 }) {
   const [view, setView] = useState<View>('2d');
+  const optionRefs = useRef<Record<View, HTMLButtonElement | null>>({ '2d': null, '3d': null });
   if (!plan) return null;
+
+  const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const next: View = view === '2d' ? '3d' : '2d';
+    setView(next);
+    optionRefs.current[next]?.focus();
+  };
 
   const option = (value: View, label: string) => (
     <button
       type="button"
       role="radio"
       aria-checked={view === value}
+      tabIndex={view === value ? 0 : -1}
+      ref={(el) => {
+        optionRefs.current[value] = el;
+      }}
       {...stylex.props(styles.option, view === value && styles.optionActive)}
       onClick={() => setView(value)}
     >
@@ -150,7 +172,12 @@ export function PreviewCard({
 
   return (
     <div {...stylex.props(styles.card)}>
-      <div role="radiogroup" aria-label="Preview mode" {...stylex.props(styles.toggle)}>
+      <div
+        role="radiogroup"
+        aria-label="Preview mode"
+        onKeyDown={moveFocus}
+        {...stylex.props(styles.toggle)}
+      >
         {option('2d', '2D')}
         {option('3d', '3D')}
       </div>

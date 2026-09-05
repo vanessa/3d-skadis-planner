@@ -26,7 +26,7 @@ const styles = stylex.create({
   },
   orbit: {
     position: 'absolute',
-    top: space.sm,
+    top: '44px',
     right: space.sm,
     zIndex: 1,
     fontSize: font.xs,

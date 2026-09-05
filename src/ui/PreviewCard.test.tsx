@@ -63,4 +63,17 @@ describe('PreviewCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to 2D' }));
     expect(container.querySelector('svg')).not.toBeNull();
   });
+
+  it('moves selection and focus with the arrow keys', async () => {
+    renderCard(p);
+    const twoD = screen.getByRole('radio', { name: '2D' });
+    const threeD = screen.getByRole('radio', { name: '3D' });
+    twoD.focus();
+    fireEvent.keyDown(twoD, { key: 'ArrowRight' });
+    expect(threeD.getAttribute('aria-checked')).toBe('true');
+    expect(document.activeElement).toBe(threeD);
+    expect(await screen.findByTestId('board-scene')).toBeTruthy();
+    expect(twoD.getAttribute('tabindex')).toBe('-1');
+    expect(threeD.getAttribute('tabindex')).toBe('0');
+  });
 });
