@@ -2,7 +2,6 @@ import { StrictMode } from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
-import { THEME_STORAGE_KEY } from './useTheme';
 import { skadisInfinity } from '../models/skadisInfinity';
 
 describe('App', () => {
@@ -73,7 +72,6 @@ describe('App', () => {
   });
 
   it('applies the light theme class to the document when light is chosen', () => {
-    window.localStorage.removeItem(THEME_STORAGE_KEY);
     render(<App />);
     const before = document.documentElement.className;
     fireEvent.click(screen.getByRole('button', { name: 'Light theme' }));
@@ -82,5 +80,10 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dark theme' }));
     expect(document.documentElement.className).toBe(before);
     expect(document.documentElement.style.colorScheme).toBe('dark');
+  });
+
+  it('exposes the canvas as the main landmark', () => {
+    render(<App />);
+    expect(screen.getByRole('main')).toBeTruthy();
   });
 });

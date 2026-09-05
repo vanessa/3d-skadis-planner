@@ -36,6 +36,7 @@ describe('Preview', () => {
     const p = plan({ widthMm: 260, heightMm: 60, model: skadisInfinity, printer: mini });
     const { container } = render(<Preview plan={p} />);
     expect(container.querySelector('[data-outline]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-board]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-board] text')).toHaveLength(0);
   });
 
