@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PreviewCard } from './PreviewCard';
-import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -21,7 +20,7 @@ const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a
 const renderCard = (plan: typeof p | null) =>
   render(
     <PreviewCard plan={plan} model={skadisInfinity}>
-      <Preview plan={plan} />
+      <svg role="img" aria-label="stage" />
     </PreviewCard>,
   );
 

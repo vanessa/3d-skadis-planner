@@ -92,4 +92,10 @@ describe('App', () => {
     expect(screen.getByRole('radio', { name: '2D' })).toBeTruthy();
     expect(screen.getByRole('radio', { name: '3D' })).toBeTruthy();
   });
+
+  it('shows the fit control and zoom readout on the canvas', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Fit to view' })).toBeTruthy();
+    expect(screen.getByText('100%')).toBeTruthy();
+  });
 });

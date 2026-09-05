@@ -13,20 +13,13 @@ import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
+import { stageLayout } from './stageLayout';
 
 const BoardScene = lazy(() => import('./three/BoardScene'));
 
 type View = '2d' | '3d';
 
 const styles = stylex.create({
-  card: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scene: {
     width: '100%',
     height: '100%',
@@ -172,7 +165,7 @@ export function PreviewCard({
   );
 
   return (
-    <div {...stylex.props(styles.card)}>
+    <div {...stylex.props(stageLayout.stage)}>
       <div
         role="radiogroup"
         aria-label="Preview mode"

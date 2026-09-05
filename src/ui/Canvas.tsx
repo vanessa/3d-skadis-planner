@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
@@ -6,8 +7,8 @@ import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
 import { PreviewCard } from './PreviewCard';
 import { SummaryChip } from './SummaryChip';
-
-const MOBILE = '@media (max-width: 800px)';
+import { useViewport } from './useViewport';
+import { CanvasToolbar } from './CanvasToolbar';
 
 const styles = stylex.create({
   canvas: {
@@ -27,15 +28,19 @@ const styles = stylex.create({
     left: '10px',
     zIndex: 1,
   },
-  stage: {
+  surface: {
     position: 'absolute',
-    top: '56px',
-    left: '24px',
-    right: { default: '334px', [MOBILE]: '24px' },
-    bottom: { default: '24px', [MOBILE]: 'calc(50dvh + 16px)' },
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    top: '0px',
+    right: '0px',
+    bottom: '0px',
+    left: '0px',
+    overflow: 'hidden',
+    touchAction: 'none',
+    userSelect: 'none',
+    cursor: 'grab',
+  },
+  dragging: {
+    cursor: 'grabbing',
   },
 });
 
@@ -48,16 +53,22 @@ export function Canvas({
   error: string | null;
   model: BoardModel;
 }) {
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const world = plan
+    ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
+    : null;
+  const { size, viewport, ratio, refit, handlers, dragging } = useViewport(surfaceRef, world);
   return (
     <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
-      <div {...stylex.props(styles.stage)}>
-        <PreviewCard plan={plan} model={model}>
-          <Preview plan={plan} />
-        </PreviewCard>
-      </div>
+      <PreviewCard plan={plan} model={model}>
+        <div ref={surfaceRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
+          <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
+          {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
+        </div>
+      </PreviewCard>
     </main>
   );
 }
