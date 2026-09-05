@@ -121,33 +121,29 @@ dist
 `vite.config.ts`:
 ```ts
 /// <reference types="vitest/config" />
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import stylex from '@stylexjs/unplugin';
 
-// Dev only: link the StyleX virtual stylesheet into index.html.
-const stylexDevHtml = (): Plugin => ({
-  name: 'stylex-dev-html',
-  apply: 'serve',
-  transformIndexHtml: () => [
-    { tag: 'link', attrs: { rel: 'stylesheet', href: '/virtual:stylex.css' }, injectTo: 'head' },
-  ],
+const stylexPlugin = stylex.vite({
+  unstable_moduleResolution: { type: 'commonJS', rootDir: process.cwd() },
 });
 
+// Under Vitest there is no HTTP server, and the unplugin's configureServer hook
+// leaves a polling interval running that delays process exit by ~10 s.
+// The hook only serves the dev CSS endpoint, which tests never use.
+const stylexForEnv = process.env.VITEST ? { ...stylexPlugin, configureServer: undefined } : stylexPlugin;
+
 export default defineConfig({
-  plugins: [
-    stylex.vite({
-      unstable_moduleResolution: { type: 'commonJS', rootDir: process.cwd() },
-    }),
-    stylexDevHtml(),
-    react(),
-  ],
+  plugins: [stylexForEnv, react()],
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
 });
 ```
+
+The unplugin injects the dev stylesheet link and runtime script into `index.html` itself; no custom HTML plugin is needed.
 
 - [ ] **Step 3: Write index.html, reset.css, vite-env.d.ts, main.tsx, test setup**
 
