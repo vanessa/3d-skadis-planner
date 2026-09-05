@@ -1,6 +1,6 @@
 import {
   useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
-  type PointerEvent as ReactPointerEvent, type RefObject,
+  type PointerEvent as ReactPointerEvent,
 } from 'react';
 import {
   fitViewport, panBy, wheelFactor, zoomAt, zoomRatio, IDENTITY, type Size, type Viewport,
@@ -23,12 +23,14 @@ interface Drag {
   moved: boolean;
 }
 
-export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size | null) {
+export function useViewport(world: Size | null) {
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
   const [fitted, setFitted] = useState(true);
   const [view, setView] = useState<Viewport>(IDENTITY);
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef<Drag | null>(null);
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const stageRef = useCallback((node: HTMLElement | null) => setEl(node), []);
 
   const worldW = world?.width ?? 0;
   const worldH = world?.height ?? 0;
@@ -40,7 +42,6 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
 
   // Measure the stage now and whenever it resizes.
   useLayoutEffect(() => {
-    const el = stageRef.current;
     if (!el) return;
     const measure = () => {
       const r = el.getBoundingClientRect();
@@ -51,7 +52,7 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [stageRef]);
+  }, [el]);
 
   // A new world size always refits, before paint, so nothing ever renders one
   // frame under the old zoomed transform.
@@ -66,19 +67,18 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
 
   // Wheel must be non-passive to prevent page scroll and browser zoom.
   useEffect(() => {
-    const el = stageRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const r = el.getBoundingClientRect();
       const point = { x: e.clientX - r.left, y: e.clientY - r.top };
-      const factor = wheelFactor(e.deltaY, e.deltaMode);
+      const factor = wheelFactor(e.deltaY, e.deltaMode, e.ctrlKey);
       setView((prev) => zoomAt(prev, factor, point, fitRef.current));
       setFitted(false);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [stageRef]);
+  }, [el]);
 
   const onPointerDown = useCallback((e: ReactPointerEvent<HTMLElement>) => {
     if (e.button !== 0) return;
@@ -95,6 +95,7 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
       // stuck dragging on hover.
       dragRef.current = null;
       setDragging(false);
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture?.(e.pointerId);
       return;
     }
     const dx = e.clientX - d.x;
@@ -126,5 +127,5 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
   );
 
   const viewport = fitted ? fit : view;
-  return { size, viewport, fit, ratio: zoomRatio(viewport, fit), fitted, dragging, refit, handlers };
+  return { size, viewport, fit, ratio: zoomRatio(viewport, fit), fitted, dragging, refit, handlers, stageRef };
 }

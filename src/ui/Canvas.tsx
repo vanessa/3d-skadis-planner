@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
@@ -27,6 +26,7 @@ const styles = stylex.create({
     top: '10px',
     left: '10px',
     zIndex: 1,
+    pointerEvents: 'none',
   },
   surface: {
     position: 'absolute',
@@ -53,18 +53,17 @@ export function Canvas({
   error: string | null;
   model: BoardModel;
 }) {
-  const surfaceRef = useRef<HTMLDivElement>(null);
   const world = plan
     ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
     : null;
-  const { size, viewport, ratio, refit, handlers, dragging } = useViewport(surfaceRef, world);
+  const { size, viewport, ratio, refit, handlers, dragging, stageRef } = useViewport(world);
   return (
     <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
       <PreviewCard plan={plan} model={model}>
-        <div ref={surfaceRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
+        <div ref={stageRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
           <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
           {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
         </div>

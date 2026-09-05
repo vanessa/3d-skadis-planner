@@ -57,7 +57,8 @@ export function zoomRatio(v: Viewport, fit: Viewport): number {
 }
 
 /** Multiplicative zoom factor for one wheel event. Positive deltaY zooms out. */
-export function wheelFactor(deltaY: number, deltaMode: number): number {
-  const delta = deltaMode === 1 ? deltaY * 16 : deltaMode === 2 ? deltaY * 400 : deltaY;
+export function wheelFactor(deltaY: number, deltaMode: number, ctrlKey = false): number {
+  const raw = ctrlKey ? deltaY * 10 : deltaY;
+  const delta = deltaMode === 1 ? raw * 16 : deltaMode === 2 ? raw * 400 : raw;
   return Math.min(2, Math.max(0.5, Math.exp(-delta * WHEEL_SENSITIVITY)));
 }

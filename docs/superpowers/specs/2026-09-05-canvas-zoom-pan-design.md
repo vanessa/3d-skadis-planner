@@ -22,7 +22,7 @@ introduces a canvas toolbar where the 3D view's `2D / 3D` toggle can sit.
 |---|---|
 | Model | A viewport `{ scale, tx, ty }`: `scale` in screen px per mm, `tx`/`ty` the screen position of the wall's top-left corner, relative to the stage. |
 | Fit | Scale so the whole wall (covered + leftover) fits the stage with a 24 px margin, centred. Fit is the initial state, and is re-applied whenever the wall size or the stage size changes while the view is still "fitted". |
-| Zoom | Mouse wheel and trackpad scroll zoom around the cursor. Range: 0.5× to 16× of the fit scale. Ctrl/⌘+wheel (browser pinch) is captured too so the page never browser-zooms. |
+| Zoom | Mouse wheel and trackpad scroll zoom around the cursor. Range: 0.5× to 16× of the fit scale. Ctrl/⌘+wheel (browser pinch) is captured too so the page never browser-zooms; its small deltas are scaled ×10 so a pinch feels like a pinch. |
 | Pan | Pointer drag on the stage (mouse or single touch). Cursor `grab`, `grabbing` while dragging. |
 | Refit | Double-click on the stage, or the Fit button. |
 | Toolbar | A small pill at the 2D stage's bottom-left: a `Fit` button and a zoom readout (`100%` = fit). It lives inside the 2D stage subtree, so the 3D branch's `PreviewCard` wrapper hides it in 3D mode; that branch overlays its `2D / 3D` toggle at the stage's top-right. |
@@ -70,7 +70,8 @@ export function wheelFactor(deltaY: number, deltaMode: number): number
 ### `useViewport.ts`
 
 ```ts
-export function useViewport(stageRef: RefObject<HTMLElement | null>, worldMm: Size | null): {
+export function useViewport(worldMm: Size | null): {
+  stageRef: (el: HTMLElement | null) => void;  // callback ref; the hook re-binds when the element is replaced
   size: Size;                 // measured stage size (0×0 before layout / in jsdom)
   viewport: Viewport;
   fit: Viewport;
@@ -125,7 +126,9 @@ and stage geometry from the port are unchanged.
 Absolutely positioned at the stage's bottom-left (10 px inset), `surface`
 background, 1 px `border`, radius 8, 28 px tall: a `Fit` button (secondary
 style, `aria-label="Fit to view"`) and a readout `100%` (`muted`, tabular
-numerals, `aria-live="polite"`). Pointer events inside the toolbar stop
+numerals). The visible readout is `aria-hidden`; a visually hidden live
+region announces `Zoom NNN%` politely, debounced 300 ms after the last
+change, so a wheel gesture produces one announcement, not one per tick. Pointer events inside the toolbar stop
 propagation so clicking it never starts a pan. The stage's top-right corner
 is reserved for the 3D branch's `2D / 3D` toggle.
 

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
@@ -47,11 +47,25 @@ const styles = stylex.create({
     color: colors.muted,
     fontVariantNumeric: 'tabular-nums',
   },
+  srOnly: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    overflow: 'hidden',
+    clipPath: 'inset(50%)',
+    whiteSpace: 'nowrap',
+  },
 });
 
 export function CanvasToolbar({
   ratio, onFit, children,
 }: { ratio: number; onFit: () => void; children?: ReactNode }) {
+  const percent = Math.round(ratio * 100);
+  const [announced, setAnnounced] = useState(percent);
+  useEffect(() => {
+    const timer = setTimeout(() => setAnnounced(percent), 300);
+    return () => clearTimeout(timer);
+  }, [percent]);
   return (
     <div
       {...stylex.props(styles.bar)}
@@ -61,8 +75,11 @@ export function CanvasToolbar({
       <button type="button" aria-label="Fit to view" onClick={onFit} {...stylex.props(styles.button)}>
         Fit
       </button>
-      <span aria-live="polite" {...stylex.props(styles.readout)}>
-        {Math.round(ratio * 100)}%
+      <span aria-hidden="true" {...stylex.props(styles.readout)}>
+        {percent}%
+      </span>
+      <span aria-live="polite" {...stylex.props(styles.srOnly)}>
+        Zoom {announced}%
       </span>
       {children}
     </div>
