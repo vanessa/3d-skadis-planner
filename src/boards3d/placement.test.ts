@@ -23,6 +23,23 @@ describe('instancesFor', () => {
     expect([...ys].sort((a, b) => a - b)).toEqual([-360, -180]);
     expect([...xs].sort((a, b) => a - b)).toEqual([0, 180, 360, 540]);
     expect(groups.every((g) => g.positions.every((p) => p[2] === 0))).toBe(true);
+    expect(groups.map((g) => [g.mirrorX, g.mirrorY])).toEqual([
+      [false, false],
+      [true, false],
+      [false, true],
+      [true, true],
+    ]);
+  });
+
+  it('keeps width and height distinct on non-square boards', () => {
+    const groups = instancesFor(plan({ widthMm: 1000, heightMm: 260, model, printer: a1 }), model);
+    expect(groups.map((g) => [g.cols, g.rows, g.widthMm, g.heightMm])).toEqual([
+      [9, 6, 200, 140],
+      [9, 5, 200, 120],
+    ]);
+    expect(groups[0].positions[0]).toEqual([0, -140, 0]);
+    expect(groups[1].positions[0]).toEqual([0, -260, 0]);
+    expect(groups[1].positions[4]).toEqual([800, -260, 0]);
   });
 
   it('maps top-down solver coordinates to y-up scene coordinates', () => {
