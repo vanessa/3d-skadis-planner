@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { plan, PlanError } from './index';
+import { carryFlags } from './plan';
 import { skadisInfinity as model } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 
@@ -33,6 +34,15 @@ describe('plan grid', () => {
     expect(second.xMm).toBe(first.widthMm);
     expect(first.widthMm + second.widthMm).toBe(400);
   });
+  it('orders boards row-major, left to right then top to bottom', () => {
+    // 1000 x 600 on an A1: 5 columns x 3 rows of 200 mm each.
+    const p = plan(req(1000, 600));
+    expect(p.boards[0]).toMatchObject({ col: 0, row: 0, xMm: 0, yMm: 0 });
+    expect(p.boards[4]).toMatchObject({ col: 4, row: 0, xMm: 800, yMm: 0 });
+    expect(p.boards[5]).toMatchObject({ col: 0, row: 1, xMm: 0, yMm: 200 });
+    expect(p.boards[12]).toMatchObject({ col: 2, row: 2, xMm: 400, yMm: 400 });
+    expect(p.boards.map((b) => b.row)).toEqual([0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2]);
+  });
 });
 
 describe('plan mirroring', () => {
@@ -53,6 +63,12 @@ describe('plan mirroring', () => {
     const p = plan(req(260, 80));
     expect(p.columns).toEqual([9, 2]);
     expect(p.boards.map((b) => b.mirrorX)).toEqual([false, false]);
+  });
+  it('carries the mirror flag across boards that do not need mirroring', () => {
+    const even = (h: number) => h % 2 === 0;
+    expect(carryFlags([8, 7, 6], even)).toEqual([false, false, true]);
+    expect(carryFlags([8, 8, 8, 8], even)).toEqual([false, true, false, true]);
+    expect(carryFlags([9, 9], even)).toEqual([false, false]);
   });
   it('never mirrors symmetric boards', () => {
     const p = plan(req(1000, 600));

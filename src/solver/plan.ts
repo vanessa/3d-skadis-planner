@@ -59,7 +59,7 @@ function prefixSums(values: number[]): number[] {
  * and toggle it; boards that do not need it leave the flag alone.
  * A line of identical even boards becomes false, true, false, true...
  */
-function carryFlags(holes: number[], needsMirror: (h: number) => boolean): boolean[] {
+export function carryFlags(holes: number[], needsMirror: (h: number) => boolean): boolean[] {
   let flag = false;
   return holes.map((h) => {
     if (!needsMirror(h)) return false;
