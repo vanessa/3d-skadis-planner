@@ -41,7 +41,7 @@ src/ui/three/useTokenColor.test.ts
 src/ui/three/BoardScene.tsx      default export: Canvas, FitCamera, Grid, instanced boards, hover chip, Orbit button
 src/ui/PreviewCard.tsx           2D/3D toggle, SceneBoundary, lazy BoardScene
 src/ui/PreviewCard.test.tsx
-src/ui/App.tsx                   swap <Preview> for <PreviewCard>
+src/ui/Canvas.tsx                wrap the 2D stage in <PreviewCard>; src/ui/App.tsx passes model to Canvas
 src/ui/App.test.tsx              + one toggle-present test
 README.md                        + 3D view paragraph
 ```
@@ -886,7 +886,8 @@ import { mixes } from '../mixes.stylex';
 const styles = stylex.create({
   frame: {
     position: 'relative',
-    height: '60vh',
+    width: '100%',
+    height: '100%',
     minHeight: 320,
     overflow: 'hidden',
     backgroundColor: colors.surface,
@@ -1114,15 +1115,19 @@ Claude-Session: https://claude.ai/code/session_011cMSdbJ468E93M9nVBmTnk"
 
 ### Task 7: Preview card with the 2D / 3D toggle
 
+Context after merging `main`: `src/ui/App.tsx` renders `<Canvas plan error />` and a `<Panel>`; `src/ui/Canvas.tsx` is a fixed full-viewport `<main>` with a `SummaryChip` top-left and an absolutely positioned, flex-centred `stage` div that renders `<Preview plan={plan} />`. Another session keeps adding 2D pan/zoom inside `Preview` and the stage; this task must not restructure either. `PreviewCard` therefore takes the 2D stage content as `children` and only wraps it.
+
 **Files:**
 - Create: `src/ui/PreviewCard.tsx`
 - Test: `src/ui/PreviewCard.test.tsx`
-- Modify: `src/ui/App.tsx` (import + one JSX line)
+- Modify: `src/ui/Canvas.tsx` (accept `model`, wrap the stage content)
+- Modify: `src/ui/App.tsx` (pass `model` to `Canvas`)
 - Modify: `src/ui/App.test.tsx` (+1 test)
 
 **Interfaces:**
-- Consumes: `Preview` (existing), `BoardScene` default export (Task 6, lazy), `Plan`, `BoardModel`, tokens.
-- Produces: `export function PreviewCard({ plan, model }: { plan: Plan | null; model: BoardModel }): JSX.Element | null`.
+- Consumes: `Preview` (existing), `BoardScene` default export (Task 6, lazy), `Plan`, `BoardModel`, tokens `colors`, `font`, `radius`, `space`, `mixes`.
+- Produces: `export function PreviewCard({ plan, model, children }: { plan: Plan | null; model: BoardModel; children: ReactNode }): JSX.Element | null` — renders `children` in 2D mode, the lazy scene in 3D mode, nothing without a plan.
+- `Canvas` gains a required `model: BoardModel` prop.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1131,6 +1136,7 @@ Claude-Session: https://claude.ai/code/session_011cMSdbJ468E93M9nVBmTnk"
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PreviewCard } from './PreviewCard';
+import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -1147,6 +1153,13 @@ vi.mock('./three/BoardScene', () => ({
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
 
+const renderCard = (plan: typeof p | null) =>
+  render(
+    <PreviewCard plan={plan} model={skadisInfinity}>
+      <Preview plan={plan} />
+    </PreviewCard>,
+  );
+
 afterEach(() => {
   mockState.shouldThrow = false;
   vi.restoreAllMocks();
@@ -1154,19 +1167,19 @@ afterEach(() => {
 
 describe('PreviewCard', () => {
   it('renders nothing without a plan', () => {
-    const { container } = render(<PreviewCard plan={null} model={skadisInfinity} />);
+    const { container } = renderCard(null);
     expect(container.firstChild).toBeNull();
   });
 
-  it('shows the SVG by default with 2D selected', () => {
-    const { container } = render(<PreviewCard plan={p} model={skadisInfinity} />);
+  it('shows the 2D children by default with 2D selected', () => {
+    const { container } = renderCard(p);
     expect(container.querySelector('svg')).not.toBeNull();
     expect(screen.getByRole('radio', { name: '2D' }).getAttribute('aria-checked')).toBe('true');
     expect(screen.getByRole('radio', { name: '3D' }).getAttribute('aria-checked')).toBe('false');
   });
 
   it('switches to the lazy 3D scene and back', async () => {
-    const { container } = render(<PreviewCard plan={p} model={skadisInfinity} />);
+    const { container } = renderCard(p);
     fireEvent.click(screen.getByRole('radio', { name: '3D' }));
     expect(await screen.findByTestId('board-scene')).toBeTruthy();
     expect(screen.getByText('15 boards in 3D')).toBeTruthy();
@@ -1179,7 +1192,7 @@ describe('PreviewCard', () => {
   it('falls back to a message and a way back to 2D when the scene fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mockState.shouldThrow = true;
-    const { container } = render(<PreviewCard plan={p} model={skadisInfinity} />);
+    const { container } = renderCard(p);
     fireEvent.click(screen.getByRole('radio', { name: '3D' }));
     expect(await screen.findByText('3D view is not available in this browser.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Back to 2D' }));
@@ -1210,7 +1223,6 @@ import { Component, lazy, Suspense, useState, type ErrorInfo, type ReactNode } f
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
-import { Preview } from './Preview';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
@@ -1220,19 +1232,29 @@ type View = '2d' | '3d';
 
 const styles = stylex.create({
   card: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
     display: 'flex',
-    flexDirection: 'column',
-    gap: space.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scene: {
+    width: '100%',
+    height: '100%',
   },
   toggle: {
+    position: 'absolute',
+    top: '0px',
+    right: '0px',
+    zIndex: 2,
     display: 'inline-flex',
-    alignSelf: 'flex-end',
     padding: '2px',
     backgroundColor: mixes.inputBg,
-    borderWidth: 1,
+    borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: mixes.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   option: {
     fontSize: font.xs,
@@ -1240,10 +1262,14 @@ const styles = stylex.create({
     color: colors.muted,
     backgroundColor: 'transparent',
     borderWidth: 0,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     paddingBlock: space.xs,
     paddingInline: space.md,
-    cursor: 'pointer',
+    cursor: 'default',
+    outlineWidth: { default: 0, ':focus-visible': '2px' },
+    outlineStyle: 'solid',
+    outlineColor: colors.ring,
+    outlineOffset: '2px',
   },
   optionActive: {
     color: colors.text,
@@ -1258,29 +1284,32 @@ const styles = stylex.create({
     fontSize: font.sm,
     color: colors.text,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: mixes.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
+    margin: 0,
+  },
+  noticeText: {
     margin: 0,
   },
   noticeButton: {
-    fontSize: font.xs,
+    height: '28px',
+    fontSize: font.sm,
+    fontWeight: 500,
     color: colors.text,
-    backgroundColor: mixes.inputBg,
-    borderWidth: 1,
+    backgroundColor: { default: mixes.inputBg, ':hover': colors.mutedBg },
+    borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: mixes.border,
-    borderRadius: radius.sm,
-    paddingBlock: space.xs,
-    paddingInline: space.sm,
-    cursor: 'pointer',
+    borderColor: { default: mixes.border, ':hover': mixes.borderHover },
+    borderRadius: radius.lg,
+    paddingInline: space.md,
+    cursor: 'default',
   },
   loading: {
     fontSize: font.sm,
     color: colors.muted,
     margin: 0,
-    padding: space.lg,
   },
 });
 
@@ -1305,7 +1334,7 @@ class SceneBoundary extends Component<SceneBoundaryProps, { failed: boolean }> {
     if (this.state.failed) {
       return (
         <div {...stylex.props(styles.notice)}>
-          <p>3D view is not available in this browser.</p>
+          <p {...stylex.props(styles.noticeText)}>3D view is not available in this browser.</p>
           <button type="button" {...stylex.props(styles.noticeButton)} onClick={this.props.onBack}>
             Back to 2D
           </button>
@@ -1316,7 +1345,15 @@ class SceneBoundary extends Component<SceneBoundaryProps, { failed: boolean }> {
   }
 }
 
-export function PreviewCard({ plan, model }: { plan: Plan | null; model: BoardModel }) {
+export function PreviewCard({
+  plan,
+  model,
+  children,
+}: {
+  plan: Plan | null;
+  model: BoardModel;
+  children: ReactNode;
+}) {
   const [view, setView] = useState<View>('2d');
   if (!plan) return null;
 
@@ -1339,36 +1376,45 @@ export function PreviewCard({ plan, model }: { plan: Plan | null; model: BoardMo
         {option('3d', '3D')}
       </div>
       {view === '2d' ? (
-        <Preview plan={plan} />
+        children
       ) : (
-        <SceneBoundary onBack={() => setView('2d')}>
-          <Suspense fallback={<p {...stylex.props(styles.loading)}>Loading 3D…</p>}>
-            <BoardScene plan={plan} model={model} />
-          </Suspense>
-        </SceneBoundary>
+        <div {...stylex.props(styles.scene)}>
+          <SceneBoundary onBack={() => setView('2d')}>
+            <Suspense fallback={<p {...stylex.props(styles.loading)}>Loading 3D…</p>}>
+              <BoardScene plan={plan} model={model} />
+            </Suspense>
+          </SceneBoundary>
+        </div>
       )}
     </div>
   );
 }
 ```
 
-- [ ] **Step 4: Wire into App**
+- [ ] **Step 4: Wire into Canvas and App**
 
-In `src/ui/App.tsx`:
-- replace `import { Preview } from './Preview';` with `import { PreviewCard } from './PreviewCard';`
-- replace `<Preview plan={state.lastPlan} />` with `<PreviewCard plan={state.lastPlan} model={getModel(state.form.modelId)} />`
+In `src/ui/Canvas.tsx`:
+- add `import type { BoardModel } from '../models';` and `import { PreviewCard } from './PreviewCard';`
+- change the signature to `export function Canvas({ plan, error, model }: { plan: Plan | null; error: string | null; model: BoardModel })`
+- replace `<Preview plan={plan} />` inside the stage with:
+  ```tsx
+  <PreviewCard plan={plan} model={model}>
+    <Preview plan={plan} />
+  </PreviewCard>
+  ```
+  Leave the stage's own styles and everything else in the file untouched.
 
-Nothing else in App changes. (Another session is restyling App on `main`; keeping this to two lines makes the merge trivial.)
+In `src/ui/App.tsx`: `model` is already computed (`const model = getModel(state.form.modelId)`); change the Canvas element to `<Canvas plan={state.lastPlan} error={state.outcome.error} model={model} />`. Nothing else in App changes.
 
 - [ ] **Step 5: Run tests, typecheck, build**
 
 Run: `npm test && npm run build`
-Expected: all tests pass with no warnings (the failing-scene test silences its expected console.error). `vite build` output lists a separate chunk containing three (something like `BoardScene-*.js`, several hundred KB) besides the main bundle; the main bundle must not grow by the size of three. Record both chunk sizes in the report.
+Expected: all tests pass with no warnings (the failing-scene test silences its expected console.error). `vite build` output lists a separate chunk containing three (something like `BoardScene-*.js`, several hundred KB) besides the main bundle; the main bundle must stay close to its previous size (about 210 kB). Record both chunk sizes in the report.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/ui/PreviewCard.tsx src/ui/PreviewCard.test.tsx src/ui/App.tsx src/ui/App.test.tsx
+git add src/ui/PreviewCard.tsx src/ui/PreviewCard.test.tsx src/ui/Canvas.tsx src/ui/App.tsx src/ui/App.test.tsx
 git commit -m "Add a 2D / 3D preview toggle that lazy-loads the board scene
 
 Claude-Session: https://claude.ai/code/session_011cMSdbJ468E93M9nVBmTnk"
