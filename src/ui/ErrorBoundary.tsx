@@ -4,35 +4,50 @@ import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
-  panel: {
+  screen: {
+    position: 'fixed',
+    inset: '0px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bg,
+  },
+  card: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: space.sm,
-    margin: space.lg,
+    gap: space.md,
     padding: space.lg,
-    backgroundColor: mixes.inputBg,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: colors.destructive,
-    borderRadius: radius.md,
-    color: colors.destructive,
+    borderColor: mixes.border,
+    borderRadius: radius.lg,
   },
   message: {
-    fontSize: font.sm,
+    fontSize: font.md,
+    color: colors.text,
     margin: 0,
   },
   button: {
-    fontSize: font.xs,
-    color: colors.destructive,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '28px',
+    borderRadius: radius.lg,
+    borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: colors.destructive,
-    borderRadius: radius.sm,
-    paddingBlock: space.xs,
-    paddingInline: space.sm,
+    borderColor: { default: mixes.border, ':hover': mixes.borderHover },
+    backgroundColor: { default: mixes.inputBg, ':hover': colors.mutedBg },
+    color: colors.text,
+    fontSize: font.sm,
+    fontWeight: 500,
+    paddingInline: space.md,
     cursor: 'pointer',
+    outlineWidth: { default: 0, ':focus-visible': '2px' },
+    outlineStyle: 'solid',
+    outlineColor: colors.ring,
+    outlineOffset: '2px',
   },
 });
 
@@ -62,11 +77,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   override render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div {...stylex.props(styles.panel)}>
-          <p {...stylex.props(styles.message)}>Something went wrong.</p>
-          <button type="button" {...stylex.props(styles.button)} onClick={() => window.location.reload()}>
-            Reload
-          </button>
+        <div {...stylex.props(styles.screen)}>
+          <div {...stylex.props(styles.card)}>
+            <p {...stylex.props(styles.message)}>Something went wrong.</p>
+            <button type="button" {...stylex.props(styles.button)} onClick={() => window.location.reload()}>
+              Reload
+            </button>
+          </div>
         </div>
       );
     }

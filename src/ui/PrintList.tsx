@@ -5,57 +5,48 @@ import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: mixes.border,
-    borderRadius: radius.md,
-    padding: space.lg,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: space.md,
-  },
-  heading: {
-    fontSize: font.sm,
-    fontWeight: 600,
-    margin: 0,
-  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     fontSize: font.sm,
   },
   th: {
-    textAlign: 'left',
+    textAlign: 'start',
     fontWeight: 500,
     fontSize: font.xs,
     color: colors.muted,
     paddingBlock: space.xs,
-    paddingInline: space.sm,
-    borderBottomWidth: 1,
+    paddingInline: 0,
+    borderBottomWidth: '1px',
     borderBottomStyle: 'solid',
-    borderBottomColor: mixes.border,
+    borderBottomColor: mixes.divider,
+  },
+  thEnd: {
+    textAlign: 'end',
   },
   td: {
     paddingBlock: space.sm,
-    paddingInline: space.sm,
-    borderBottomWidth: 1,
+    paddingInline: 0,
+    borderBottomWidth: '1px',
     borderBottomStyle: 'solid',
-    borderBottomColor: mixes.border,
+    borderBottomColor: mixes.divider,
+    whiteSpace: 'nowrap',
   },
   count: {
+    textAlign: 'end',
     fontWeight: 600,
     fontVariantNumeric: 'tabular-nums',
   },
   mirror: {
     display: 'inline-block',
     fontSize: font.xs,
-    color: colors.accent,
-    backgroundColor: mixes.inputBg,
+    lineHeight: '16px',
+    color: colors.text,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: mixes.borderHover,
     borderRadius: radius.sm,
-    paddingBlock: '2px',
-    paddingInline: space.sm,
+    paddingInline: '6px',
   },
   note: {
     fontSize: font.xs,
@@ -75,15 +66,22 @@ function mirrorLabel(g: BoardGroup): string | null {
 export function PrintList({ plan, model }: { plan: Plan | null; model: BoardModel }) {
   if (!plan) return null;
   return (
-    <section {...stylex.props(styles.card)}>
-      <h2 {...stylex.props(styles.heading)}>Print list</h2>
+    <>
       <table {...stylex.props(styles.table)}>
         <thead>
           <tr>
-            <th {...stylex.props(styles.th)}>Size</th>
-            <th {...stylex.props(styles.th)}>Holes</th>
-            <th {...stylex.props(styles.th)}>Qty</th>
-            <th {...stylex.props(styles.th)}>Mirror</th>
+            <th scope="col" {...stylex.props(styles.th)}>
+              Size
+            </th>
+            <th scope="col" {...stylex.props(styles.th)}>
+              Holes
+            </th>
+            <th scope="col" {...stylex.props(styles.th, styles.thEnd)}>
+              Qty
+            </th>
+            <th scope="col" {...stylex.props(styles.th)}>
+              Mirror
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -107,6 +105,6 @@ export function PrintList({ plan, model }: { plan: Plan | null; model: BoardMode
         </tbody>
       </table>
       <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
-    </section>
+    </>
   );
 }

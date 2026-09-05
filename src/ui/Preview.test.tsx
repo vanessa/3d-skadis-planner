@@ -30,4 +30,18 @@ describe('Preview', () => {
     expect(labels.join(' ')).toContain('8×8');
     expect(container.querySelectorAll('[data-mirror="x"]')).toHaveLength(1);
   });
+
+  it('draws the wall outline and omits labels on boards under 80 mm', () => {
+    // 260 x 60 on a mini: columns [6, 5] (140 + 120 mm), one row of 2 holes (60 mm).
+    const p = plan({ widthMm: 260, heightMm: 60, model: skadisInfinity, printer: mini });
+    const { container } = render(<Preview plan={p} />);
+    expect(container.querySelector('[data-outline]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-board] text')).toHaveLength(0);
+  });
+
+  it('keeps labels on boards of 80 mm or more', () => {
+    const p = plan({ widthMm: 80, heightMm: 80, model: skadisInfinity, printer: mini });
+    const { container } = render(<Preview plan={p} />);
+    expect(container.querySelectorAll('[data-board] text').length).toBeGreaterThan(0);
+  });
 });

@@ -1,54 +1,79 @@
 import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
-import { colors, radius, space } from './tokens.stylex';
+import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
+const MIN_LABEL_MM = 80; // 2-hole (60 mm) boards are too small to label
+
 const styles = stylex.create({
-  frame: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: mixes.border,
-    borderRadius: radius.md,
-    padding: space.md,
-  },
   svg: {
     display: 'block',
     width: '100%',
-    height: 'auto',
-    maxHeight: '60vh',
+    height: '100%',
+    overflow: 'visible',
+  },
+  board: {
+    fill: mixes.vizFillDim,
+    stroke: { default: colors.surface, ':hover': colors.accent },
+    strokeWidth: 2,
+    transitionProperty: 'stroke',
+    transitionDuration: '100ms',
+  },
+  boardMirrored: {
+    fill: mixes.vizFill,
+  },
+  value: {
+    fill: colors.text,
+    fontWeight: 600,
+    pointerEvents: 'none',
+  },
+  detail: {
+    fill: colors.muted,
+    pointerEvents: 'none',
+  },
+  outline: {
+    fill: 'none',
+    stroke: mixes.vizLine,
+    strokeWidth: 1,
+  },
+  hatch: {
+    stroke: mixes.vizGrid,
   },
 });
 
 function Board({ b }: { b: PlacedBoard }) {
+  const mirror = b.mirrorX && b.mirrorY ? 'xy' : b.mirrorX ? 'x' : b.mirrorY ? 'y' : undefined;
+  const mirrorLabel =
+    mirror === 'xy' ? 'mirror X+Y' : mirror === 'x' ? 'mirror X' : mirror === 'y' ? 'mirror Y' : null;
+  const showLabels = Math.min(b.widthMm, b.heightMm) >= MIN_LABEL_MM;
   const fontSize = Math.min(b.widthMm, b.heightMm) * 0.14;
   const cx = b.xMm + b.widthMm / 2;
   const cy = b.yMm + b.heightMm / 2;
-  const mirror = b.mirrorX && b.mirrorY ? 'xy' : b.mirrorX ? 'x' : b.mirrorY ? 'y' : undefined;
-  const mirrorLabel = mirror === 'xy' ? 'mirror X+Y' : mirror === 'x' ? 'mirror X' : mirror === 'y' ? 'mirror Y' : null;
   return (
     <g data-board data-mirror={mirror}>
       <rect
+        {...stylex.props(styles.board, mirror !== undefined && styles.boardMirrored)}
         x={b.xMm}
         y={b.yMm}
         width={b.widthMm}
         height={b.heightMm}
-        fill={mirror ? mixes.vizFill : mixes.vizFillDim}
-        stroke={mixes.vizLineStrong}
-        strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
       />
-      <text x={cx} y={cy - fontSize * 0.2} fontSize={fontSize} textAnchor="middle" fill={colors.text} fontWeight={600}>
-        {b.cols}×{b.rows}
-      </text>
-      <text x={cx} y={cy + fontSize * 0.9} fontSize={fontSize * 0.7} textAnchor="middle" fill={colors.text} opacity={0.7}>
-        {b.widthMm}×{b.heightMm} mm
-      </text>
-      {mirrorLabel && (
-        <text x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle" fill={mixes.vizLineStrong}>
-          {mirrorLabel}
-        </text>
+      {showLabels && (
+        <>
+          <text {...stylex.props(styles.value)} x={cx} y={cy - fontSize * 0.2} fontSize={fontSize} textAnchor="middle">
+            {b.cols}×{b.rows}
+          </text>
+          <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 0.9} fontSize={fontSize * 0.7} textAnchor="middle">
+            {b.widthMm}×{b.heightMm} mm
+          </text>
+          {mirrorLabel && (
+            <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle">
+              {mirrorLabel}
+            </text>
+          )}
+        </>
       )}
     </g>
   );
@@ -60,28 +85,27 @@ export function Preview({ plan }: { plan: Plan | null }) {
   const totalW = plan.coveredWidthMm + plan.leftoverWidthMm;
   const totalH = plan.coveredHeightMm + plan.leftoverHeightMm;
   return (
-    <div {...stylex.props(styles.frame)}>
-      <svg
-        {...stylex.props(styles.svg)}
-        viewBox={`0 0 ${totalW} ${totalH}`}
-        role="img"
-        aria-label="Board layout preview"
-      >
-        <defs>
-          <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="8" stroke={mixes.vizGrid} strokeWidth="3" />
-          </pattern>
-        </defs>
-        {plan.leftoverWidthMm > 0 && (
-          <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill={`url(#${hatchId})`} />
-        )}
-        {plan.leftoverHeightMm > 0 && (
-          <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
-        )}
-        {plan.boards.map((b) => (
-          <Board key={`${b.col}-${b.row}`} b={b} />
-        ))}
-      </svg>
-    </div>
+    <svg
+      {...stylex.props(styles.svg)}
+      viewBox={`0 0 ${totalW} ${totalH}`}
+      role="img"
+      aria-label="Board layout preview"
+    >
+      <defs>
+        <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line {...stylex.props(styles.hatch)} x1="4" y1="0" x2="4" y2="8" strokeWidth="3" />
+        </pattern>
+      </defs>
+      {plan.leftoverWidthMm > 0 && (
+        <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill={`url(#${hatchId})`} />
+      )}
+      {plan.leftoverHeightMm > 0 && (
+        <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
+      )}
+      {plan.boards.map((b) => (
+        <Board key={`${b.col}-${b.row}`} b={b} />
+      ))}
+      <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
