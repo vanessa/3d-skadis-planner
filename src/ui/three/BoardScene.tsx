@@ -180,8 +180,8 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
         onPointerMissed={() => setHovered(null)}
       >
         <FitCamera widthMm={widthMm} heightMm={heightMm} />
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[-widthMm, heightMm, 800]} intensity={1.2} />
+        <ambientLight intensity={3} />
+        <directionalLight position={[-widthMm, heightMm, 800]} intensity={2} />
         <Grid
           position={[widthMm / 2, -heightMm / 2, -0.5]}
           rotation={[Math.PI / 2, 0, 0]}

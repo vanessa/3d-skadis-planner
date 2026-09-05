@@ -12,6 +12,15 @@ First model: [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ike
     npm test
     npm run build     # static output in dist/
 
+## 3D view
+
+The preview card has a `2D / 3D` toggle. The 3D view generates every board
+as a real slotted mesh from the model's `pattern` (slot size, checkerboard
+rule, screw holes) and renders them with react-three-fiber, one instanced
+mesh per board size. Nothing is downloaded: the MakerWorld STL files are not
+redistributable, so the geometry is rebuilt from measured rules instead.
+Pan and zoom with the mouse; `Orbit` enables rotation.
+
 ## Add a board model
 
 1. Copy `src/models/skadisInfinity.ts` to a new file and fill in the fields

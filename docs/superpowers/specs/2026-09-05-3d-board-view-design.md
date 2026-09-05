@@ -161,12 +161,13 @@ Default export `BoardScene({ plan, model }: { plan: Plan; model: BoardModel })`.
 
 ### Token colours (`src/ui/three/useTokenColor.ts`)
 
-StyleX `defineVars` values are strings like `var(--x1abc)`. The hook takes
-such a string and a container element ref, resolves it with
-`getComputedStyle(el).getPropertyValue(name)`, and returns a `THREE.Color`
-(memoised; recomputed on theme change via a `MutationObserver` on
-`document.documentElement` attributes). Falls back to `#888888` when the
-var is unset (tests).
+StyleX `defineVars` values are strings like `var(--x1abc)`. `resolveTokenColor`
+attaches a probe element with `color: var(--x1abc)` to the document, reads
+its computed colour, and paints that into a 1×1 canvas to get plain RGB
+(browsers serialise resolved `oklch`/`color-mix` colours in forms three.js
+cannot parse). `useTokenColor` returns the hex string and re-resolves when
+the `<html>` element's attributes change (theme switch). Falls back to the
+given colour where canvas 2D is unavailable (tests).
 
 ### Preview card (`src/ui/PreviewCard.tsx`)
 
