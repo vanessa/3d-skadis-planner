@@ -118,7 +118,7 @@ element so native controls match.
 
 **Canvas.** Fills the viewport under the panel: `bg` colour with a dot grid
 (`radial-gradient` dots of `vizGrid`, 16 px spacing). On desktop the preview
-is centred in the area left of the panel (right padding 320 px); on mobile
+is centred in the area left of the panel (right padding 334 px: 10 px inset + 300 px panel + 24 px gutter); on mobile
 it is centred above the sheet. The SVG keeps its mm `viewBox` and fills the
 available box with the default `xMidYMid meet`, so the rectangle changes
 shape as the inputs change and always fits. The summary chip sits at the

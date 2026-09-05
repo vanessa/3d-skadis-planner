@@ -40,11 +40,9 @@ describe('PrintList', () => {
     expect(qtyCells).toEqual(['2', '2', '2', '2']);
   });
 
-  it('shows the mirror note and the model link', () => {
+  it('shows the mirror note', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     render(<PrintList plan={p} model={skadisInfinity} />);
     expect(screen.getByText(/right-click the board/)).toBeTruthy();
-    const link = screen.getByRole('link', { name: /IKEA Skadis Infinity/ }) as HTMLAnchorElement;
-    expect(link.href).toBe(skadisInfinity.url);
   });
 });

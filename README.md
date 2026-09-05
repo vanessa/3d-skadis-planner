@@ -30,5 +30,10 @@ Add an entry to `PRINTERS` in `src/printers/index.ts`.
 - `src/solver`: pure planning. `plan()` splits each axis into the fewest
   boards, prefers symmetric boards, then computes mirror flags and groups.
 - `src/ui`: React + StyleX. `planState.ts` turns the form into a plan.
+- The UI follows Toolcraft's design direction (https://toolcraft.sh): a dark
+  canvas-first workspace, a floating controls panel, Inter, and a neutral
+  geometry ladder for the preview. Tokens live in `src/ui/tokens.stylex.ts`
+  and `src/ui/mixes.stylex.ts`; the light theme in `src/ui/themes.stylex.ts`.
+  Theme preference is stored under `appearance.theme.v1`.
 
 Design spec: `docs/superpowers/specs/2026-09-05-skadis-board-planner-design.md`.

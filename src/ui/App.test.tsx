@@ -1,9 +1,12 @@
 import { StrictMode } from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
+import { skadisInfinity } from '../models/skadisInfinity';
 
 describe('App', () => {
+  beforeEach(() => window.localStorage.clear());
+
   it('renders the title and the default plan', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Board planner' })).toBeTruthy();
@@ -60,5 +63,27 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Width'), { target: { value: '' } });
     expect(screen.getByRole('alert')).toBeTruthy();
     expect(screen.getByText(/15 boards/)).toBeTruthy();
+  });
+
+  it('links to the model files from the panel footer', () => {
+    render(<App />);
+    const link = screen.getByRole('link', { name: /Open files on MakerWorld/ }) as HTMLAnchorElement;
+    expect(link.href).toBe(skadisInfinity.url);
+  });
+
+  it('applies the light theme class to the document when light is chosen', () => {
+    render(<App />);
+    const before = document.documentElement.className;
+    fireEvent.click(screen.getByRole('button', { name: 'Light theme' }));
+    expect(document.documentElement.className).not.toBe(before);
+    expect(document.documentElement.style.colorScheme).toBe('light');
+    fireEvent.click(screen.getByRole('button', { name: 'Dark theme' }));
+    expect(document.documentElement.className).toBe(before);
+    expect(document.documentElement.style.colorScheme).toBe('dark');
+  });
+
+  it('exposes the canvas as the main landmark', () => {
+    render(<App />);
+    expect(screen.getByRole('main')).toBeTruthy();
   });
 });

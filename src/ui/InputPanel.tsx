@@ -1,59 +1,14 @@
-import * as stylex from '@stylexjs/stylex';
 import type { FormState } from './planState';
 import { MODELS } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
-import { colors, font, radius, space } from './tokens.stylex';
-import { mixes } from './mixes.stylex';
+import { PanelSection } from './PanelSection';
+import { FieldRow, NumberField, SelectField } from './fields';
 
 export interface InputPanelProps {
   form: FormState;
   onChange: (patch: Partial<FormState>) => void;
 }
-
-const styles = stylex.create({
-  panel: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: space.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: mixes.border,
-    borderRadius: radius.md,
-    padding: space.lg,
-  },
-  row: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: space.sm,
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: space.xs,
-  },
-  label: {
-    fontSize: font.xs,
-    color: colors.muted,
-  },
-  control: {
-    fontSize: font.sm,
-    paddingBlock: space.sm,
-    paddingInline: space.sm,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: {
-      default: mixes.border,
-      ':focus': colors.accent,
-    },
-    borderRadius: radius.sm,
-    backgroundColor: colors.surface,
-    color: colors.text,
-    outline: 'none',
-    width: '100%',
-  },
-});
 
 function convert(value: string, from: Unit, to: Unit): string {
   const n = Number(value);
@@ -74,108 +29,54 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
   };
 
   return (
-    <form {...stylex.props(styles.panel)} onSubmit={(e) => e.preventDefault()}>
-      <div {...stylex.props(styles.row)}>
-        <label {...stylex.props(styles.field)}>
-          <span {...stylex.props(styles.label)}>Width</span>
-          <input
-            {...stylex.props(styles.control)}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="any"
-            value={form.width}
-            onChange={(e) => onChange({ width: e.target.value })}
-          />
-        </label>
-        <label {...stylex.props(styles.field)}>
-          <span {...stylex.props(styles.label)}>Height</span>
-          <input
-            {...stylex.props(styles.control)}
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="any"
-            value={form.height}
-            onChange={(e) => onChange({ height: e.target.value })}
-          />
-        </label>
-      </div>
-
-      <label {...stylex.props(styles.field)}>
-        <span {...stylex.props(styles.label)}>Unit</span>
-        <select
-          {...stylex.props(styles.control)}
+    <form onSubmit={(e) => e.preventDefault()}>
+      <PanelSection title="Space">
+        <FieldRow>
+          <NumberField label="Width" value={form.width} onChange={(width) => onChange({ width })} />
+          <NumberField label="Height" value={form.height} onChange={(height) => onChange({ height })} />
+        </FieldRow>
+        <SelectField
+          label="Unit"
           value={form.unit}
-          onChange={(e) => changeUnit(e.target.value as Unit)}
-        >
-          {UNITS.map((u) => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(u) => changeUnit(u as Unit)}
+          options={UNITS.map((u) => ({ value: u, label: u }))}
+        />
+      </PanelSection>
 
-      <label {...stylex.props(styles.field)}>
-        <span {...stylex.props(styles.label)}>Board model</span>
-        <select
-          {...stylex.props(styles.control)}
+      <PanelSection title="Board">
+        <SelectField
+          label="Model"
           value={form.modelId}
-          onChange={(e) => onChange({ modelId: e.target.value })}
-        >
-          {MODELS.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(modelId) => onChange({ modelId })}
+          options={MODELS.map((m) => ({ value: m.id, label: m.name }))}
+        />
+      </PanelSection>
 
-      <label {...stylex.props(styles.field)}>
-        <span {...stylex.props(styles.label)}>Printer</span>
-        <select
-          {...stylex.props(styles.control)}
+      <PanelSection title="Printer">
+        <SelectField
+          label="Printer"
           value={form.printerId}
-          onChange={(e) => onChange({ printerId: e.target.value })}
-        >
-          {PRINTERS.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-          <option value={CUSTOM_PRINTER_ID}>Custom bed size</option>
-        </select>
-      </label>
-
-      {isCustom && (
-        <div {...stylex.props(styles.row)}>
-          <label {...stylex.props(styles.field)}>
-            <span {...stylex.props(styles.label)}>Bed width</span>
-            <input
-              {...stylex.props(styles.control)}
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="any"
+          onChange={(printerId) => onChange({ printerId })}
+          options={[
+            ...PRINTERS.map((p) => ({ value: p.id, label: p.name })),
+            { value: CUSTOM_PRINTER_ID, label: 'Custom bed size' },
+          ]}
+        />
+        {isCustom && (
+          <FieldRow>
+            <NumberField
+              label="Bed width"
               value={form.customBedWidth}
-              onChange={(e) => onChange({ customBedWidth: e.target.value })}
+              onChange={(customBedWidth) => onChange({ customBedWidth })}
             />
-          </label>
-          <label {...stylex.props(styles.field)}>
-            <span {...stylex.props(styles.label)}>Bed depth</span>
-            <input
-              {...stylex.props(styles.control)}
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="any"
+            <NumberField
+              label="Bed depth"
               value={form.customBedDepth}
-              onChange={(e) => onChange({ customBedDepth: e.target.value })}
+              onChange={(customBedDepth) => onChange({ customBedDepth })}
             />
-          </label>
-        </div>
-      )}
+          </FieldRow>
+        )}
+      </PanelSection>
     </form>
   );
 }
