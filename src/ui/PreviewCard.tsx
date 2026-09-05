@@ -1,5 +1,6 @@
 import {
   Component,
+  Fragment,
   lazy,
   Suspense,
   useRef,
@@ -11,6 +12,7 @@ import {
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
+import { MAX_3D_BOARDS } from '../boards3d/placement';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { stageLayout } from './stageLayout';
@@ -23,6 +25,9 @@ const styles = stylex.create({
   scene: {
     width: '100%',
     height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   toggle: {
     position: 'absolute',
@@ -176,14 +181,29 @@ export function PreviewCard({
         {option('3d', '3D')}
       </div>
       {view === '2d' ? (
-        children
+        <Fragment key="2d">{children}</Fragment>
       ) : (
-        <div {...stylex.props(styles.scene)}>
-          <SceneBoundary onBack={() => setView('2d')}>
-            <Suspense fallback={<p {...stylex.props(styles.loading)}>Loading 3D…</p>}>
-              <BoardScene plan={plan} model={model} />
-            </Suspense>
-          </SceneBoundary>
+        <div key="3d" {...stylex.props(styles.scene)}>
+          {plan.boards.length > MAX_3D_BOARDS ? (
+            <div {...stylex.props(styles.notice)}>
+              <p {...stylex.props(styles.noticeText)}>
+                The 3D view is limited to {MAX_3D_BOARDS} boards; this plan has {plan.boards.length}.
+              </p>
+              <button
+                type="button"
+                {...stylex.props(styles.noticeButton)}
+                onClick={() => setView('2d')}
+              >
+                Back to 2D
+              </button>
+            </div>
+          ) : (
+            <SceneBoundary onBack={() => setView('2d')}>
+              <Suspense fallback={<p {...stylex.props(styles.loading)}>Loading 3D…</p>}>
+                <BoardScene plan={plan} model={model} />
+              </Suspense>
+            </SceneBoundary>
+          )}
         </div>
       )}
     </div>

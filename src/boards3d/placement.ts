@@ -2,6 +2,9 @@ import type { Plan, PlacedBoard } from '../solver';
 import type { BoardModel } from '../models/types';
 import { boardGeometryKey } from './geometry';
 
+/** Above this many boards, the 3D view shows a limit notice instead of loading the scene. */
+export const MAX_3D_BOARDS = 2000;
+
 /** Boards that share one geometry, with where each copy goes. */
 export interface InstanceGroup {
   key: string;

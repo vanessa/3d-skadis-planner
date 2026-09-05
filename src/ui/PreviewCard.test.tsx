@@ -63,6 +63,18 @@ describe('PreviewCard', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
+  it('shows a limit notice instead of the scene above the board cap', async () => {
+    const bigPrinter = getPrinter('custom', { bedWidthMm: 60, bedDepthMm: 60 });
+    const bigPlan = plan({ widthMm: 10000, heightMm: 10000, model: skadisInfinity, printer: bigPrinter });
+    expect(bigPlan.boards.length).toBeGreaterThan(2000);
+    const { container } = renderCard(bigPlan);
+    fireEvent.click(screen.getByRole('radio', { name: '3D' }));
+    expect(await screen.findByText(/limited to 2000 boards/)).toBeTruthy();
+    expect(screen.queryByTestId('board-scene')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to 2D' }));
+    expect(container.querySelector('svg')).not.toBeNull();
+  });
+
   it('moves selection and focus with the arrow keys', async () => {
     renderCard(p);
     const twoD = screen.getByRole('radio', { name: '2D' });
