@@ -2,6 +2,7 @@ import { useState } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { InputPanel } from './InputPanel';
 import { Summary } from './Summary';
+import { Preview } from './Preview';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import type { Plan } from '../solver';
 import { colors, font, space } from './tokens.stylex';
@@ -83,6 +84,7 @@ export default function App() {
           <InputPanel form={state.form} onChange={onChange} />
           <section {...stylex.props(styles.results)}>
             <Summary plan={state.lastPlan} error={state.outcome.error} />
+            <Preview plan={state.lastPlan} />
           </section>
         </div>
       </div>
