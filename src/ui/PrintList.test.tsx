@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { PrintList } from './PrintList';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
@@ -18,11 +18,26 @@ describe('PrintList', () => {
     render(<PrintList plan={p} model={skadisInfinity} />);
     const rows = screen.getAllByRole('row').slice(1); // skip header
     expect(rows).toHaveLength(2);
-    expect(rows[0].textContent).toContain('180 × 180 mm');
-    expect(rows[0].textContent).toContain('8 × 8');
-    expect(rows[0].textContent).toContain('1');
-    expect(rows[0].textContent).toContain('—');
-    expect(rows[1].textContent).toContain('Mirror X');
+    const cells0 = within(rows[0])
+      .getAllByRole('cell')
+      .map((c) => c.textContent);
+    expect(cells0).toEqual(['180 × 180 mm', '8 × 8', '1', '—']);
+    const cells1 = within(rows[1])
+      .getAllByRole('cell')
+      .map((c) => c.textContent);
+    expect(cells1[2]).toBe('1');
+    expect(cells1[3]).toBe('Mirror X');
+  });
+
+  it('shows all four mirror variants with the correct quantity and mirror label', () => {
+    const p = plan({ widthMm: 720, heightMm: 360, model: skadisInfinity, printer: mini });
+    render(<PrintList plan={p} model={skadisInfinity} />);
+    const rows = screen.getAllByRole('row').slice(1); // skip header
+    expect(rows).toHaveLength(4);
+    const mirrorCells = rows.map((r) => within(r).getAllByRole('cell')[3].textContent);
+    expect(mirrorCells).toEqual(['—', 'Mirror X', 'Mirror Y', 'Mirror X + Y']);
+    const qtyCells = rows.map((r) => within(r).getAllByRole('cell')[2].textContent);
+    expect(qtyCells).toEqual(['2', '2', '2', '2']);
   });
 
   it('shows the mirror note and the model link', () => {
