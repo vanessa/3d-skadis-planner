@@ -12,7 +12,7 @@ const styles = stylex.create({
     pointerEvents: 'none',
   },
   chip: {
-    display: 'inline-flex',
+    display: { default: 'inline-flex', '@media (max-width: 800px)': 'block' },
     alignItems: 'center',
     height: { default: '28px', '@media (max-width: 800px)': 'auto' },
     minHeight: '28px',
@@ -26,6 +26,7 @@ const styles = stylex.create({
     backgroundColor: colors.surface,
     color: colors.text,
     fontSize: font.sm,
+    lineHeight: '18px',
     whiteSpace: { default: 'nowrap', '@media (max-width: 800px)': 'normal' },
   },
   count: {

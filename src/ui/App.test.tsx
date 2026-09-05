@@ -86,4 +86,10 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByRole('main')).toBeTruthy();
   });
+
+  it('shows the fit control and zoom readout on the canvas', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Fit to view' })).toBeTruthy();
+    expect(screen.getByText('100%')).toBeTruthy();
+  });
 });
