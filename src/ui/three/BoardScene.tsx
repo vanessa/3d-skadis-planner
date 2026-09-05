@@ -75,13 +75,17 @@ interface Hover {
 function FitCamera({ widthMm, heightMm }: { widthMm: number; heightMm: number }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
+  const controls = useThree((s) => s.controls) as { target: THREE.Vector3; update: () => void } | null;
   useEffect(() => {
     if (!(camera instanceof THREE.OrthographicCamera)) return;
     camera.zoom = Math.min(size.width / (widthMm * FIT_MARGIN), size.height / (heightMm * FIT_MARGIN));
     camera.position.set(widthMm / 2, -heightMm / 2, CAMERA_DISTANCE);
-    camera.lookAt(widthMm / 2, -heightMm / 2, 0);
     camera.updateProjectionMatrix();
-  }, [camera, size.width, size.height, widthMm, heightMm]);
+    if (controls) {
+      controls.target.set(widthMm / 2, -heightMm / 2, 0);
+      controls.update();
+    }
+  }, [camera, size.width, size.height, widthMm, heightMm, controls]);
   return null;
 }
 
@@ -138,10 +142,9 @@ function HoverChip({ board }: { board: PlacedBoard }) {
       position={[board.xMm + board.widthMm / 2, -(board.yMm + board.heightMm / 2), 6]}
       center
       zIndexRange={[10, 0]}
+      className={stylex.props(styles.chip).className}
     >
-      <div {...stylex.props(styles.chip)}>
-        {board.cols}×{board.rows} · {board.widthMm}×{board.heightMm} mm{mirror ? ` · ${mirror}` : ''}
-      </div>
+      {board.cols}×{board.rows} · {board.widthMm}×{board.heightMm} mm{mirror ? ` · ${mirror}` : ''}
     </Html>
   );
 }
