@@ -57,6 +57,7 @@ describe('Preview', () => {
     const texts = container.querySelectorAll('[data-board] text');
     expect(Number(texts[0].getAttribute('font-size'))).toBeCloseTo(13 / 2);
     expect(Number(texts[1].getAttribute('font-size'))).toBeCloseTo(11 / 2);
+    expect(container.querySelector('pattern')!.getAttribute('width')).toBe('4');
   });
 
   it('omits labels when the board is under 64 screen px', () => {
@@ -65,5 +66,14 @@ describe('Preview', () => {
     const { container } = render(<Preview plan={p} viewport={{ scale: 0.3, tx: 0, ty: 0 }} width={1000} height={600} />);
     expect(container.querySelectorAll('[data-board]')).toHaveLength(15);
     expect(container.querySelectorAll('[data-board] text')).toHaveLength(0);
+  });
+
+  it('ignores the viewport and uses the identity fallback without layout', () => {
+    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
+    const { container } = render(<Preview plan={p} viewport={{ scale: 2, tx: 10, ty: 20 }} width={0} height={0} />);
+    const svg = container.querySelector('svg')!;
+    expect(svg.getAttribute('viewBox')).toBe('0 0 360 180');
+    const g = container.querySelector('svg > g[transform]')!;
+    expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1)');
   });
 });

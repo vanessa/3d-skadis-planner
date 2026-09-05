@@ -16,7 +16,7 @@ const styles = stylex.create({
     display: 'block',
     width: '100%',
     height: '100%',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   board: {
     fill: mixes.vizFillDim,
