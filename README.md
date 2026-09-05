@@ -1,0 +1,34 @@
+# Board planner
+
+Enter the width and height of a wall area and get the fewest 3D-printable
+pegboard boards that cover it, sized to your printer's bed.
+
+First model: [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity) by AU3D.
+
+## Run
+
+    npm install
+    npm run dev       # http://localhost:5173
+    npm test
+    npm run build     # static output in dist/
+
+## Add a board model
+
+1. Copy `src/models/skadisInfinity.ts` to a new file and fill in the fields
+   of `BoardModel` (see `src/models/types.ts`).
+2. Add it to `MODELS` in `src/models/index.ts`.
+
+The solver assumes `sizeMm(holes) === pitchMm * (holes + 1)`.
+
+## Add a printer
+
+Add an entry to `PRINTERS` in `src/printers/index.ts`.
+
+## Layout
+
+- `src/models`, `src/printers`, `src/units.ts`: data and conversions.
+- `src/solver`: pure planning. `plan()` splits each axis into the fewest
+  boards, prefers symmetric boards, then computes mirror flags and groups.
+- `src/ui`: React + StyleX. `planState.ts` turns the form into a plan.
+
+Design spec: `docs/superpowers/specs/2026-09-05-skadis-board-planner-design.md`.
