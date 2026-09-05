@@ -1,8 +1,10 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
+import type { BoardModel } from '../models';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
+import { PreviewCard } from './PreviewCard';
 import { SummaryChip } from './SummaryChip';
 
 const MOBILE = '@media (max-width: 800px)';
@@ -37,14 +39,24 @@ const styles = stylex.create({
   },
 });
 
-export function Canvas({ plan, error }: { plan: Plan | null; error: string | null }) {
+export function Canvas({
+  plan,
+  error,
+  model,
+}: {
+  plan: Plan | null;
+  error: string | null;
+  model: BoardModel;
+}) {
   return (
     <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
       <div {...stylex.props(styles.stage)}>
-        <Preview plan={plan} />
+        <PreviewCard plan={plan} model={model}>
+          <Preview plan={plan} />
+        </PreviewCard>
       </div>
     </main>
   );
