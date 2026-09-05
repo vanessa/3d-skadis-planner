@@ -38,6 +38,19 @@ describe('App', () => {
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
 
+  it('does not show a leftover fragment when it rounds to 0 mm', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '1000.3' } });
+    expect(screen.getByText(/15 boards/)).toBeTruthy();
+    expect(screen.queryByText(/left on the right/)).toBeNull();
+  });
+
+  it('shows a leftover fragment when it rounds above 0 mm', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '1015' } });
+    expect(screen.getByText(/15 mm left on the right/)).toBeTruthy();
+  });
+
   it('shows an error and keeps the last plan under StrictMode', () => {
     render(
       <StrictMode>

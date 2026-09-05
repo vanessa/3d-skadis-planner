@@ -51,8 +51,8 @@ export function Summary({ plan, error }: SummaryProps) {
           </p>
           <p {...stylex.props(styles.detail)}>
             Covers {mm(plan.coveredWidthMm)} × {mm(plan.coveredHeightMm)}
-            {plan.leftoverWidthMm > 0 && ` · ${mm(plan.leftoverWidthMm)} left on the right`}
-            {plan.leftoverHeightMm > 0 && ` · ${mm(plan.leftoverHeightMm)} left at the bottom`}
+            {Math.round(plan.leftoverWidthMm) > 0 && ` · ${mm(plan.leftoverWidthMm)} left on the right`}
+            {Math.round(plan.leftoverHeightMm) > 0 && ` · ${mm(plan.leftoverHeightMm)} left at the bottom`}
           </p>
         </>
       )}
