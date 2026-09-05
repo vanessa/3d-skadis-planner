@@ -1,3 +1,4 @@
 .superpowers
 node_modules
 dist
+.claude/worktrees/
