@@ -11,6 +11,7 @@ export const colors = stylex.defineVars({
   danger: '#b91c1c',
   dangerSoft: '#fef2f2',
   boardFill: '#eef2ff',
+  boardFillMirror: '#e0e7ff',
   boardStroke: '#3730a3',
   leftover: '#d6d3d1',
 });

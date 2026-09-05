@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
 import { colors, radius, space } from './tokens.stylex';
@@ -19,12 +20,6 @@ const styles = stylex.create({
   },
 });
 
-const STROKE_COLOR = '#3730a3';
-const FILL_COLOR = '#eef2ff';
-const MIRROR_FILL = '#e0e7ff';
-const LEFTOVER_COLOR = '#d6d3d1';
-const TEXT_COLOR = '#1c1917';
-
 function Board({ b }: { b: PlacedBoard }) {
   const fontSize = Math.min(b.widthMm, b.heightMm) * 0.14;
   const cx = b.xMm + b.widthMm / 2;
@@ -38,19 +33,19 @@ function Board({ b }: { b: PlacedBoard }) {
         y={b.yMm}
         width={b.widthMm}
         height={b.heightMm}
-        fill={mirror ? MIRROR_FILL : FILL_COLOR}
-        stroke={STROKE_COLOR}
+        fill={mirror ? colors.boardFillMirror : colors.boardFill}
+        stroke={colors.boardStroke}
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
       />
-      <text x={cx} y={cy - fontSize * 0.2} fontSize={fontSize} textAnchor="middle" fill={TEXT_COLOR} fontWeight={600}>
+      <text x={cx} y={cy - fontSize * 0.2} fontSize={fontSize} textAnchor="middle" fill={colors.text} fontWeight={600}>
         {b.cols}×{b.rows}
       </text>
-      <text x={cx} y={cy + fontSize * 0.9} fontSize={fontSize * 0.7} textAnchor="middle" fill={TEXT_COLOR} opacity={0.7}>
+      <text x={cx} y={cy + fontSize * 0.9} fontSize={fontSize * 0.7} textAnchor="middle" fill={colors.text} opacity={0.7}>
         {b.widthMm}×{b.heightMm} mm
       </text>
       {mirrorLabel && (
-        <text x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle" fill={STROKE_COLOR}>
+        <text x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle" fill={colors.boardStroke}>
           {mirrorLabel}
         </text>
       )}
@@ -59,6 +54,7 @@ function Board({ b }: { b: PlacedBoard }) {
 }
 
 export function Preview({ plan }: { plan: Plan | null }) {
+  const hatchId = useId();
   if (!plan) return null;
   const totalW = plan.coveredWidthMm + plan.leftoverWidthMm;
   const totalH = plan.coveredHeightMm + plan.leftoverHeightMm;
@@ -71,15 +67,15 @@ export function Preview({ plan }: { plan: Plan | null }) {
         aria-label="Board layout preview"
       >
         <defs>
-          <pattern id="leftover-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="8" stroke={LEFTOVER_COLOR} strokeWidth="3" />
+          <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke={colors.leftover} strokeWidth="3" />
           </pattern>
         </defs>
         {plan.leftoverWidthMm > 0 && (
-          <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill="url(#leftover-hatch)" />
+          <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill={`url(#${hatchId})`} />
         )}
         {plan.leftoverHeightMm > 0 && (
-          <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill="url(#leftover-hatch)" />
+          <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
         )}
         {plan.boards.map((b) => (
           <Board key={`${b.col}-${b.row}`} b={b} />
