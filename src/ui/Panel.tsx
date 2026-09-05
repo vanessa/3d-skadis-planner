@@ -57,9 +57,6 @@ const styles = stylex.create({
   footer: {
     flexShrink: 0,
     padding: space.md,
-    borderTopWidth: '1px',
-    borderTopStyle: 'solid',
-    borderTopColor: mixes.divider,
   },
 });
 

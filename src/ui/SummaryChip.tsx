@@ -14,8 +14,11 @@ const styles = stylex.create({
   chip: {
     display: 'inline-flex',
     alignItems: 'center',
-    height: '28px',
+    height: { default: '28px', '@media (max-width: 800px)': 'auto' },
+    minHeight: '28px',
+    maxWidth: 'calc(100vw - 20px)',
     paddingInline: space.md,
+    paddingBlock: { default: 0, '@media (max-width: 800px)': space.xs },
     borderRadius: radius.lg,
     borderWidth: '1px',
     borderStyle: 'solid',
@@ -23,14 +26,14 @@ const styles = stylex.create({
     backgroundColor: colors.surface,
     color: colors.text,
     fontSize: font.sm,
-    whiteSpace: 'nowrap',
+    whiteSpace: { default: 'nowrap', '@media (max-width: 800px)': 'normal' },
   },
   count: {
     fontWeight: 600,
   },
   detail: {
     color: colors.muted,
-    whiteSpace: 'pre',
+    whiteSpace: { default: 'pre', '@media (max-width: 800px)': 'pre-wrap' },
   },
   error: {
     color: colors.destructive,

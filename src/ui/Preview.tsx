@@ -5,6 +5,10 @@ import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
 const MIN_LABEL_MM = 80; // 2-hole (60 mm) boards are too small to label
+// 0.07: a 1000 mm wall fills roughly 900 px of viewport, so a 200 mm board
+// (the smallest common board) renders its hole-count label at ~13 px, in
+// line with the type scale's font.md.
+const LABEL_SCALE = 0.07;
 
 const styles = stylex.create({
   svg: {
@@ -47,7 +51,7 @@ function Board({ b }: { b: PlacedBoard }) {
   const mirrorLabel =
     mirror === 'xy' ? 'mirror X+Y' : mirror === 'x' ? 'mirror X' : mirror === 'y' ? 'mirror Y' : null;
   const showLabels = Math.min(b.widthMm, b.heightMm) >= MIN_LABEL_MM;
-  const fontSize = Math.min(b.widthMm, b.heightMm) * 0.14;
+  const fontSize = Math.min(b.widthMm, b.heightMm) * LABEL_SCALE;
   const cx = b.xMm + b.widthMm / 2;
   const cy = b.yMm + b.heightMm / 2;
   return (
@@ -65,11 +69,11 @@ function Board({ b }: { b: PlacedBoard }) {
           <text {...stylex.props(styles.value)} x={cx} y={cy - fontSize * 0.2} fontSize={fontSize} textAnchor="middle">
             {b.cols}×{b.rows}
           </text>
-          <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 0.9} fontSize={fontSize * 0.7} textAnchor="middle">
+          <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 1.0} fontSize={fontSize * 0.85} textAnchor="middle">
             {b.widthMm}×{b.heightMm} mm
           </text>
           {mirrorLabel && (
-            <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle">
+            <text {...stylex.props(styles.detail)} x={cx} y={cy + fontSize * 2.0} fontSize={fontSize * 0.85} textAnchor="middle">
               {mirrorLabel}
             </text>
           )}

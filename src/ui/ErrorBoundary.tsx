@@ -11,6 +11,7 @@ const styles = stylex.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bg,
+    fontFamily: font.family,
   },
   card: {
     display: 'flex',
@@ -43,7 +44,7 @@ const styles = stylex.create({
     fontSize: font.sm,
     fontWeight: 500,
     paddingInline: space.md,
-    cursor: 'pointer',
+    cursor: 'default',
     outlineWidth: { default: 0, ':focus-visible': '2px' },
     outlineStyle: 'solid',
     outlineColor: colors.ring,
