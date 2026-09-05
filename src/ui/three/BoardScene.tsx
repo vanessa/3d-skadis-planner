@@ -154,6 +154,8 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
   const [hovered, setHovered] = useState<Hover | null>(null);
   const groups = useMemo(() => instancesFor(plan, model), [plan, model]);
 
+  useEffect(() => setHovered(null), [plan]);
+
   const fill = useTokenColor(mixes.vizFillDim, '#3a3a3a');
   const hoverFill = useTokenColor(colors.accent, '#0c8ce9');
   const gridCell = useTokenColor(mixes.vizGrid, '#2a2a2a');
@@ -184,6 +186,7 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
       </button>
       <Canvas
         orthographic
+        frameloop="demand"
         dpr={[1, 2]}
         camera={{ position: [widthMm / 2, -heightMm / 2, CAMERA_DISTANCE], zoom: 1, near: 0.1, far: 5000 }}
         onPointerMissed={() => setHovered(null)}
@@ -226,6 +229,8 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
           enableDamping
           dampingFactor={0.15}
           screenSpacePanning
+          rotateSpeed={0.3}
+          maxPolarAngle={Math.PI * 0.45}
         />
       </Canvas>
     </div>
