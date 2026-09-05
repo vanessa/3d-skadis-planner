@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useRef } from 'react';
 import { render, screen, fireEvent, createEvent, act } from '@testing-library/react';
 import { useViewport } from './useViewport';
 import type { Size } from './viewport';
 
-function Harness({ world }: { world: Size | null }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const vp = useViewport(ref, world);
+function Harness({ world, show = true }: { world: Size | null; show?: boolean }) {
+  const vp = useViewport(world);
   return (
     <div>
-      <div data-testid="stage" ref={ref} {...vp.handlers} />
+      {show && <div data-testid="stage" ref={vp.stageRef} {...vp.handlers} />}
       <output data-testid="state">
         {JSON.stringify({ viewport: vp.viewport, fitted: vp.fitted, ratio: vp.ratio, size: vp.size, dragging: vp.dragging })}
       </output>
@@ -21,13 +19,16 @@ function Harness({ world }: { world: Size | null }) {
 const read = () => JSON.parse(screen.getByTestId('state').textContent ?? '{}');
 
 let resizeCallbacks: ResizeObserverCallback[] = [];
+let resizeObserverConstructions = 0;
 
 beforeEach(() => {
   resizeCallbacks = [];
+  resizeObserverConstructions = 0;
   vi.stubGlobal(
     'ResizeObserver',
     class {
       constructor(cb: ResizeObserverCallback) {
+        resizeObserverConstructions += 1;
         resizeCallbacks.push(cb);
       }
       observe() {}
@@ -73,6 +74,9 @@ describe('useViewport', () => {
     expect(s.fitted).toBe(false);
     expect(s.viewport.scale).toBeCloseTo(0.752 * Math.exp(0.15));
     expect(s.ratio).toBeCloseTo(Math.exp(0.15));
+    const k = Math.exp(0.15);
+    expect(s.viewport.tx).toBeCloseTo(100 - (100 - 24) * k);
+    expect(s.viewport.ty).toBeCloseTo(100 - (100 - 74.4) * k);
   });
 
   it('pans on pointer drag past the 3 px threshold and stops on pointer up', () => {
@@ -92,6 +96,17 @@ describe('useViewport', () => {
     fireEvent.pointerUp(stage, { pointerId: 1 });
     s = read();
     expect(s.dragging).toBe(false);
+  });
+
+  it('releases pointer capture when the primary button vanishes without a pointerup', () => {
+    render(<Harness world={world} />);
+    const stage = screen.getByTestId('stage');
+    fireEvent.pointerDown(stage, { button: 0, buttons: 1, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(stage, { pointerId: 1, buttons: 1, clientX: 130, clientY: 125 });
+    expect(read().dragging).toBe(true);
+    fireEvent.pointerMove(stage, { pointerId: 1, buttons: 0, clientX: 140, clientY: 135 });
+    expect(read().dragging).toBe(false);
+    expect(HTMLElement.prototype.releasePointerCapture).toHaveBeenCalledWith(1);
   });
 
   it('refits on double-click and on the refit callback', () => {
@@ -139,5 +154,30 @@ describe('useViewport', () => {
   it('renders identity with a null world', () => {
     render(<Harness world={null} />);
     expect(read().viewport).toEqual({ scale: 1, tx: 0, ty: 0 });
+  });
+
+  it('re-measures and re-attaches the wheel listener when the stage element is swapped out', () => {
+    const { rerender } = render(<Harness world={world} show />);
+    const stageBefore = screen.getByTestId('stage');
+    act(() => {
+      fireEvent.wheel(stageBefore, { deltaY: -100, deltaMode: 0, clientX: 0, clientY: 0 });
+    });
+    const scaleAfterFirstWheel = read().viewport.scale;
+    expect(scaleAfterFirstWheel).toBeCloseTo(0.752 * Math.exp(0.15));
+
+    // Unmount the stage element (as happens when a parallel PreviewCard hides
+    // it in 3D mode) and remount a brand-new node (2D mode again).
+    rerender(<Harness world={world} show={false} />);
+    rerender(<Harness world={world} show />);
+
+    const s = read();
+    expect(s.size).toEqual({ width: 800, height: 600 });
+
+    const stageAfter = screen.getByTestId('stage');
+    act(() => {
+      fireEvent.wheel(stageAfter, { deltaY: -100, deltaMode: 0, clientX: 0, clientY: 0 });
+    });
+    expect(read().viewport.scale).not.toBeCloseTo(scaleAfterFirstWheel);
+    expect(resizeObserverConstructions).toBe(2);
   });
 });

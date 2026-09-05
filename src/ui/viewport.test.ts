@@ -74,4 +74,7 @@ describe('wheelFactor', () => {
     expect(wheelFactor(-10000, 0)).toBe(2);
     expect(wheelFactor(10000, 0)).toBe(0.5);
   });
+  it('scales trackpad pinch (ctrlKey) deltas by 10, matching an unscaled 10x delta', () => {
+    expect(wheelFactor(-10, 0, true)).toBe(wheelFactor(-100, 0));
+  });
 });
