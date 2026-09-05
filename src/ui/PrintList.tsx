@@ -63,9 +63,6 @@ const styles = stylex.create({
     margin: 0,
     lineHeight: 1.5,
   },
-  link: {
-    color: colors.accent,
-  },
 });
 
 function mirrorLabel(g: BoardGroup): string | null {
@@ -110,12 +107,6 @@ export function PrintList({ plan, model }: { plan: Plan | null; model: BoardMode
         </tbody>
       </table>
       <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
-      <p {...stylex.props(styles.note)}>
-        Files:{' '}
-        <a {...stylex.props(styles.link)} href={model.url} target="_blank" rel="noreferrer">
-          {model.name} on MakerWorld
-        </a>
-      </p>
     </section>
   );
 }

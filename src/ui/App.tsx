@@ -1,59 +1,43 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { InputPanel } from './InputPanel';
-import { Summary } from './Summary';
-import { Preview } from './Preview';
+import { Panel } from './Panel';
+import { PanelSection } from './PanelSection';
+import { ThemeToggle } from './ThemeToggle';
+import { Canvas } from './Canvas';
 import { PrintList } from './PrintList';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
-import type { Plan } from '../solver';
 import { getModel } from '../models';
-import { colors, font, space } from './tokens.stylex';
+import type { Plan } from '../solver';
+import { useTheme } from './useTheme';
+import { lightTheme } from './themes.stylex';
+import { colors, font, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
-  page: {
-    minHeight: '100vh',
-    backgroundColor: colors.bg,
-    color: colors.text,
+  app: {
     fontFamily: font.family,
-    paddingBlock: space.xl,
-    paddingInline: space.lg,
+    color: colors.text,
   },
-  inner: {
-    maxWidth: 1100,
-    marginInline: 'auto',
+  footerLink: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: space.lg,
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: space.xs,
-  },
-  title: {
-    fontSize: font.lg,
-    fontWeight: 600,
-    margin: 0,
-  },
-  subtitle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '28px',
+    borderRadius: radius.lg,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: { default: mixes.border, ':hover': mixes.borderHover },
+    backgroundColor: { default: mixes.inputBg, ':hover': colors.mutedBg },
+    color: colors.text,
     fontSize: font.sm,
-    color: colors.muted,
-    margin: 0,
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: {
-      default: '320px minmax(0, 1fr)',
-      '@media (max-width: 800px)': 'minmax(0, 1fr)',
-    },
-    gap: space.lg,
-    alignItems: 'start',
-  },
-  results: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: space.lg,
-    minWidth: 0,
+    fontWeight: 500,
+    textDecoration: 'none',
+    paddingInline: space.md,
+    outlineWidth: { default: 0, ':focus-visible': '2px' },
+    outlineStyle: 'solid',
+    outlineColor: colors.ring,
+    outlineOffset: '2px',
   },
 });
 
@@ -68,30 +52,41 @@ function stateFor(form: FormState, lastPlan: Plan | null): AppState {
   return { form, outcome, lastPlan: outcome.plan ?? lastPlan };
 }
 
+const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').filter(Boolean);
+
 export default function App() {
   const [state, setState] = useState<AppState>(() => stateFor(DEFAULT_FORM, null));
+  const { preference, resolvedTheme, setPreference } = useTheme();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (resolvedTheme === 'light') root.classList.add(...lightThemeClasses);
+    else root.classList.remove(...lightThemeClasses);
+    root.style.colorScheme = resolvedTheme;
+  }, [resolvedTheme]);
 
   const onChange = (patch: Partial<FormState>) =>
     setState((s) => stateFor({ ...s.form, ...patch }, s.lastPlan));
 
+  const model = getModel(state.form.modelId);
+
   return (
-    <main {...stylex.props(styles.page)}>
-      <div {...stylex.props(styles.inner)}>
-        <header {...stylex.props(styles.header)}>
-          <h1 {...stylex.props(styles.title)}>Board planner</h1>
-          <p {...stylex.props(styles.subtitle)}>
-            Enter the space you want to cover. Get the fewest printable boards that fit.
-          </p>
-        </header>
-        <div {...stylex.props(styles.grid)}>
-          <InputPanel form={state.form} onChange={onChange} />
-          <section {...stylex.props(styles.results)}>
-            <Summary plan={state.lastPlan} error={state.outcome.error} />
-            <Preview plan={state.lastPlan} />
-            <PrintList plan={state.lastPlan} model={getModel(state.form.modelId)} />
-          </section>
-        </div>
-      </div>
-    </main>
+    <div {...stylex.props(styles.app)}>
+      <Canvas plan={state.lastPlan} error={state.outcome.error} />
+      <Panel
+        title="Board planner"
+        headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
+        footer={
+          <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">
+            Open files on MakerWorld
+          </a>
+        }
+      >
+        <InputPanel form={state.form} onChange={onChange} />
+        <PanelSection title="Print list">
+          <PrintList plan={state.lastPlan} model={model} />
+        </PanelSection>
+      </Panel>
+    </div>
   );
 }
