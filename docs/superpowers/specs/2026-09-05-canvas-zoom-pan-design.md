@@ -25,7 +25,7 @@ introduces a canvas toolbar where the 3D view's `2D / 3D` toggle can sit.
 | Zoom | Mouse wheel and trackpad scroll zoom around the cursor. Range: 0.5× to 16× of the fit scale. Ctrl/⌘+wheel (browser pinch) is captured too so the page never browser-zooms. |
 | Pan | Pointer drag on the stage (mouse or single touch). Cursor `grab`, `grabbing` while dragging. |
 | Refit | Double-click on the stage, or the Fit button. |
-| Toolbar | A small pill at the canvas's bottom-left: a `Fit` button and a zoom readout (`100%` = fit). The 3D branch can add its `2D / 3D` segmented control to the same toolbar. |
+| Toolbar | A small pill at the 2D stage's bottom-left: a `Fit` button and a zoom readout (`100%` = fit). It lives inside the 2D stage subtree, so the 3D branch's `PreviewCard` wrapper hides it in 3D mode; that branch overlays its `2D / 3D` toggle at the stage's top-right. |
 | Labels | Constant screen size: hole count 13 px, mm size 11 px, mirror line 11 px. Shown only when the board's shorter side is at least 64 screen px; otherwise omitted. |
 | Strokes and hatch | Already non-scaling. The hatch pattern keeps an 8 px screen pitch at any zoom. |
 | Out of scope | Pinch-to-zoom with two touch points, keyboard shortcuts, minimap, zoom persistence, any change to the 3D view. |
@@ -122,12 +122,12 @@ and stage geometry from the port are unchanged.
 
 ### `CanvasToolbar.tsx`
 
-Fixed at the canvas's bottom-left (10 px inset; on mobile it sits 10 px
-above the panel sheet), `surface` background, 1 px `border`, radius 8,
-28 px tall: a `Fit` button (secondary style, `aria-label="Fit to view"`)
-and a readout `100%` (`muted`, tabular numerals, `aria-live="polite"`).
-Accepts `children` so the 3D branch can add its segmented control without
-editing the toolbar.
+Absolutely positioned at the stage's bottom-left (10 px inset), `surface`
+background, 1 px `border`, radius 8, 28 px tall: a `Fit` button (secondary
+style, `aria-label="Fit to view"`) and a readout `100%` (`muted`, tabular
+numerals, `aria-live="polite"`). Pointer events inside the toolbar stop
+propagation so clicking it never starts a pan. The stage's top-right corner
+is reserved for the 3D branch's `2D / 3D` toggle.
 
 ### `SummaryChip.tsx` (parked port item)
 
