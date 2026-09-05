@@ -3,8 +3,10 @@ import * as stylex from '@stylexjs/stylex';
 import { InputPanel } from './InputPanel';
 import { Summary } from './Summary';
 import { Preview } from './Preview';
+import { PrintList } from './PrintList';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import type { Plan } from '../solver';
+import { getModel } from '../models';
 import { colors, font, space } from './tokens.stylex';
 
 const styles = stylex.create({
@@ -85,6 +87,7 @@ export default function App() {
           <section {...stylex.props(styles.results)}>
             <Summary plan={state.lastPlan} error={state.outcome.error} />
             <Preview plan={state.lastPlan} />
+            <PrintList plan={state.lastPlan} model={getModel(state.form.modelId)} />
           </section>
         </div>
       </div>
