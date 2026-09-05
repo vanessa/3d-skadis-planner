@@ -1304,6 +1304,8 @@ Keep the existing `stateFor`/`AppState` code if it already matches; the importan
 
 Delete `src/ui/Summary.tsx`. In `src/ui/PrintList.tsx` delete the "Files:" paragraph and its `link` style; keep the note paragraph.
 
+In `src/reset.css`, add back `#root { overflow: clip; }` (removed during Task 1's fix round because the old document-flow layout needed page scrolling; the new layout is a fixed canvas plus a panel that scrolls internally, so the root must not scroll).
+
 - [ ] **Step 7: Run everything**
 
 Run: `npm test && npm run build`
