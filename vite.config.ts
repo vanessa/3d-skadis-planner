@@ -22,6 +22,8 @@ const stylexForConfig = process.env.VITEST
 export default defineConfig({
   plugins: [stylexForConfig, react()],
   test: {
+    // The Claude Code worktree directory holds a full copy of the repo; never scan it.
+    exclude: ['**/node_modules/**', '**/dist/**', '.claude/**'],
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
