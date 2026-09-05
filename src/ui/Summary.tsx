@@ -26,7 +26,7 @@ const styles = stylex.create({
   error: {
     fontSize: font.sizeSm,
     color: colors.danger,
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.dangerSoft,
     borderRadius: radius.sm,
     paddingBlock: space.xs,
     paddingInline: space.sm,

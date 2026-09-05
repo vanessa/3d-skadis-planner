@@ -9,6 +9,7 @@ export const colors = stylex.defineVars({
   accent: '#2563eb',
   accentSoft: '#dbeafe',
   danger: '#b91c1c',
+  dangerSoft: '#fef2f2',
   boardFill: '#eef2ff',
   boardStroke: '#3730a3',
   leftover: '#d6d3d1',

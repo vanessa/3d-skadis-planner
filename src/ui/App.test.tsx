@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
@@ -34,6 +35,17 @@ describe('App', () => {
     render(<App />);
     fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'cm' } });
     expect((screen.getByLabelText('Width') as HTMLInputElement).value).toBe('100');
+    expect(screen.getByText(/15 boards/)).toBeTruthy();
+  });
+
+  it('shows an error and keeps the last plan under StrictMode', () => {
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '' } });
+    expect(screen.getByRole('alert')).toBeTruthy();
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
 });

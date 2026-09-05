@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { InputPanel } from './InputPanel';
 import { Summary } from './Summary';
-import { computePlan, DEFAULT_FORM, type FormState } from './planState';
+import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import type { Plan } from '../solver';
 import { colors, font, space } from './tokens.stylex';
 
@@ -53,15 +53,22 @@ const styles = stylex.create({
   },
 });
 
+interface AppState {
+  form: FormState;
+  outcome: PlanOutcome;
+  lastPlan: Plan | null;
+}
+
+function stateFor(form: FormState, lastPlan: Plan | null): AppState {
+  const outcome = computePlan(form);
+  return { form, outcome, lastPlan: outcome.plan ?? lastPlan };
+}
+
 export default function App() {
-  const [form, setForm] = useState<FormState>(DEFAULT_FORM);
-  const lastPlan = useRef<Plan | null>(null);
+  const [state, setState] = useState<AppState>(() => stateFor(DEFAULT_FORM, null));
 
-  const { plan, error } = computePlan(form);
-  if (plan) lastPlan.current = plan;
-  const shown = plan ?? lastPlan.current;
-
-  const onChange = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
+  const onChange = (patch: Partial<FormState>) =>
+    setState((s) => stateFor({ ...s.form, ...patch }, s.lastPlan));
 
   return (
     <main {...stylex.props(styles.page)}>
@@ -73,9 +80,9 @@ export default function App() {
           </p>
         </header>
         <div {...stylex.props(styles.grid)}>
-          <InputPanel form={form} onChange={onChange} />
+          <InputPanel form={state.form} onChange={onChange} />
           <section {...stylex.props(styles.results)}>
-            <Summary plan={shown} error={error} />
+            <Summary plan={state.lastPlan} error={state.outcome.error} />
           </section>
         </div>
       </div>

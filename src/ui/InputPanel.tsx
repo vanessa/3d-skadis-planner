@@ -82,6 +82,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
             type="number"
             inputMode="decimal"
             min={0}
+            step="any"
             value={form.width}
             onChange={(e) => onChange({ width: e.target.value })}
           />
@@ -93,6 +94,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
             type="number"
             inputMode="decimal"
             min={0}
+            step="any"
             value={form.height}
             onChange={(e) => onChange({ height: e.target.value })}
           />
@@ -154,6 +156,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
               type="number"
               inputMode="decimal"
               min={0}
+              step="any"
               value={form.customBedWidth}
               onChange={(e) => onChange({ customBedWidth: e.target.value })}
             />
@@ -165,6 +168,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
               type="number"
               inputMode="decimal"
               min={0}
+              step="any"
               value={form.customBedDepth}
               onChange={(e) => onChange({ customBedDepth: e.target.value })}
             />
