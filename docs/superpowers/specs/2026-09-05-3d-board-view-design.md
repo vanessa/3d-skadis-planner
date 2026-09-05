@@ -137,12 +137,21 @@ grows up, so a board at solver `(xMm, yMm)` (top-down) is placed at
 
 Default export `BoardScene({ plan, model }: { plan: Plan; model: BoardModel })`.
 
-- `<Canvas orthographic>` sized by its container (`100%` width, `60vh` tall,
-  same frame as the SVG card). Camera at `[W/2, -H/2, 1000]` looking at
-  the wall centre; initial zoom fits the wall with a 5% margin, recomputed
-  when the plan's covered size changes.
+- `<Canvas orthographic>` fills the stage box that `PreviewCard` owns
+  (`stageLayout.stage`, `100%`/`100%` of that box), not a fixed `60vh`.
+  Camera at `[W/2, -H/2, 1000]` looking at the wall centre; `FitCamera`
+  sets the initial zoom to fit the wall with a 10% margin (`FIT_MARGIN`
+  1.1), refits on plan size or viewport change, and also resets the
+  controls target to the wall centre on every refit. `frameloop="demand"`:
+  the canvas only re-renders on prop/state changes and on drei
+  `MapControls`' own `invalidate()` calls (see the controls bullet below).
 - drei `MapControls` for pan and zoom; `enableRotate` follows the `Orbit`
   toggle (a small button overlaid top-right of the canvas). Damping on.
+  `rotateSpeed` 0.3 (slower than the default 1) and `maxPolarAngle`
+  `0.45 * Math.PI` so the wall cannot be tilted past near edge-on
+  (`minPolarAngle` stays at its default, 0). With `Orbit` on, the LEFT
+  mouse button rotates and RIGHT pans; with it off the mapping is
+  swapped back (LEFT pans, RIGHT rotates).
 - drei `Grid` on the wall plane behind the boards: `cellSize 20`,
   `sectionSize 100`, `fadeDistance` large, colours from tokens (`border` for
   cells, `muted` for sections), `infiniteGrid`.
@@ -151,11 +160,15 @@ Default export `BoardScene({ plan, model }: { plan: Plan; model: BoardModel })`.
   board fill within a few percent of the 2D view's token fill in both
   themes) so slot walls read as depth.
 - One drei `<Instances>` per `InstanceGroup`, geometry from
-  `getBoardGeometry`, `MeshStandardMaterial` with token `boardFill`
-  colour, `roughness 0.9`. Each `<Instance>` sets `position`. Hovered
-  instance gets the `accent` colour. Hover state is `{ key, index } | null`
-  in component state, set from `onPointerOver`/`onPointerOut` using
-  `event.instanceId`.
+  `getBoardGeometry`, a white `MeshStandardMaterial` (`roughness 0.9`)
+  overridden per instance by each `<Instance>`'s own `color` prop: token
+  `vizFillDim` normally, token `accent` when hovered. Each `<Instance>`
+  sets `position` and its own `onPointerOver`/`onPointerOut` handlers.
+  Hover state is `{ key, index } | null` in component state, set from
+  those per-`Instance` pointer events (not `event.instanceId`, since each
+  board is its own `<Instance>` element). Hover clears whenever the plan
+  changes, so a highlight from a previous plan cannot linger after boards
+  are regenerated, and also clears on `onPointerMissed`.
 - Hover label: drei `<Html>` at the hovered board's centre, StyleX-styled
   chip: `11×11 · 240×240 mm` plus `mirror X` / `mirror Y` / `mirror X+Y`
   when set.
@@ -174,19 +187,35 @@ given colour where canvas 2D is unavailable (tests).
 ### Preview card (`src/ui/PreviewCard.tsx`)
 
 ```tsx
-export function PreviewCard({ plan, model }: { plan: Plan | null; model: BoardModel })
+export function PreviewCard({ plan, model, children }: { plan: Plan | null; model: BoardModel; children: ReactNode })
 ```
 
-- Renders nothing without a plan (same as `Preview`).
+- Renders nothing without a plan.
+- `PreviewCard` renders the stage box itself (`stageLayout.stage`) rather
+  than being placed inside one by its caller. `Canvas.tsx` renders
+  `<PreviewCard plan={plan} model={model}>` and wraps its 2D input
+  surface (the pan/zoom SVG stage, with its own drag handlers and the
+  `CanvasToolbar`) as `children`; `App.tsx` never references
+  `PreviewCard` directly — it only renders `<Canvas plan={...} error={...}
+  model={...} />`, so `model` is the one piece of 3D-view wiring visible
+  at that level.
 - Header row: a segmented control with `2D` and `3D` buttons
-  (`role="radiogroup"`, `aria-checked`), StyleX-styled, accent on the
-  active one. Selection is local state, default `2D`.
-- `2D` renders the existing `<Preview plan={plan} />` unchanged.
-- `3D` renders `<Suspense fallback={<p>Loading 3D…</p>}><BoardScene/></Suspense>`
+  (`role="radiogroup"`, `aria-checked`), StyleX-styled. Selection is
+  local state, default `2D`. The active pill is plain text on the
+  surface colour with a border ring (`boxShadow: 0 0 0 1px border`), not
+  the accent colour.
+- `2D` renders `children` (the caller's 2D surface) inside a
+  `<Fragment key="2d">`; `3D` renders its wrapper with `key="3d"`, so
+  React never reuses a DOM node when switching modes — each switch is a
+  fresh mount.
+- `3D`, when `plan.boards.length` is at or below `MAX_3D_BOARDS` (2000,
+  exported from `boards3d/placement.ts`), renders
+  `<Suspense fallback={<p>Loading 3D…</p>}><BoardScene/></Suspense>`
   where `BoardScene = React.lazy(() => import('./three/BoardScene'))`.
-- `App.tsx` swaps `<Preview plan={state.lastPlan} />` for
-  `<PreviewCard plan={state.lastPlan} model={getModel(state.form.modelId)} />`.
-  No other App change.
+  Above that count it renders a limit notice instead (see Errors) and
+  never imports `three` or `BoardScene`. The scene wrapper is
+  flex-centred so the Suspense fallback, the limit notice and the
+  failure notice all sit in the middle of the stage.
 
 ### Errors
 
@@ -194,6 +223,12 @@ WebGL unavailable: react-three-fiber throws on `Canvas` creation; the
 existing `ErrorBoundary` around the app would blank the page. `PreviewCard`
 wraps the 3D branch in its own small error boundary that shows
 `3D view is not available in this browser.` and a button back to `2D`.
+
+Too many boards: above `MAX_3D_BOARDS` (2000) boards, `PreviewCard` shows
+`The 3D view is limited to 2000 boards; this plan has N.` with a `Back to
+2D` button, in the same notice card style as the WebGL fallback, instead
+of loading the scene at all — building and hovering thousands of instanced
+meshes would stall the browser well before rendering.
 
 ## Coordination
 
