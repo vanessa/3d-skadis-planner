@@ -35,7 +35,7 @@ Taken from the MakerWorld page and its size table (2026-09-05).
 | Printers | Preset list plus a custom bed size. Default Bambu Lab A1. |
 | Units | Input in mm, cm or inches. Everything internal is mm. |
 | Fit rule | Boards never overhang the space. Any strip narrower than the smallest board is reported as leftover. |
-| Stack | Vite, React, TypeScript, Vitest, vanilla CSS. Static site, no backend. |
+| Stack | Lightweight web app: Vite, React, TypeScript, StyleX for styling, Vitest for tests. Static site, no backend. |
 | Out of scope for v1 | Export, saving, non-rectangular walls, filament or cost estimates, drag editing. |
 
 Printer presets (bed width x depth, mm): A1 256x256, A1 mini 180x180,
@@ -48,7 +48,7 @@ src/
   models/      board model definitions, one file each + registry
   printers/    printer presets + registry
   solver/      pure planning functions, no React
-  ui/          React components and styles
+  ui/          React components, StyleX styles and tokens
   units.ts     mm <-> cm/inch conversion
 ```
 
@@ -205,7 +205,9 @@ Right, the result:
 The plan recomputes on every valid input change. No submit button.
 
 Visual direction: minimal, lots of white space, one accent colour, system
-font stack, no component library.
+font stack, no component library. All styling is StyleX (`stylex.create` +
+`stylex.props`), with design tokens in one `tokens.stylex.ts` file. No
+global CSS beyond a reset.
 
 ## Testing
 
