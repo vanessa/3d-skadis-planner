@@ -21,6 +21,13 @@ describe('buildBoardGeometry', () => {
     const large = buildBoardGeometry(boardOutline(8, 8, false, false, model));
     expect(large.getAttribute('position').count).toBeGreaterThan(small.getAttribute('position').count);
   });
+
+  it('cuts every slot and screw hole (exact vertex count for a 3x3 board)', () => {
+    // 4 slots x 34 contour points + 4 screw holes x 16 + 4 outer corners = 204 points, 8 holes.
+    // Earcut: 204 + 2*8 - 2 = 218 triangles per face, two faces, plus 204 * 6 wall vertices = 2532.
+    const g = buildBoardGeometry(boardOutline(3, 3, false, false, model));
+    expect(g.getAttribute('position').count).toBe(2532);
+  });
 });
 
 describe('boardGeometryKey', () => {
@@ -44,5 +51,12 @@ describe('getBoardGeometry', () => {
     const before = getBoardGeometry(9, 9, false, false, model);
     clearBoardGeometryCache();
     expect(getBoardGeometry(9, 9, false, false, model)).not.toBe(before);
+  });
+
+  it('builds the requested size, not its transpose', () => {
+    const g = getBoardGeometry(11, 9, false, false, model);
+    g.computeBoundingBox();
+    const { max } = g.boundingBox!;
+    expect([max.x, max.y, max.z].map((v) => Math.round(v * 1000) / 1000)).toEqual([240, 200, 5]);
   });
 });
