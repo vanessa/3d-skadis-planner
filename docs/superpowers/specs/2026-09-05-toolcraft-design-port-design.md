@@ -135,7 +135,7 @@ leftover. When the form is invalid the chip shows the error text in
 - Labels: hole count in `text` at 13 px equivalent (scaled to the board),
   mm size in `muted` one step smaller. A mirrored board shows `mirror X`,
   `mirror Y` or `mirror X+Y` in `muted` under the size. Labels shrink with
-  the board and are omitted when the board's shorter side is under 60 mm.
+  the board and are omitted when the board's shorter side is under 80 mm (a 2-hole, 60 mm board).
 - Leftover strips: hatched with `vizGrid` lines on `bg`.
 - The wall outline: 1 px non-scaling `vizLine` rectangle around the full
   space (covered + leftover) so the target size reads even when leftover is

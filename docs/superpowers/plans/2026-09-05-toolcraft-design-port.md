@@ -1331,7 +1331,7 @@ Claude-Session: https://claude.ai/code/session_01UqVWMP1ggg6Tk212ooHfZ2"
 
 Add to `src/ui/Preview.test.tsx`:
 ```tsx
-  it('draws the wall outline and omits labels on boards under 60 mm', () => {
+  it('draws the wall outline and omits labels on boards under 80 mm', () => {
     // 260 x 60 on a mini: columns [6, 5] (140 + 120 mm), one row of 2 holes (60 mm).
     const p = plan({ widthMm: 260, heightMm: 60, model: skadisInfinity, printer: mini });
     const { container } = render(<Preview plan={p} />);
@@ -1339,7 +1339,7 @@ Add to `src/ui/Preview.test.tsx`:
     expect(container.querySelectorAll('[data-board] text')).toHaveLength(0);
   });
 
-  it('keeps labels on boards of 60 mm or more', () => {
+  it('keeps labels on boards of 80 mm or more', () => {
     const p = plan({ widthMm: 80, heightMm: 80, model: skadisInfinity, printer: mini });
     const { container } = render(<Preview plan={p} />);
     expect(container.querySelectorAll('[data-board] text').length).toBeGreaterThan(0);
@@ -1357,7 +1357,7 @@ import type { Plan, PlacedBoard } from '../solver';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
-const MIN_LABEL_MM = 60;
+const MIN_LABEL_MM = 80; // 2-hole (60 mm) boards are too small to label
 
 const styles = stylex.create({
   svg: {
@@ -1463,7 +1463,7 @@ export function Preview({ plan }: { plan: Plan | null }) {
   );
 }
 ```
-The existing Preview tests query `[data-board]`, `[data-leftover]`, `[data-mirror="x"]`, the `viewBox`, and the `8×8` label; all still hold (180 mm boards are above the label threshold). The `svg` element must be the root returned (no wrapper div), because `Canvas` sizes it.
+The existing Preview tests query `[data-board]`, `[data-leftover]`, `[data-mirror="x"]`, the `viewBox`, and the `8×8` label; all still hold (180 mm boards are above the 80 mm label threshold). The `svg` element must be the root returned (no wrapper div), because `Canvas` sizes it.
 
 - [ ] **Step 3: Restyle PrintList**
 
