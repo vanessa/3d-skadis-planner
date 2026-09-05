@@ -19,7 +19,8 @@ as a real slotted mesh from the model's `pattern` (slot size, checkerboard
 rule, screw holes) and renders them with react-three-fiber, one instanced
 mesh per board size. Nothing is downloaded: the MakerWorld STL files are not
 redistributable, so the geometry is rebuilt from measured rules instead.
-Pan and zoom with the mouse; `Orbit` enables rotation.
+Pan and zoom with the mouse; `Orbit` enables rotation. Orbit switches the
+left mouse button to rotation; right-drag then pans.
 
 ## Add a board model
 

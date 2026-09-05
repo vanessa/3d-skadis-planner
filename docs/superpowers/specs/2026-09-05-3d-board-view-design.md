@@ -146,8 +146,10 @@ Default export `BoardScene({ plan, model }: { plan: Plan; model: BoardModel })`.
 - drei `Grid` on the wall plane behind the boards: `cellSize 20`,
   `sectionSize 100`, `fadeDistance` large, colours from tokens (`border` for
   cells, `muted` for sections), `infiniteGrid`.
-- Lighting: `ambientLight` 0.7 plus one `directionalLight` from top-left
-  front so slot walls read as depth.
+- Lighting: `ambientLight` 3 plus one `directionalLight` 2 from top-left
+  front (three r155+ physically based light units; these values put the 3D
+  board fill within a few percent of the 2D view's token fill in both
+  themes) so slot walls read as depth.
 - One drei `<Instances>` per `InstanceGroup`, geometry from
   `getBoardGeometry`, `MeshStandardMaterial` with token `boardFill`
   colour, `roughness 0.9`. Each `<Instance>` sets `position`. Hovered

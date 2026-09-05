@@ -163,6 +163,15 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
   const heightMm = plan.coveredHeightMm;
   const hoveredBoard = hovered ? (groups.find((g) => g.key === hovered.key)?.boards[hovered.index] ?? null) : null;
 
+  const mouseButtons = useMemo(
+    () => ({
+      LEFT: orbit ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: orbit ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
+    }),
+    [orbit],
+  );
+
   return (
     <div {...stylex.props(styles.frame)}>
       <button
@@ -213,6 +222,7 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
           makeDefault
           target={[widthMm / 2, -heightMm / 2, 0]}
           enableRotate={orbit}
+          mouseButtons={mouseButtons}
           enableDamping
           dampingFactor={0.15}
           screenSpacePanning
