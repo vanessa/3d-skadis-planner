@@ -25,6 +25,7 @@ const styles = stylex.create({
     top: '10px',
     left: '10px',
     zIndex: 1,
+    pointerEvents: 'none',
   },
   surface: {
     position: 'absolute',
