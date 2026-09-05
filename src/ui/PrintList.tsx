@@ -2,13 +2,14 @@ import * as stylex from '@stylexjs/stylex';
 import type { Plan, BoardGroup } from '../solver';
 import type { BoardModel } from '../models';
 import { colors, font, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
   card: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: colors.border,
+    borderColor: mixes.border,
     borderRadius: radius.md,
     padding: space.lg,
     display: 'flex',
@@ -16,32 +17,32 @@ const styles = stylex.create({
     gap: space.md,
   },
   heading: {
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
     fontWeight: 600,
     margin: 0,
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
   },
   th: {
     textAlign: 'left',
     fontWeight: 500,
-    fontSize: font.sizeSm,
+    fontSize: font.xs,
     color: colors.muted,
     paddingBlock: space.xs,
     paddingInline: space.sm,
     borderBottomWidth: 1,
     borderBottomStyle: 'solid',
-    borderBottomColor: colors.border,
+    borderBottomColor: mixes.border,
   },
   td: {
     paddingBlock: space.sm,
     paddingInline: space.sm,
     borderBottomWidth: 1,
     borderBottomStyle: 'solid',
-    borderBottomColor: colors.border,
+    borderBottomColor: mixes.border,
   },
   count: {
     fontWeight: 600,
@@ -49,15 +50,15 @@ const styles = stylex.create({
   },
   mirror: {
     display: 'inline-block',
-    fontSize: font.sizeSm,
+    fontSize: font.xs,
     color: colors.accent,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: mixes.inputBg,
     borderRadius: radius.sm,
     paddingBlock: '2px',
     paddingInline: space.sm,
   },
   note: {
-    fontSize: font.sizeSm,
+    fontSize: font.xs,
     color: colors.muted,
     margin: 0,
     lineHeight: 1.5,

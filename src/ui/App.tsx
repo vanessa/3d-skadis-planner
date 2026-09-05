@@ -30,12 +30,12 @@ const styles = stylex.create({
     gap: space.xs,
   },
   title: {
-    fontSize: font.sizeLg,
+    fontSize: font.lg,
     fontWeight: 600,
     margin: 0,
   },
   subtitle: {
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
     color: colors.muted,
     margin: 0,
   },

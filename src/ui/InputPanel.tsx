@@ -4,6 +4,7 @@ import { MODELS } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
 import { colors, font, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 export interface InputPanelProps {
   form: FormState;
@@ -18,7 +19,7 @@ const styles = stylex.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: colors.border,
+    borderColor: mixes.border,
     borderRadius: radius.md,
     padding: space.lg,
   },
@@ -33,17 +34,17 @@ const styles = stylex.create({
     gap: space.xs,
   },
   label: {
-    fontSize: font.sizeSm,
+    fontSize: font.xs,
     color: colors.muted,
   },
   control: {
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
     paddingBlock: space.sm,
     paddingInline: space.sm,
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: {
-      default: colors.border,
+      default: mixes.border,
       ':focus': colors.accent,
     },
     borderRadius: radius.sm,

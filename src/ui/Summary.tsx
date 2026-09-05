@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import { colors, font, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 export interface SummaryProps {
   plan: Plan | null;
@@ -14,19 +15,19 @@ const styles = stylex.create({
     gap: space.sm,
   },
   headline: {
-    fontSize: font.sizeLg,
+    fontSize: font.lg,
     fontWeight: 600,
     margin: 0,
   },
   detail: {
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
     color: colors.muted,
     margin: 0,
   },
   error: {
-    fontSize: font.sizeSm,
-    color: colors.danger,
-    backgroundColor: colors.dangerSoft,
+    fontSize: font.xs,
+    color: colors.destructive,
+    backgroundColor: mixes.inputBg,
     borderRadius: radius.sm,
     paddingBlock: space.xs,
     paddingInline: space.sm,

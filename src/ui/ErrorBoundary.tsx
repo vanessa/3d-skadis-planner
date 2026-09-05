@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { colors, font, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
   panel: {
@@ -10,24 +11,24 @@ const styles = stylex.create({
     gap: space.sm,
     margin: space.lg,
     padding: space.lg,
-    backgroundColor: colors.dangerSoft,
+    backgroundColor: mixes.inputBg,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: colors.danger,
+    borderColor: colors.destructive,
     borderRadius: radius.md,
-    color: colors.danger,
+    color: colors.destructive,
   },
   message: {
-    fontSize: font.sizeMd,
+    fontSize: font.sm,
     margin: 0,
   },
   button: {
-    fontSize: font.sizeSm,
-    color: colors.danger,
+    fontSize: font.xs,
+    color: colors.destructive,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: colors.danger,
+    borderColor: colors.destructive,
     borderRadius: radius.sm,
     paddingBlock: space.xs,
     paddingInline: space.sm,

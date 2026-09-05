@@ -2,13 +2,14 @@ import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
 import { colors, radius, space } from './tokens.stylex';
+import { mixes } from './mixes.stylex';
 
 const styles = stylex.create({
   frame: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: colors.border,
+    borderColor: mixes.border,
     borderRadius: radius.md,
     padding: space.md,
   },
@@ -33,8 +34,8 @@ function Board({ b }: { b: PlacedBoard }) {
         y={b.yMm}
         width={b.widthMm}
         height={b.heightMm}
-        fill={mirror ? colors.boardFillMirror : colors.boardFill}
-        stroke={colors.boardStroke}
+        fill={mirror ? mixes.vizFill : mixes.vizFillDim}
+        stroke={mixes.vizLineStrong}
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
       />
@@ -45,7 +46,7 @@ function Board({ b }: { b: PlacedBoard }) {
         {b.widthMm}×{b.heightMm} mm
       </text>
       {mirrorLabel && (
-        <text x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle" fill={colors.boardStroke}>
+        <text x={cx} y={cy + fontSize * 1.8} fontSize={fontSize * 0.6} textAnchor="middle" fill={mixes.vizLineStrong}>
           {mirrorLabel}
         </text>
       )}
@@ -68,7 +69,7 @@ export function Preview({ plan }: { plan: Plan | null }) {
       >
         <defs>
           <pattern id={hatchId} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="8" stroke={colors.leftover} strokeWidth="3" />
+            <line x1="0" y1="0" x2="0" y2="8" stroke={mixes.vizGrid} strokeWidth="3" />
           </pattern>
         </defs>
         {plan.leftoverWidthMm > 0 && (
