@@ -1435,7 +1435,7 @@ Playwright's Chromium is cached under `~/.cache/ms-playwright`. Set up a throwaw
 ```bash
 mkdir -p .superpowers/shots-3d && cd .superpowers && npm init -y >/dev/null && npm i playwright
 ```
-If launching fails because the browser for that Playwright version is missing, run `npx playwright install chromium` once (about 150 MB) rather than hunting for a matching version.
+Verified recipe on this machine (no download needed): Playwright 1.63 with `chromium.launch({ executablePath: '/home/vanessa/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })` yields a WebGL 2 context (ANGLE SwiftShader). A working probe lives at `.superpowers/probe/webgl-probe.mjs` with Playwright already installed in `.superpowers/probe/`; reuse that folder instead of creating a new one.
 Start the dev server in the background from the worktree root (`npm run dev > .superpowers/dev.log 2>&1 &`), wait for `curl -s http://localhost:5173/` to return HTML (Vite picks the next port if 5173 is busy; read the port from `dev.log`).
 
 Write `.superpowers/shots.mjs` that launches Chromium with
