@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './reset.css';
 import App from './ui/App';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 
 if (import.meta.env.DEV) {
   // Hot-reloads the StyleX stylesheet in dev. Not bundled in production.
@@ -10,6 +11,8 @@ if (import.meta.env.DEV) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

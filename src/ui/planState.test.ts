@@ -36,4 +36,14 @@ describe('computePlan', () => {
     expect(out.plan).toBeNull();
     expect(out.error).toMatch(/smaller than the smallest board/);
   });
+  it('rejects a width or height above the 10 m cap', () => {
+    expect(computePlan({ ...DEFAULT_FORM, width: '20000' }).error).toMatch(/10000/);
+  });
+  it('applies the cap after converting units to mm', () => {
+    expect(computePlan({ ...DEFAULT_FORM, width: '1001', unit: 'cm' }).error).toMatch(/10000/);
+  });
+  it('rejects a custom bed size above the 2 m cap', () => {
+    const out = computePlan({ ...DEFAULT_FORM, printerId: 'custom', customBedWidth: '5000' });
+    expect(out.error).toMatch(/2000/);
+  });
 });
