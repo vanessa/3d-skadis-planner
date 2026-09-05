@@ -1,25 +1,26 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import stylex from '@stylexjs/unplugin';
 
-// Dev only: link the StyleX virtual stylesheet into index.html.
-const stylexDevHtml = (): Plugin => ({
-  name: 'stylex-dev-html',
-  apply: 'serve',
-  transformIndexHtml: () => [
-    { tag: 'link', attrs: { rel: 'stylesheet', href: '/virtual:stylex.css' }, injectTo: 'head' },
-  ],
+// The unplugin's own transformIndexHtml already injects the StyleX runtime
+// script and stylesheet link in dev, so no extra HTML-injection plugin is
+// needed here.
+const stylexPlugin = stylex.vite({
+  unstable_moduleResolution: { type: 'commonJS', rootDir: process.cwd() },
 });
 
+// Under Vitest, configureServer's setInterval is never cleared (it only
+// clears on the real httpServer's 'close' event, which Vitest's Vite
+// server never fires), leaving the process alive until Vitest force-closes
+// it. Dropping just that hook when running under Vitest avoids the delay
+// without touching any other StyleX behavior.
+const stylexForConfig = process.env.VITEST
+  ? { ...stylexPlugin, configureServer: undefined }
+  : stylexPlugin;
+
 export default defineConfig({
-  plugins: [
-    stylex.vite({
-      unstable_moduleResolution: { type: 'commonJS', rootDir: process.cwd() },
-    }),
-    stylexDevHtml(),
-    react(),
-  ],
+  plugins: [stylexForConfig, react()],
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
