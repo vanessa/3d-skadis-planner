@@ -30,7 +30,8 @@ src/ui/useViewport.test.tsx   NEW
 src/ui/Preview.tsx            props + <g transform> + px-based labels
 src/ui/Preview.test.tsx       updated + new transform test
 src/ui/CanvasToolbar.tsx      NEW
-src/ui/Canvas.tsx             wires the hook, renders the toolbar
+src/ui/stageLayout.ts         NEW shared stage geometry (used by the 3D branch too)
+src/ui/Canvas.tsx             geometry div + surface div with the hook and toolbar
 src/ui/SummaryChip.tsx        phone block flow
 src/ui/App.test.tsx           + toolbar assertions
 ```
@@ -691,7 +692,7 @@ Claude-Session: https://claude.ai/code/session_01UqVWMP1ggg6Tk212ooHfZ2"
 ### Task 4: Wire the stage, add the toolbar, fix the phone chip
 
 **Files:**
-- Create: `src/ui/CanvasToolbar.tsx`
+- Create: `src/ui/CanvasToolbar.tsx`, `src/ui/stageLayout.ts`
 - Modify: `src/ui/Canvas.tsx`, `src/ui/SummaryChip.tsx`, `src/ui/App.test.tsx`
 
 **Interfaces:**
@@ -785,7 +786,34 @@ export function CanvasToolbar({
 }
 ```
 
-- [ ] **Step 3: Wire Canvas**
+- [ ] **Step 3: Wire Canvas (geometry div + surface div)**
+
+The 3D branch will wrap the stage in a `PreviewCard` that owns the stage
+box, so the stage is split in two: an outer **geometry** div whose styles
+are exported for reuse, and an inner **surface** div that carries the
+viewport ref and handlers. In 3D mode the surface div is not mounted, so
+the 2D handlers can never interfere with the 3D controls.
+
+Create `src/ui/stageLayout.ts`:
+```ts
+import * as stylex from '@stylexjs/stylex';
+
+const MOBILE = '@media (max-width: 800px)';
+
+/** The stage box on the canvas. Shared with the 3D branch's PreviewCard. */
+export const stageLayout = stylex.create({
+  stage: {
+    position: 'absolute',
+    top: '56px',
+    left: '24px',
+    right: { default: '334px', [MOBILE]: '24px' },
+    bottom: { default: '24px', [MOBILE]: 'calc(50dvh + 16px)' },
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+```
 
 In `src/ui/Canvas.tsx`:
 ```tsx
@@ -793,10 +821,12 @@ import { useRef } from 'react';
 // … existing imports …
 import { useViewport } from './useViewport';
 import { CanvasToolbar } from './CanvasToolbar';
+import { stageLayout } from './stageLayout';
 
-// add to styles:
-  stage: {
-    // existing position/inset/flex properties, plus:
+// remove the old `stage` entry from `styles` (its geometry moved to stageLayout) and add:
+  surface: {
+    position: 'absolute',
+    inset: 0,
     overflow: 'hidden',
     touchAction: 'none',
     userSelect: 'none',
@@ -807,25 +837,27 @@ import { CanvasToolbar } from './CanvasToolbar';
   },
 
 export function Canvas({ plan, error }: { plan: Plan | null; error: string | null }) {
-  const stageRef = useRef<HTMLDivElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const world = plan
     ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
     : null;
-  const { size, viewport, ratio, refit, handlers, dragging } = useViewport(stageRef, world);
+  const { size, viewport, ratio, refit, handlers, dragging } = useViewport(surfaceRef, world);
   return (
     <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
-      <div ref={stageRef} {...handlers} {...stylex.props(styles.stage, dragging && styles.dragging)}>
-        <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
-        {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
+      <div {...stylex.props(stageLayout.stage)}>
+        <div ref={surfaceRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
+          <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
+          {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
+        </div>
       </div>
     </main>
   );
 }
 ```
-Remove the temporary `IDENTITY` import from Task 3. Keep the rest of Canvas (dot grid, chip position, stage geometry, `<main>`) exactly as it is. The stage `div` must stay a single element with the `stage` style so the 3D branch can wrap it.
+Remove the temporary `IDENTITY` import from Task 3. Keep the rest of Canvas (dot grid, chip position, `<main>`) exactly as it is. If StyleX rejects `inset: 0`, use `top/right/bottom/left: 0`.
 
 - [ ] **Step 4: Phone chip block flow**
 
@@ -838,7 +870,7 @@ Run: `npm test && npm run typecheck && npm run build` → all pass; no act() war
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/ui/CanvasToolbar.tsx src/ui/Canvas.tsx src/ui/SummaryChip.tsx src/ui/App.test.tsx
+git add src/ui/CanvasToolbar.tsx src/ui/stageLayout.ts src/ui/Canvas.tsx src/ui/SummaryChip.tsx src/ui/App.test.tsx
 git commit -m "Wire pan and zoom onto the canvas stage with a fit toolbar
 
 Claude-Session: https://claude.ai/code/session_01UqVWMP1ggg6Tk212ooHfZ2"
