@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useRef } from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, createEvent, act } from '@testing-library/react';
 import { useViewport } from './useViewport';
 import type { Size } from './viewport';
 
@@ -36,7 +36,7 @@ beforeEach(() => {
     },
   );
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
-    x: 0, y: 0, left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600, toJSON: () => ({}),
+    x: 24, y: 56, left: 24, top: 56, right: 824, bottom: 656, width: 800, height: 600, toJSON: () => ({}),
   } as DOMRect);
   HTMLElement.prototype.setPointerCapture = vi.fn();
   HTMLElement.prototype.releasePointerCapture = vi.fn();
@@ -63,9 +63,12 @@ describe('useViewport', () => {
   it('zooms in around the cursor on wheel and leaves the fitted state', () => {
     render(<Harness world={world} />);
     const stage = screen.getByTestId('stage');
+    let ev!: Event;
     act(() => {
-      fireEvent.wheel(stage, { deltaY: -100, deltaMode: 0, clientX: 100, clientY: 100 });
+      ev = createEvent.wheel(stage, { deltaY: -100, deltaMode: 0, clientX: 124, clientY: 156 });
+      fireEvent(stage, ev);
     });
+    expect(ev.defaultPrevented).toBe(true);
     const s = read();
     expect(s.fitted).toBe(false);
     expect(s.viewport.scale).toBeCloseTo(0.752 * Math.exp(0.15));
@@ -76,11 +79,11 @@ describe('useViewport', () => {
     render(<Harness world={world} />);
     const stage = screen.getByTestId('stage');
     const before = read().viewport;
-    fireEvent.pointerDown(stage, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
-    fireEvent.pointerMove(stage, { pointerId: 1, clientX: 101, clientY: 101 });
+    fireEvent.pointerDown(stage, { button: 0, buttons: 1, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(stage, { pointerId: 1, buttons: 1, clientX: 101, clientY: 101 });
     expect(read().viewport).toEqual(before);
-    fireEvent.pointerMove(stage, { pointerId: 1, clientX: 110, clientY: 105 });
-    fireEvent.pointerMove(stage, { pointerId: 1, clientX: 130, clientY: 125 });
+    fireEvent.pointerMove(stage, { pointerId: 1, buttons: 1, clientX: 110, clientY: 105 });
+    fireEvent.pointerMove(stage, { pointerId: 1, buttons: 1, clientX: 130, clientY: 125 });
     let s = read();
     expect(s.dragging).toBe(true);
     expect(s.fitted).toBe(false);
@@ -104,6 +107,7 @@ describe('useViewport', () => {
     act(() => {
       fireEvent.wheel(stage, { deltaY: -100, deltaMode: 0, clientX: 0, clientY: 0 });
     });
+    expect(read().viewport.scale).toBeCloseTo(0.752 * Math.exp(0.15));
     fireEvent.click(screen.getByRole('button', { name: 'refit' }));
     expect(read().fitted).toBe(true);
   });
@@ -123,7 +127,7 @@ describe('useViewport', () => {
   it('re-measures when the ResizeObserver fires', () => {
     render(<Harness world={world} />);
     (HTMLElement.prototype.getBoundingClientRect as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      x: 0, y: 0, left: 0, top: 0, right: 400, bottom: 300, width: 400, height: 300, toJSON: () => ({}),
+      x: 24, y: 56, left: 24, top: 56, right: 424, bottom: 356, width: 400, height: 300, toJSON: () => ({}),
     } as DOMRect);
     act(() => {
       resizeCallbacks.forEach((cb) => cb([], {} as ResizeObserver));

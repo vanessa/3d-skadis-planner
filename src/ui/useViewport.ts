@@ -34,7 +34,9 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
   const worldH = world?.height ?? 0;
   const fit = useMemo(() => fitViewport(size, { width: worldW, height: worldH }), [size, worldW, worldH]);
   const fitRef = useRef(fit);
-  fitRef.current = fit;
+  useLayoutEffect(() => {
+    fitRef.current = fit;
+  });
 
   // Measure the stage now and whenever it resizes.
   useLayoutEffect(() => {
@@ -51,8 +53,9 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
     return () => observer.disconnect();
   }, [stageRef]);
 
-  // A new world size always refits.
-  useEffect(() => {
+  // A new world size always refits, before paint, so nothing ever renders one
+  // frame under the old zoomed transform.
+  useLayoutEffect(() => {
     setFitted(true);
   }, [worldW, worldH]);
 
@@ -86,6 +89,14 @@ export function useViewport(stageRef: RefObject<HTMLElement | null>, world: Size
   const onPointerMove = useCallback((e: ReactPointerEvent<HTMLElement>) => {
     const d = dragRef.current;
     if (!d || d.id !== e.pointerId) return;
+    if (e.buttons === 0) {
+      // The primary button was released without us seeing pointerup/cancel
+      // (e.g. released outside the window). Stop panning rather than get
+      // stuck dragging on hover.
+      dragRef.current = null;
+      setDragging(false);
+      return;
+    }
     const dx = e.clientX - d.x;
     const dy = e.clientY - d.y;
     if (!d.moved) {
