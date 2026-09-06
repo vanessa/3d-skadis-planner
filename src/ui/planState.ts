@@ -2,6 +2,7 @@ import { plan, PlanError, DEFAULT_STRATEGY_ID, type Plan, type StrategyId } from
 import { getModel, DEFAULT_MODEL_ID } from '../models';
 import { getPrinter, DEFAULT_PRINTER_ID, CUSTOM_PRINTER_ID } from '../printers';
 import { toMm, type Unit } from '../units';
+import { DEFAULT_MOUNT_ID } from '../mounting';
 
 export interface FormState {
   width: string;
@@ -13,6 +14,7 @@ export interface FormState {
   customBedDepth: string;
   strategyId: StrategyId;
   maxGap: string;
+  mountId: string;
 }
 
 export const DEFAULT_FORM: FormState = {
@@ -25,6 +27,7 @@ export const DEFAULT_FORM: FormState = {
   customBedDepth: '256',
   strategyId: DEFAULT_STRATEGY_ID,
   maxGap: '40',
+  mountId: DEFAULT_MOUNT_ID,
 };
 
 export interface PlanOutcome {

@@ -134,4 +134,21 @@ describe('App', () => {
     expect(link.href).toBe('https://makerworld.com/en/@AU3D');
     expect(screen.getByText(/Thank you for sharing them!/)).toBeTruthy();
   });
+
+  it('offers mounting systems and links to the mount files', () => {
+    render(<App />);
+    const select = screen.getByLabelText('System') as HTMLSelectElement;
+    expect([...select.options].map((o) => o.textContent)).toEqual([
+      'Wall mounts (AU3D)', 'Screw spacers (AU3D)', 'Threaded connectors (Printables)',
+    ]);
+    const link = screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement;
+    expect(link.href).toBe('https://makerworld.com/en/models/861073');
+  });
+
+  it('includes the mounting hardware in the downloaded print list', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('Quad wall mount');
+  });
 });

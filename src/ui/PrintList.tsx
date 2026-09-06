@@ -1,6 +1,8 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, BoardGroup } from '../solver';
 import type { BoardModel } from '../models';
+import type { MountSystem } from '../mounting';
+import { hardwareList } from '../mounting';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
@@ -59,6 +61,13 @@ const styles = stylex.create({
     margin: 0,
     lineHeight: 1.5,
   },
+  assumedNote: {
+    fontSize: font.xs,
+    color: colors.muted,
+    margin: 0,
+    marginBottom: space.xs,
+    lineHeight: 1.5,
+  },
 });
 
 function mirrorLabel(g: BoardGroup): string | null {
@@ -68,8 +77,17 @@ function mirrorLabel(g: BoardGroup): string | null {
   return null;
 }
 
-export function PrintList({ plan, model }: { plan: Plan | null; model: BoardModel }) {
+export function PrintList({
+  plan,
+  model,
+  system,
+}: {
+  plan: Plan | null;
+  model: BoardModel;
+  system: MountSystem;
+}) {
   if (!plan) return null;
+  const hardware = hardwareList(plan, system);
   return (
     <>
       <table {...stylex.props(styles.table)}>
@@ -109,6 +127,32 @@ export function PrintList({ plan, model }: { plan: Plan | null; model: BoardMode
               </tr>
             );
           })}
+        </tbody>
+      </table>
+      {system.assumed && (
+        <p {...stylex.props(styles.assumedNote)}>Counts are assumed; check the model page.</p>
+      )}
+      <table {...stylex.props(styles.table)}>
+        <thead>
+          <tr>
+            <th scope="col" {...stylex.props(styles.th)}>
+              Item
+            </th>
+            <th scope="col" {...stylex.props(styles.th, styles.thEnd)}>
+              Qty
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {hardware.map((row) => (
+            <tr key={row.name}>
+              <td {...stylex.props(styles.td)}>
+                {row.name}
+                {row.note && <p {...stylex.props(styles.note)}>{row.note}</p>}
+              </td>
+              <td {...stylex.props(styles.td, styles.count)}>{row.qty}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>

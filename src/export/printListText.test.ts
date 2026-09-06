@@ -3,10 +3,12 @@ import { formatPrintList, printListFileName, wrapText } from './printListText';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
+import { getMountSystem } from '../mounting';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const date = new Date(2026, 8, 5, 12);
+const wallMounts = getMountSystem('wall-mounts');
 
 describe('printListFileName', () => {
   it('uses whole millimetres', () => {
@@ -18,7 +20,9 @@ describe('printListFileName', () => {
 describe('formatPrintList', () => {
   it('formats the default plan', () => {
     const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
-    const text = formatPrintList({ plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
+    });
     expect(text).toBe(
       [
         'Skadis Planner - print list',
@@ -32,6 +36,14 @@ describe('formatPrintList', () => {
         '',
         'Qty  File       Size          Print as',
         ' 15  9 x 9.stl  200 x 200 mm  as is',
+        '',
+        'Hardware (Wall mounts (AU3D))',
+        '  8  Quad wall mount',
+        ' 12  Double wall mount',
+        '  4  Single wall mount',
+        ' 24  M4 x 40-60 wall screw',
+        ' 60  M4 x 20 board screw',
+        'Mount files: https://makerworld.com/en/models/861073',
         '',
         'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
         '9x9  9x9  9x9  9x9  9x9',
@@ -50,7 +62,9 @@ describe('formatPrintList', () => {
 
   it('marks mirrored boards in the layout and lists every variant', () => {
     const p = plan({ widthMm: 720, heightMm: 360, model: skadisInfinity, printer: mini });
-    const text = formatPrintList({ plan: p, model: skadisInfinity, printer: mini, widthMm: 720, heightMm: 360, date });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: mini, widthMm: 720, heightMm: 360, date, system: wallMounts,
+    });
     expect(text).toContain('8x8   8x8*  8x8   8x8*');
     expect(text).toContain('8x8+  8x8#  8x8+  8x8#');
     expect(text).toContain('  2  8 x 8.stl  180 x 180 mm  mirrored X + Y');

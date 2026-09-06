@@ -50,6 +50,9 @@ describe('computePlan', () => {
     expect(DEFAULT_FORM.strategyId).toBe('balanced');
     expect(computePlan(DEFAULT_FORM).plan?.strategyId).toBe('balanced');
   });
+  it('defaults to wall mounts', () => {
+    expect(DEFAULT_FORM.mountId).toBe('wall-mounts');
+  });
   it('passes the strategy and gap to the solver', () => {
     const out = computePlan({ ...DEFAULT_FORM, width: '820', height: '1000', strategyId: 'allow-gap', maxGap: '40' });
     expect(out.plan?.boards).toHaveLength(16);

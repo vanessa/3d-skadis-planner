@@ -2,9 +2,17 @@ import type { Plan, BoardGroup, PlacedBoard } from '../solver';
 import { getStrategy } from '../solver';
 import type { BoardModel } from '../models';
 import type { Printer } from '../printers';
+import type { MountSystem } from '../mounting';
+import { hardwareList } from '../mounting';
 
 export interface PrintListInput {
-  plan: Plan; model: BoardModel; printer: Printer; widthMm: number; heightMm: number; date: Date;
+  plan: Plan;
+  model: BoardModel;
+  printer: Printer;
+  widthMm: number;
+  heightMm: number;
+  date: Date;
+  system: MountSystem;
 }
 
 const WRAP = 78;
@@ -59,6 +67,15 @@ function table(groups: BoardGroup[], model: BoardModel): string[] {
   return [line(header, false), ...rows.map((r) => line(r, true))];
 }
 
+function hardwareBlock(plan: Plan, system: MountSystem): string[] {
+  const rows = hardwareList(plan, system);
+  return [
+    `Hardware (${system.name})`,
+    ...rows.map((r) => `${String(r.qty).padStart(3)}  ${r.name}${r.note ? ` (${r.note})` : ''}`),
+    `Mount files: ${system.url}`,
+  ];
+}
+
 function layout(plan: Plan): string[] {
   const cells = plan.boards.map((b) => `${b.cols}x${b.rows}${mark(b)}`);
   const width = Math.max(...cells.map((c) => c.length));
@@ -70,7 +87,7 @@ function layout(plan: Plan): string[] {
   return lines;
 }
 
-export function formatPrintList({ plan, model, printer, widthMm, heightMm, date }: PrintListInput): string {
+export function formatPrintList({ plan, model, printer, widthMm, heightMm, date, system }: PrintListInput): string {
   const result = [`${plan.boards.length} ${plan.boards.length === 1 ? 'board' : 'boards'}`,
     `covers ${mm(plan.coveredWidthMm)} x ${mm(plan.coveredHeightMm)} mm`];
   if (Math.round(plan.leftoverWidthMm) > 0) result.push(`${mm(plan.leftoverWidthMm)} mm left on the right`);
@@ -87,6 +104,8 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date 
     `Result:   ${result.join(', ')}`,
     '',
     ...table(plan.groups, model),
+    '',
+    ...hardwareBlock(plan, system),
     '',
     'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
     ...layout(plan),

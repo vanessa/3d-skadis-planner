@@ -10,6 +10,7 @@ import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './p
 import { getModel } from '../models';
 import type { Plan } from '../solver';
 import { getPrinter } from '../printers';
+import { getMountSystem } from '../mounting';
 import { formatPrintList, printListFileName } from '../export/printListText';
 import { downloadText } from './download';
 import { useTheme } from './useTheme';
@@ -91,6 +92,7 @@ export default function App() {
     setState((s) => stateFor({ ...s.form, ...patch }, s.lastPlan));
 
   const model = getModel(state.form.modelId);
+  const system = getMountSystem(state.form.mountId);
 
   const download = () => {
     const p = state.lastPlan;
@@ -99,7 +101,10 @@ export default function App() {
     const printer = getPrinter(state.form.printerId, custom);
     const widthMm = p.coveredWidthMm + p.leftoverWidthMm;
     const heightMm = p.coveredHeightMm + p.leftoverHeightMm;
-    downloadText(printListFileName(widthMm, heightMm), formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date() }));
+    downloadText(
+      printListFileName(widthMm, heightMm),
+      formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date(), system }),
+    );
   };
 
   return (
@@ -133,7 +138,7 @@ export default function App() {
       >
         <InputPanel form={state.form} onChange={onChange} />
         <PanelSection title="Print list">
-          <PrintList plan={state.lastPlan} model={model} />
+          <PrintList plan={state.lastPlan} model={model} system={system} />
         </PanelSection>
       </Panel>
     </div>

@@ -1,10 +1,23 @@
+import * as stylex from '@stylexjs/stylex';
 import type { FormState } from './planState';
 import { MODELS } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
 import { STRATEGIES, getStrategy, type StrategyId } from '../solver';
+import { MOUNT_SYSTEMS, getMountSystem } from '../mounting';
 import { PanelSection } from './PanelSection';
 import { FieldRow, FieldHint, NumberField, SelectField } from './fields';
+import { colors, font } from './tokens.stylex';
+
+const styles = stylex.create({
+  mountLink: {
+    fontSize: font.xs,
+    lineHeight: '15px',
+    color: colors.muted,
+    textDecoration: 'underline',
+    alignSelf: 'flex-start',
+  },
+});
 
 export interface InputPanelProps {
   form: FormState;
@@ -20,6 +33,7 @@ function convert(value: string, from: Unit, to: Unit): string {
 
 export function InputPanel({ form, onChange }: InputPanelProps) {
   const isCustom = form.printerId === CUSTOM_PRINTER_ID;
+  const mountSystem = getMountSystem(form.mountId);
 
   const changeUnit = (unit: Unit) => {
     onChange({
@@ -90,6 +104,24 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
         {form.strategyId === 'allow-gap' && (
           <NumberField label="Max gap (mm)" value={form.maxGap} onChange={(maxGap) => onChange({ maxGap })} />
         )}
+      </PanelSection>
+
+      <PanelSection title="Mounting">
+        <SelectField
+          label="System"
+          value={form.mountId}
+          onChange={(mountId) => onChange({ mountId })}
+          options={MOUNT_SYSTEMS.map((s) => ({ value: s.id, label: s.name }))}
+        />
+        <FieldHint>{mountSystem.description}</FieldHint>
+        <a
+          {...stylex.props(styles.mountLink)}
+          href={mountSystem.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Mount files
+        </a>
       </PanelSection>
     </form>
   );
