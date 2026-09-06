@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
 import { colors } from './tokens.stylex';
@@ -20,10 +20,15 @@ const styles = stylex.create({
   },
   board: {
     fill: mixes.vizFillDim,
-    stroke: { default: colors.surface, ':hover': colors.accent },
+    stroke: colors.surface,
     strokeWidth: 2,
-    transitionProperty: 'stroke',
-    transitionDuration: '100ms',
+  },
+  /** Drawn once, after every board, so neighbouring strokes cannot cover it. */
+  highlight: {
+    fill: 'none',
+    stroke: colors.accent,
+    strokeWidth: 2,
+    pointerEvents: 'none',
   },
   boardMirrored: {
     fill: mixes.vizFill,
@@ -47,7 +52,9 @@ const styles = stylex.create({
   },
 });
 
-function Board({ b, scale }: { b: PlacedBoard; scale: number }) {
+function Board({
+  b, scale, onHover,
+}: { b: PlacedBoard; scale: number; onHover: (hovered: boolean) => void }) {
   const mirror = b.mirrorX && b.mirrorY ? 'xy' : b.mirrorX ? 'x' : b.mirrorY ? 'y' : undefined;
   const mirrorLabel =
     mirror === 'xy' ? 'mirrored X + Y' : mirror === 'x' ? 'mirrored X' : mirror === 'y' ? 'mirrored Y' : null;
@@ -65,6 +72,8 @@ function Board({ b, scale }: { b: PlacedBoard; scale: number }) {
         width={b.widthMm}
         height={b.heightMm}
         vectorEffect="non-scaling-stroke"
+        onPointerEnter={() => onHover(true)}
+        onPointerLeave={() => onHover(false)}
       />
       {showLabels && (
         <>
@@ -89,7 +98,10 @@ export function Preview({
   plan, viewport, width, height,
 }: { plan: Plan | null; viewport: Viewport; width: number; height: number }) {
   const hatchId = useId();
+  const [hovered, setHovered] = useState<number | null>(null);
+  useEffect(() => setHovered(null), [plan]);
   if (!plan) return null;
+  const hoveredBoard = hovered !== null ? plan.boards[hovered] : undefined;
   const totalW = plan.coveredWidthMm + plan.leftoverWidthMm;
   const totalH = plan.coveredHeightMm + plan.leftoverHeightMm;
   const hasLayout = width > 0 && height > 0;
@@ -116,10 +128,21 @@ export function Preview({
         {plan.leftoverHeightMm > 0 && (
           <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
         )}
-        {plan.boards.map((b) => (
-          <Board key={`${b.col}-${b.row}`} b={b} scale={s} />
+        {plan.boards.map((b, i) => (
+          <Board key={`${b.col}-${b.row}`} b={b} scale={s} onHover={(on) => setHovered(on ? i : null)} />
         ))}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
+        {hoveredBoard && (
+          <rect
+            data-highlight
+            {...stylex.props(styles.highlight)}
+            x={hoveredBoard.xMm}
+            y={hoveredBoard.yMm}
+            width={hoveredBoard.widthMm}
+            height={hoveredBoard.heightMm}
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
       </g>
     </svg>
   );

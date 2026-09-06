@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
@@ -7,6 +7,7 @@ import { getPrinter } from '../printers';
 import { IDENTITY } from './viewport';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
+const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 
 describe('Preview', () => {
   it('renders nothing without a plan', () => {
@@ -75,5 +76,22 @@ describe('Preview', () => {
     expect(svg.getAttribute('viewBox')).toBe('0 0 360 180');
     const g = container.querySelector('svg > g[transform]')!;
     expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1)');
+  });
+
+  it('paints the hover highlight after every board so neighbours cannot cover it', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} />);
+    expect(container.querySelector('[data-highlight]')).toBeNull();
+    const rects = container.querySelectorAll('[data-board] rect');
+    fireEvent.pointerEnter(rects[7]);
+    const highlight = container.querySelector('[data-highlight]');
+    expect(highlight).not.toBeNull();
+    const group = container.querySelector('svg > g[transform]')!;
+    expect(group.lastElementChild).toBe(highlight);
+    expect(highlight!.getAttribute('x')).toBe('400');
+    expect(highlight!.getAttribute('y')).toBe('200');
+    expect(highlight!.getAttribute('width')).toBe('200');
+    fireEvent.pointerLeave(rects[7]);
+    expect(container.querySelector('[data-highlight]')).toBeNull();
   });
 });
