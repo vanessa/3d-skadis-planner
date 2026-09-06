@@ -1,7 +1,9 @@
 # Board planner
 
 Enter the width and height of a wall area and get the fewest 3D-printable
-pegboard boards that cover it, sized to your printer's bed.
+pegboard boards that cover it, sized to your printer's bed. Pick a layout
+strategy (Balanced, Largest boards first, Same size only, No mirroring,
+Allow a gap) and download the print list as text.
 
 First model: [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity) by AU3D.
 
@@ -33,6 +35,13 @@ The solver assumes `sizeMm(holes) === pitchMm * (holes + 1)`.
 ## Add a printer
 
 Add an entry to `PRINTERS` in `src/printers/index.ts`.
+
+## Credits
+
+The board models are [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity)
+by [AU3D](https://makerworld.com/en/@AU3D) on MakerWorld. Thank you for sharing them!
+This tool only plans which of the author's files to print; download the files from
+MakerWorld under the author's licence. Nothing from the models is redistributed here.
 
 ## Layout
 

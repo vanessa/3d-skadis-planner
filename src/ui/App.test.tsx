@@ -1,8 +1,11 @@
 import { StrictMode } from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import { skadisInfinity } from '../models/skadisInfinity';
+
+vi.mock('./download', () => ({ downloadText: vi.fn() }));
+import { downloadText } from './download';
 
 describe('App', () => {
   beforeEach(() => window.localStorage.clear());
@@ -109,5 +112,22 @@ describe('App', () => {
     fireEvent.change(select, { target: { value: 'allow-gap' } });
     expect((screen.getByLabelText('Max gap') as HTMLInputElement).value).toBe('40');
     expect(screen.getByText(/12 boards/)).toBeTruthy();
+  });
+
+  it('downloads the print list as text', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    expect(downloadText).toHaveBeenCalledTimes(1);
+    const [name, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(name).toBe('board-plan-1000x600.txt');
+    expect(text).toContain('9 x 9.stl');
+    expect(text).toContain('Strategy: Balanced');
+  });
+
+  it('credits the author in the footer', () => {
+    render(<App />);
+    const link = screen.getByRole('link', { name: 'AU3D' }) as HTMLAnchorElement;
+    expect(link.href).toBe('https://makerworld.com/en/@AU3D');
+    expect(screen.getByText(/Thank you for sharing them!/)).toBeTruthy();
   });
 });

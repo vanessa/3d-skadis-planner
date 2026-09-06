@@ -9,6 +9,9 @@ import { PrintList } from './PrintList';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import { getModel } from '../models';
 import type { Plan } from '../solver';
+import { getPrinter } from '../printers';
+import { formatPrintList, printListFileName } from '../export/printListText';
+import { downloadText } from './download';
 import { useTheme } from './useTheme';
 import { lightTheme } from './themes.stylex';
 import { colors, font, radius, space } from './tokens.stylex';
@@ -19,11 +22,17 @@ const styles = stylex.create({
     fontFamily: font.family,
     color: colors.text,
   },
+  footer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: space.sm,
+  },
   footerLink: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     height: '28px',
+    width: '100%',
     borderRadius: radius.lg,
     borderWidth: '1px',
     borderStyle: 'solid',
@@ -33,11 +42,24 @@ const styles = stylex.create({
     fontSize: font.sm,
     fontWeight: 500,
     textDecoration: 'none',
+    cursor: 'default',
     paddingInline: space.md,
     outlineWidth: { default: 0, ':focus-visible': '2px' },
     outlineStyle: 'solid',
     outlineColor: colors.ring,
     outlineOffset: '2px',
+    opacity: { default: 1, ':disabled': 0.5 },
+  },
+  credit: {
+    margin: 0,
+    fontSize: font.xs,
+    lineHeight: '15px',
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  creditLink: {
+    color: colors.link,
+    textDecoration: 'none',
   },
 });
 
@@ -70,6 +92,16 @@ export default function App() {
 
   const model = getModel(state.form.modelId);
 
+  const download = () => {
+    const p = state.lastPlan;
+    if (!p) return;
+    const custom = { bedWidthMm: Number(state.form.customBedWidth), bedDepthMm: Number(state.form.customBedDepth) };
+    const printer = getPrinter(state.form.printerId, custom);
+    const widthMm = p.coveredWidthMm + p.leftoverWidthMm;
+    const heightMm = p.coveredHeightMm + p.leftoverHeightMm;
+    downloadText(printListFileName(widthMm, heightMm), formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date() }));
+  };
+
   return (
     <div {...stylex.props(styles.app)}>
       <Canvas plan={state.lastPlan} error={state.outcome.error} model={model} />
@@ -77,9 +109,21 @@ export default function App() {
         title="Board planner"
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
         footer={
-          <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">
-            Open files on MakerWorld
-          </a>
+          <div {...stylex.props(styles.footer)}>
+            <button type="button" onClick={download} disabled={!state.lastPlan} {...stylex.props(styles.footerLink)}>
+              Download print list
+            </button>
+            <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">
+              Open files on MakerWorld
+            </a>
+            <p {...stylex.props(styles.credit)}>
+              Boards designed by{' '}
+              <a {...stylex.props(styles.creditLink)} href={model.author.url} target="_blank" rel="noopener noreferrer">
+                {model.author.name}
+              </a>
+              . {model.author.thanks}
+            </p>
+          </div>
         }
       >
         <InputPanel form={state.form} onChange={onChange} />
