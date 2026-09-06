@@ -1,5 +1,6 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
+import type { HardwareMarker } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
@@ -43,7 +44,9 @@ const styles = stylex.create({
   },
 });
 
-export function Canvas({ plan, error }: { plan: Plan | null; error: string | null }) {
+export function Canvas({
+  plan, error, markers,
+}: { plan: Plan | null; error: string | null; markers?: HardwareMarker[] }) {
   const world = plan
     ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
     : null;
@@ -55,7 +58,7 @@ export function Canvas({ plan, error }: { plan: Plan | null; error: string | nul
       </div>
       <div {...stylex.props(stageLayout.stage)}>
         <div ref={stageRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
-          <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
+          <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} markers={markers} />
           {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
         </div>
       </div>

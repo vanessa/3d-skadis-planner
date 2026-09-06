@@ -12,6 +12,8 @@ export interface BoardModel {
   pitchMm: number;
   minHoles: number;
   maxHoles: number;
+  /** Distance in mm from a board's edge to its mounting screw hole. */
+  screwInsetMm: number;
   /** Outer board size along one axis for the given hole count. */
   sizeMm(holes: number): number;
   /** True when boards of this column count must alternate mirroring along X. */

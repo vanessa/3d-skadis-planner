@@ -14,6 +14,7 @@ const notedSystem: MountSystem = {
   name: 'Test',
   url: 'https://example.com',
   description: '',
+  markers: [],
   items: [{ name: 'Widget', per: { board: 1 }, note: 'Only if needed' }],
 };
 

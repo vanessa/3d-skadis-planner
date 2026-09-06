@@ -166,4 +166,11 @@ describe('App', () => {
     const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
     expect(text).toContain('Quad wall mount');
   });
+
+  it('draws the mounting hardware markers on the canvas and updates them when the system changes', () => {
+    const { container } = render(<App />);
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(24);
+    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(60);
+  });
 });

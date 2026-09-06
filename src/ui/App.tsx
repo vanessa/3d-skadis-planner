@@ -10,7 +10,7 @@ import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './p
 import { getModel } from '../models';
 import type { Plan } from '../solver';
 import { getPrinter } from '../printers';
-import { getMountSystem } from '../mounting';
+import { getMountSystem, hardwareMarkers } from '../mounting';
 import { formatPrintList, printListFileName } from '../export/printListText';
 import { downloadText } from './download';
 import { useTheme } from './useTheme';
@@ -93,6 +93,7 @@ export default function App() {
 
   const model = getModel(state.form.modelId);
   const system = getMountSystem(state.form.mountId);
+  const markers = state.lastPlan ? hardwareMarkers(state.lastPlan, system, model) : undefined;
 
   const download = () => {
     const p = state.lastPlan;
@@ -109,7 +110,7 @@ export default function App() {
 
   return (
     <div {...stylex.props(styles.app)}>
-      <Canvas plan={state.lastPlan} error={state.outcome.error} />
+      <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} />
       <Panel
         title="Skadis Planner"
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}

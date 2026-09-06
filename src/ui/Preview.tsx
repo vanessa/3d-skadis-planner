@@ -1,15 +1,27 @@
 import { useEffect, useId, useState } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
+import type { HardwareMarker } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, type Viewport } from './viewport';
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
+/** Boards with a shorter side under this on screen get no hardware markers. */
+const MIN_MARKER_PX = 32;
 const LABEL_PX = 13;
 const DETAIL_PX = 11;
 const HATCH_PX = 8;
+/** Seam tick length in screen px, split evenly across the seam. */
+const TICK_PX = 12;
+
+/** Screen-px radius for a marker, constant under zoom. */
+function markerRadiusPx(m: HardwareMarker): number {
+  if (m.kind === 'nodes') return m.role === 'junction' ? 5 : 4;
+  if (m.kind === 'boardCorners') return 3;
+  return 4; // seams, outerNodes
+}
 
 const styles = stylex.create({
   svg: {
@@ -49,6 +61,17 @@ const styles = stylex.create({
   },
   hatch: {
     stroke: mixes.vizGrid,
+  },
+  marker: {
+    fill: mixes.vizData,
+    stroke: colors.surface,
+    strokeWidth: 1.5,
+    pointerEvents: 'none',
+  },
+  tick: {
+    stroke: mixes.vizLineStrong,
+    strokeWidth: 1.5,
+    pointerEvents: 'none',
   },
 });
 
@@ -94,9 +117,38 @@ function Board({
   );
 }
 
+function MarkerDot({ m, scale }: { m: HardwareMarker; scale: number }) {
+  const r = markerRadiusPx(m) / scale;
+  const tickHalf = TICK_PX / 2 / scale;
+  return (
+    <>
+      {m.kind === 'seams' && (
+        <line
+          data-tick
+          {...stylex.props(styles.tick)}
+          x1={m.orientation === 'vertical' ? m.x - tickHalf : m.x}
+          y1={m.orientation === 'vertical' ? m.y : m.y - tickHalf}
+          x2={m.orientation === 'vertical' ? m.x + tickHalf : m.x}
+          y2={m.orientation === 'vertical' ? m.y : m.y + tickHalf}
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+      <circle
+        data-marker
+        data-kind={m.kind}
+        {...stylex.props(styles.marker)}
+        cx={m.x}
+        cy={m.y}
+        r={r}
+        vectorEffect="non-scaling-stroke"
+      />
+    </>
+  );
+}
+
 export function Preview({
-  plan, viewport, width, height,
-}: { plan: Plan | null; viewport: Viewport; width: number; height: number }) {
+  plan, viewport, width, height, markers,
+}: { plan: Plan | null; viewport: Viewport; width: number; height: number; markers?: HardwareMarker[] }) {
   const hatchId = useId();
   const [hovered, setHovered] = useState<number | null>(null);
   useEffect(() => setHovered(null), [plan]);
@@ -109,6 +161,7 @@ export function Preview({
   const s = v.scale;
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
+  const minSide = Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm)));
   return (
     <svg
       {...stylex.props(styles.svg)}
@@ -131,6 +184,13 @@ export function Preview({
         {plan.boards.map((b, i) => (
           <Board key={`${b.col}-${b.row}`} b={b} scale={s} onHover={(on) => setHovered(on ? i : null)} />
         ))}
+        {markers && markers.length > 0 && minSide * s >= MIN_MARKER_PX && (
+          <g data-markers>
+            {markers.map((m, i) => (
+              <MarkerDot key={i} m={m} scale={s} />
+            ))}
+          </g>
+        )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
         {hoveredBoard && (
           <rect

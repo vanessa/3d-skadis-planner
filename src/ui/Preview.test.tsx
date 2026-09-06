@@ -5,6 +5,7 @@ import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 import { IDENTITY } from './viewport';
+import type { HardwareMarker } from '../mounting';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
@@ -93,5 +94,49 @@ describe('Preview', () => {
     expect(highlight!.getAttribute('width')).toBe('200');
     fireEvent.pointerLeave(rects[7]);
     expect(container.querySelector('[data-highlight]')).toBeNull();
+  });
+});
+
+describe('Preview markers', () => {
+  it('draws one marker per item and none when the prop is omitted', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const markers: HardwareMarker[] = [{ x: 0, y: 0, kind: 'nodes', role: 'outerCorner' }];
+    const { container, rerender } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} />,
+    );
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(1);
+    rerender(<Preview plan={p} viewport={IDENTITY} width={0} height={0} />);
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+  });
+
+  it('draws a perpendicular tick alongside each seam marker', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const markers: HardwareMarker[] = [{ x: 200, y: 100, kind: 'seams', orientation: 'vertical' }];
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} />);
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-tick]')).toHaveLength(1);
+  });
+
+  it('hides markers when the shorter board side is under 32 screen px', () => {
+    // 200 mm boards at scale 0.1 are 20 px wide.
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const markers: HardwareMarker[] = [{ x: 0, y: 0, kind: 'nodes', role: 'outerCorner' }];
+    const { container } = render(
+      <Preview plan={p} viewport={{ scale: 0.1, tx: 0, ty: 0 }} width={1000} height={600} markers={markers} />,
+    );
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+  });
+
+  it('draws markers after the boards and before the wall outline', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const markers: HardwareMarker[] = [{ x: 0, y: 0, kind: 'nodes', role: 'outerCorner' }];
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} />);
+    const group = container.querySelector('svg > g[transform]')!;
+    const children = [...group.children];
+    const boardIdx = children.findIndex((c) => c.hasAttribute('data-board'));
+    const markersIdx = children.findIndex((c) => c.hasAttribute('data-markers'));
+    const outlineIdx = children.findIndex((c) => c.hasAttribute('data-outline'));
+    expect(boardIdx).toBeLessThan(markersIdx);
+    expect(markersIdx).toBeLessThan(outlineIdx);
   });
 });

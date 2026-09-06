@@ -6,6 +6,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     name: 'Wall mounts (AU3D)',
     url: 'https://makerworld.com/en/models/861073',
     description: 'One printed mount wherever corners meet.',
+    markers: ['nodes'],
     items: [
       { name: 'Quad wall mount', per: { junction: 1 } },
       { name: 'Double wall mount', per: { edgeNode: 1 } },
@@ -23,6 +24,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     name: 'Screw spacers (AU3D)',
     url: 'https://makerworld.com/en/models/418874',
     description: 'A spacer and screw at each board corner.',
+    markers: ['boardCorners'],
     items: [
       { name: 'Screw spacer (10, 15 or 20 mm)', per: { board: 4 } },
       { name: 'M4 wall screw (30 mm or longer)', per: { board: 4 } },
@@ -35,6 +37,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     url: 'https://www.printables.com/model/1371785',
     description: 'Connectors along every seam. Counts assumed.',
     assumed: true,
+    markers: ['seams', 'outerNodes'],
     items: [
       { name: 'Threaded connector', per: { seam: 1 } },
       { name: 'Connector screw', per: { seam: 2 } },

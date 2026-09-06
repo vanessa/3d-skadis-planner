@@ -1,10 +1,11 @@
 import type { MountSystem } from './types';
 import { MOUNT_SYSTEMS } from './systems';
 
-export type { NodeKind, HardwareItem, MountSystem } from './types';
+export type { NodeKind, HardwareItem, MountSystem, MarkerKind, HardwareMarker } from './types';
 export { MOUNT_SYSTEMS } from './systems';
 export { hardwareList, countNodes } from './hardware';
 export type { HardwareRow } from './hardware';
+export { hardwareMarkers } from './markers';
 
 export const DEFAULT_MOUNT_ID = 'wall-mounts';
 

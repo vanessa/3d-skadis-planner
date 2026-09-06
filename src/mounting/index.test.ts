@@ -29,6 +29,12 @@ describe('mounting registry', () => {
     }
   });
 
+  it('gives every system at least one marker kind', () => {
+    for (const system of MOUNT_SYSTEMS) {
+      expect(system.markers.length).toBeGreaterThan(0);
+    }
+  });
+
   it('gives every item at least one positive integer per-kind multiplier', () => {
     for (const system of MOUNT_SYSTEMS) {
       for (const item of system.items) {
