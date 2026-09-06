@@ -286,7 +286,7 @@ export const largestFirst: Strategy = {
 export const uniform: Strategy = {
   id: 'uniform',
   name: 'Same size only',
-  description: 'Every board the same size. A narrow strip may stay uncovered.',
+  description: 'Every board the same size. Picks the size that needs the fewest boards without leaving a big strip uncovered.',
   search: (ctx) => {
     let best = null as number[] | null;
     let bestScore: Score = [];
@@ -294,7 +294,8 @@ export const uniform: Strategy = {
       const k = Math.floor(ctx.avail / size);
       if (k < 1) continue;
       const units = Array<number>(k).fill(size);
-      const score = [ctx.avail - k * size, k, mirrored(units, ctx.needsMirror)];
+      const gap = ctx.avail - k * size;
+      const score = [gap + k, k, mirrored(units, ctx.needsMirror)];
       if (best === null || compareScores(score, bestScore) < 0) {
         best = units;
         bestScore = score;
@@ -320,7 +321,7 @@ export const noMirror: Strategy = {
 export const allowGap: Strategy = {
   id: 'allow-gap',
   name: 'Allow a gap',
-  description: 'Fewest boards if up to the chosen gap may stay uncovered on each side.',
+  description: 'Fewest boards if up to the chosen gap may stay uncovered at the right or bottom edge.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: ctx.gapUnits,
@@ -359,7 +360,7 @@ export function splitAxis(
   // (keep the two PlanError checks exactly as they are)
   const avail = Math.floor(lengthMm / pitch);
   // …
-  const ctx = { avail, minU, maxU, needsMirror, gapUnits: Math.max(0, Math.floor(maxGapMm / pitch)) };
+  const ctx = { avail, minU, maxU, needsMirror, gapUnits: Math.min(Math.max(0, Math.floor(maxGapMm / pitch)), maxU - 1) };
   const k = Math.ceil(avail / maxU);
   const units =
     k * minU > avail

@@ -28,9 +28,9 @@ acceptable, and how ties are scored. Both axes use the same strategy.
 |---|---|---|---|
 | `balanced` (default) | Balanced | Exact cover with the fewest boards; then fewest mirrored boards, fewest distinct sizes, smallest shortfall below the largest board, larger first. Today's behaviour. | 220+200+200+200 by 5 × 200 |
 | `largest-first` | Largest boards first | Exact cover with the fewest boards; then fewest mirrored, fewest distinct sizes, larger boards first. | 240+240+240+100 by 5 × 200 |
-| `uniform` | Same size only | Every board identical. Over all sizes, pick the size whose repeated boards leave the least uncovered; ties go to fewer boards, then fewer mirrored. | 4 × 200 (20 mm gap) by 5 × 200 |
+| `uniform` | Same size only | Every board identical. Over all sizes, pick the size with the lowest cost = boards + uncovered pitches (so one uncovered pitch costs as much as one extra board); ties go to fewer boards, then fewer mirrored. On a 9980 mm axis this gives 41 × 240 mm with 140 mm uncovered rather than 83 × 120 mm. | 4 × 200 (20 mm gap) by 5 × 200 |
 | `no-mirror` | No mirroring | Only boards that do not need mirroring on that axis (odd hole counts for Skadis). May use up to two more boards than the minimum or leave up to one pitch (20 mm) uncovered; ties: least gap, fewest sizes, smallest shortfall, larger first. | 4 × 200 (20 mm gap) by 5 × 200 |
-| `allow-gap` | Allow a gap | Fewest boards that cover at least the length minus the chosen gap (default 40 mm); ties: fewest mirrored, least gap, fewest sizes, smallest shortfall, larger first. | 4 × 200 (20 mm gap) by 4 × 240 (40 mm gap): 16 boards |
+| `allow-gap` | Allow a gap | Fewest boards that cover at least the length minus the chosen gap (default 40 mm, capped at one pitch below the largest board so a huge gap never drops a whole board's worth); ties: fewest mirrored, least gap, fewest sizes, smallest shortfall, larger first. | 4 × 200 (20 mm gap) by 4 × 240 (40 mm gap): 16 boards |
 
 If a strategy finds no valid layout for an axis (for example No mirroring on
 a wall where only 2-hole boards fit), the axis falls back to Balanced
