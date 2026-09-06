@@ -63,7 +63,7 @@ export interface MountSystem {
 
 | Id | Name | Items |
 |---|---|---|
-| `wall-mounts` (default) | Wall mounts (AU3D) | Quad wall mount: junction 1 · Double wall mount: edgeNode 1 · Single wall mount: outerCorner 1 · M4×40–60 wall screw: junction 1, edgeNode 1, outerCorner 1 · M4×20 board screw: board 4 |
+| `wall-mounts` (default) | Wall mounts (AU3D) | Quad wall mount: junction 1 · Double wall mount: edgeNode 1 · Single wall mount: outerCorner 1 (note: separate model, makerworld.com/en/models/420877) · M4×40–60 wall screw: junction 1, edgeNode 1, outerCorner 1 · M4×20 board screw: board 4 |
 | `spacers` | Screw spacers (AU3D) | Screw spacer 10/15/20 mm: board 4 · M4 wall screw (≥ 30 mm): board 4 · Wall plug: board 4 (note: if the wall needs them) |
 | `threaded-connectors` | Threaded connectors (Printables) — *assumed* | Threaded connector: seam 1 · Connector screw: seam 2 (note: assumed two per connector) · Spacer + M4 wall screw: outerCorner 1, edgeNode 1 (note: the outside of the assembly still needs fixing to the wall) |
 
@@ -77,8 +77,8 @@ Example, default 1000 × 600 mm on an A1 (5 × 3 boards, 15 boards): junctions 8
 ## UI
 
 - Panel section **Mounting** after Layout: `System` select (three names), a hint line with the description, and a `Mount files` link to the system's page (opens a new tab). When `assumed` is set the hint ends with "Counts are assumed; check the model page." (already part of the description text for that system) and the print list's hardware rows carry the item notes.
-- **Print list** section: under the board table, a second small table **Hardware** with columns Item · Qty; a note column value shown as muted text under the item name when present.
-- **TXT export**: after the board table, a `Hardware (<system name>)` block with `Qty  Item` rows, notes in parentheses, then a `Mount files: <url>` line. The file name becomes `skadis-plan-<W>x<H>.txt`, the title line `Skadis Planner - print list`.
+- **Print list** section: under the board table, a second small table **Hardware** (captioned) with columns Item · Qty; a note shown as muted text under the item name when present; for an assumed system the line `Hardware counts are assumed; check the model page.` follows the table.
+- **TXT export**: after the board table, a `Hardware (<system name>)` block with `Qty  Item` rows (the Qty column widens for large counts), notes in parentheses, then `Hardware counts are assumed; check the model page.` when the system is assumed, then a `Mount files: <url>` line. The file name becomes `skadis-plan-<W>x<H>.txt`, the title line `Skadis Planner - print list`.
 - Chip unchanged.
 
 ## Rename
