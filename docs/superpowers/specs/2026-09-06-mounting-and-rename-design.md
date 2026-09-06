@@ -79,7 +79,7 @@ Every item also carries a `source` of `'print'` or `'buy'`, printed items ordere
 ## UI
 
 - Panel section **Mounting** after Layout: `System` select (three names), a hint line with the description, and a `Mount files` link to the system's page (opens a new tab). When `assumed` is set the hint ends with "Counts are assumed; check the model page." (already part of the description text for that system) and the print list's hardware rows carry the item notes.
-- **Print list** section: under the board table, a second small table **Hardware** (captioned) with columns Item · Qty; a note shown as muted text under the item name when present; for an assumed system the line `Hardware counts are assumed; check the model page.` follows the table.
+- **Print list** section: under the board table, a second small table **Hardware** (captioned) with columns Item · Get · Qty; a note shown as muted text under the item name when present; for an assumed system the line `Hardware counts are assumed; check the model page.` follows the table.
 - **TXT export**: after the board table, a `Hardware (<system name>)` block with `Qty  Item` rows (the Qty column widens for large counts), notes in parentheses, then `Hardware counts are assumed; check the model page.` when the system is assumed, then a `Mount files: <url>` line. The file name becomes `skadis-plan-<W>x<H>.txt`, the title line `Skadis Planner - print list`.
 - Chip unchanged.
 

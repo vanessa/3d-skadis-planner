@@ -54,18 +54,29 @@ describe('hardwareList', () => {
 });
 
 describe('source', () => {
-  it('is print or buy for every item of every system', () => {
+  const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+
+  it('is carried through by hardwareList', () => {
+    const rows = hardwareList(p, getMountSystem('wall-mounts'));
+    expect(rows.find((r) => r.name === 'Quad wall mount')?.source).toBe('print');
+    expect(rows.find((r) => r.name === 'M4 x 20 board screw')?.source).toBe('buy');
+  });
+
+  it('orders printed items before bought ones for every system', () => {
     for (const system of MOUNT_SYSTEMS) {
-      for (const item of system.items) {
-        expect(['print', 'buy']).toContain(item.source);
+      const sources = hardwareList(p, system).map((r) => r.source);
+      const firstBuy = sources.indexOf('buy');
+      const lastPrint = sources.lastIndexOf('print');
+      if (firstBuy !== -1 && lastPrint !== -1) {
+        expect(lastPrint).toBeLessThan(firstBuy);
       }
     }
   });
 
-  it('is carried through by hardwareList', () => {
-    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
-    const rows = hardwareList(p, getMountSystem('wall-mounts'));
-    expect(rows.find((r) => r.name === 'Quad wall mount')?.source).toBe('print');
-    expect(rows.find((r) => r.name === 'M4 x 20 board screw')?.source).toBe('buy');
+  it('lists the threaded-connectors rows in print-then-buy order', () => {
+    const rows = hardwareList(p, getMountSystem('threaded-connectors'));
+    expect(rows.map((r) => r.name)).toEqual([
+      'Threaded connector', 'Wall spacer', 'Connector screw', 'M4 wall screw',
+    ]);
   });
 });

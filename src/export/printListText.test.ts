@@ -82,6 +82,8 @@ describe('formatPrintList', () => {
       plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem,
     });
     expect(text).toContain('  1  Widget (Only if needed)');
+    expect(text).not.toContain('3D print:');
+    expect(text).toContain('Buy:');
   });
 
   it('adds the assumed line before Mount files when the system is assumed, but not otherwise', () => {
