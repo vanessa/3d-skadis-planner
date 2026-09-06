@@ -44,7 +44,9 @@ size). Positions use the covered area only (leftover strips get nothing).
   the seam (12 px long, perpendicular to the seam) so a connector reads as
   "joins these two boards".
 - Markers hide when the board's shorter side is under 32 screen px (same
-  scale rule family as labels) to avoid clutter when zoomed far out.
+  scale rule family as labels) to avoid clutter when zoomed far out, and
+  the layer is skipped entirely above 4000 markers (very large walls) to
+  keep the DOM bounded.
 
 ## Wiring
 
