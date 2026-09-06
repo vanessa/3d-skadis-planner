@@ -12,7 +12,7 @@ describe('App', () => {
 
   it('renders the title and the default plan', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'Board planner' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Skadis Planner' })).toBeTruthy();
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
 
@@ -114,7 +114,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
     expect(downloadText).toHaveBeenCalledTimes(1);
     const [name, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
-    expect(name).toBe('board-plan-1000x600.txt');
+    expect(name).toBe('skadis-plan-1000x600.txt');
     expect(text).toContain('9 x 9.stl');
     expect(text).toContain('Strategy: Balanced');
     expect(text).toContain('Printer:  Bambu Lab A1 (bed 256 x 256 mm)');

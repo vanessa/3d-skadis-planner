@@ -10,8 +10,8 @@ const date = new Date(2026, 8, 5, 12);
 
 describe('printListFileName', () => {
   it('uses whole millimetres', () => {
-    expect(printListFileName(1000, 600)).toBe('board-plan-1000x600.txt');
-    expect(printListFileName(1000.3, 599.6)).toBe('board-plan-1000x600.txt');
+    expect(printListFileName(1000, 600)).toBe('skadis-plan-1000x600.txt');
+    expect(printListFileName(1000.3, 599.6)).toBe('skadis-plan-1000x600.txt');
   });
 });
 
@@ -21,8 +21,8 @@ describe('formatPrintList', () => {
     const text = formatPrintList({ plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date });
     expect(text).toBe(
       [
-        'Board planner - print list',
-        '==========================',
+        'Skadis Planner - print list',
+        '===========================',
         'Space:    1015 x 600 mm',
         'Model:    IKEA Skadis Infinity',
         '          https://makerworld.com/en/models/1309689-ikea-skadis-infinity',
@@ -42,7 +42,7 @@ describe('formatPrintList', () => {
         '',
         'Boards designed by AU3D - https://makerworld.com/en/@AU3D',
         'Thank you for sharing them!',
-        'Generated 2026-09-05 with Board planner',
+        'Generated 2026-09-05 with Skadis Planner',
         '',
       ].join('\n'),
     );

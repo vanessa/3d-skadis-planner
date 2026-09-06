@@ -1,4 +1,4 @@
-# Board planner
+# Skadis Planner
 
 Enter the width and height of a wall area and get the fewest 3D-printable
 pegboard boards that cover it, sized to your printer's bed. Pick a layout

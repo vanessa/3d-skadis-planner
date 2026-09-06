@@ -13,7 +13,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 const localDate = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 export function printListFileName(widthMm: number, heightMm: number): string {
-  return `board-plan-${mm(widthMm)}x${mm(heightMm)}.txt`;
+  return `skadis-plan-${mm(widthMm)}x${mm(heightMm)}.txt`;
 }
 
 function printAs(g: { mirrorX: boolean; mirrorY: boolean }): string {
@@ -75,7 +75,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date 
     `covers ${mm(plan.coveredWidthMm)} x ${mm(plan.coveredHeightMm)} mm`];
   if (Math.round(plan.leftoverWidthMm) > 0) result.push(`${mm(plan.leftoverWidthMm)} mm left on the right`);
   if (Math.round(plan.leftoverHeightMm) > 0) result.push(`${mm(plan.leftoverHeightMm)} mm left at the bottom`);
-  const title = 'Board planner - print list';
+  const title = 'Skadis Planner - print list';
   const lines = [
     title,
     '='.repeat(title.length),
@@ -95,7 +95,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date 
     '',
     `Boards designed by ${model.author.name} - ${model.author.url}`,
     model.author.thanks,
-    `Generated ${localDate(date)} with Board planner`,
+    `Generated ${localDate(date)} with Skadis Planner`,
     '',
   ];
   return lines.join('\n');

@@ -106,7 +106,7 @@ export default function App() {
     <div {...stylex.props(styles.app)}>
       <Canvas plan={state.lastPlan} error={state.outcome.error} />
       <Panel
-        title="Board planner"
+        title="Skadis Planner"
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
         footer={
           <div {...stylex.props(styles.footer)}>
