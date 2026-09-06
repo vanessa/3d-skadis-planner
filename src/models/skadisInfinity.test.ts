@@ -20,6 +20,17 @@ describe('skadisInfinity', () => {
     expect(skadisInfinity.needsMirrorY(8)).toBe(true);
     expect(skadisInfinity.needsMirrorY(7)).toBe(false);
   });
+  it('names the STL file as columns x rows', () => {
+    expect(skadisInfinity.fileName(9, 10)).toBe('9 x 10.stl');
+    expect(skadisInfinity.fileName(10, 9)).toBe('10 x 9.stl');
+  });
+  it('credits the author', () => {
+    expect(skadisInfinity.author).toEqual({
+      name: 'AU3D',
+      url: 'https://makerworld.com/en/@AU3D',
+      thanks: 'Thank you for sharing them!',
+    });
+  });
 });
 
 describe('model registry', () => {

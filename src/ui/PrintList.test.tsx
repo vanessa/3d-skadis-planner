@@ -21,12 +21,12 @@ describe('PrintList', () => {
     const cells0 = within(rows[0])
       .getAllByRole('cell')
       .map((c) => c.textContent);
-    expect(cells0).toEqual(['180 × 180 mm', '8 × 8', '1', '—']);
+    expect(cells0).toEqual(['8 x 8.stl', '180 × 180 mm', '1', 'as is']);
     const cells1 = within(rows[1])
       .getAllByRole('cell')
       .map((c) => c.textContent);
     expect(cells1[2]).toBe('1');
-    expect(cells1[3]).toBe('Mirror X');
+    expect(cells1[3]).toBe('mirrored X');
   });
 
   it('shows all four mirror variants with the correct quantity and mirror label', () => {
@@ -35,7 +35,7 @@ describe('PrintList', () => {
     const rows = screen.getAllByRole('row').slice(1); // skip header
     expect(rows).toHaveLength(4);
     const mirrorCells = rows.map((r) => within(r).getAllByRole('cell')[3].textContent);
-    expect(mirrorCells).toEqual(['—', 'Mirror X', 'Mirror Y', 'Mirror X + Y']);
+    expect(mirrorCells).toEqual(['as is', 'mirrored X', 'mirrored Y', 'mirrored X + Y']);
     const qtyCells = rows.map((r) => within(r).getAllByRole('cell')[2].textContent);
     expect(qtyCells).toEqual(['2', '2', '2', '2']);
   });
@@ -43,6 +43,6 @@ describe('PrintList', () => {
   it('shows the mirror note', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     render(<PrintList plan={p} model={skadisInfinity} />);
-    expect(screen.getByText(/right-click the board/)).toBeTruthy();
+    expect(screen.getByText(/mirror image/)).toBeTruthy();
   });
 });

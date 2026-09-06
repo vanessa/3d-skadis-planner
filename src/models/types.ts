@@ -36,6 +36,10 @@ export interface BoardModel {
   needsMirrorY(rows: number): boolean;
   /** One paragraph shown under the print list. */
   mirrorNote: string;
+  /** File name in the author's download for a board with these hole counts. */
+  fileName(cols: number, rows: number): string;
+  /** Who designed the boards; shown in the footer, the export and the README. */
+  author: { name: string; url: string; thanks: string };
   /** Geometry used by the 3D view. */
   pattern: BoardPattern;
 }

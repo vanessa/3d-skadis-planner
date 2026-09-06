@@ -50,6 +50,9 @@ const styles = stylex.create({
     borderRadius: radius.sm,
     paddingInline: '6px',
   },
+  asIs: {
+    color: colors.muted,
+  },
   note: {
     fontSize: font.xs,
     color: colors.muted,
@@ -59,9 +62,9 @@ const styles = stylex.create({
 });
 
 function mirrorLabel(g: BoardGroup): string | null {
-  if (g.mirrorX && g.mirrorY) return 'Mirror X + Y';
-  if (g.mirrorX) return 'Mirror X';
-  if (g.mirrorY) return 'Mirror Y';
+  if (g.mirrorX && g.mirrorY) return 'mirrored X + Y';
+  if (g.mirrorX) return 'mirrored X';
+  if (g.mirrorY) return 'mirrored Y';
   return null;
 }
 
@@ -73,16 +76,16 @@ export function PrintList({ plan, model }: { plan: Plan | null; model: BoardMode
         <thead>
           <tr>
             <th scope="col" {...stylex.props(styles.th)}>
-              Size
+              File
             </th>
             <th scope="col" {...stylex.props(styles.th)}>
-              Holes
+              Size
             </th>
             <th scope="col" {...stylex.props(styles.th, styles.thEnd)}>
               Qty
             </th>
             <th scope="col" {...stylex.props(styles.th)}>
-              Mirror
+              Print as
             </th>
           </tr>
         </thead>
@@ -91,15 +94,17 @@ export function PrintList({ plan, model }: { plan: Plan | null; model: BoardMode
             const label = mirrorLabel(g);
             return (
               <tr key={`${g.cols}x${g.rows}-${g.mirrorX}-${g.mirrorY}`}>
+                <td {...stylex.props(styles.td)}>{model.fileName(g.cols, g.rows)}</td>
                 <td {...stylex.props(styles.td)}>
                   {g.widthMm} × {g.heightMm} mm
                 </td>
-                <td {...stylex.props(styles.td)}>
-                  {g.cols} × {g.rows}
-                </td>
                 <td {...stylex.props(styles.td, styles.count)}>{g.count}</td>
                 <td {...stylex.props(styles.td)}>
-                  {label ? <span {...stylex.props(styles.mirror)}>{label}</span> : '—'}
+                  {label ? (
+                    <span {...stylex.props(styles.mirror)}>{label}</span>
+                  ) : (
+                    <span {...stylex.props(styles.asIs)}>as is</span>
+                  )}
                 </td>
               </tr>
             );

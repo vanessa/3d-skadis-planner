@@ -13,9 +13,12 @@ export const skadisInfinity: BoardModel = {
   needsMirrorX: (cols) => cols % 2 === 0,
   needsMirrorY: (rows) => rows % 2 === 0,
   mirrorNote:
-    'Boards with an even hole count are not symmetric. In Bambu Studio, right-click the board, ' +
-    'choose Mirror, and pick the axis listed. Lines mixing odd and even boards use the same ' +
-    'alternating rule but have not been checked on a physical print.',
+    'Boards with an even number of holes are not symmetric, so every other one along a row ' +
+    '(mirrored X) or down a column (mirrored Y) must be printed as a mirror image, or the slots ' +
+    'will not line up across the seam. In Bambu Studio: select the board, right-click, Mirror, ' +
+    'then X or Y. The preview marks which positions get mirrored boards.',
+  fileName: (cols, rows) => `${cols} x ${rows}.stl`,
+  author: { name: 'AU3D', url: 'https://makerworld.com/en/@AU3D', thanks: 'Thank you for sharing them!' },
   pattern: {
     thicknessMm: 5,
     slotWidthMm: 5,
