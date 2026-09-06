@@ -110,7 +110,12 @@ export default function App() {
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
         footer={
           <div {...stylex.props(styles.footer)}>
-            <button type="button" onClick={download} disabled={!state.lastPlan} {...stylex.props(styles.footerLink)}>
+            <button
+              type="button"
+              onClick={download}
+              disabled={!state.lastPlan || state.outcome.error !== null}
+              {...stylex.props(styles.footerLink)}
+            >
               Download print list
             </button>
             <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">

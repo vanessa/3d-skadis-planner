@@ -122,6 +122,15 @@ describe('App', () => {
     expect(name).toBe('board-plan-1000x600.txt');
     expect(text).toContain('9 x 9.stl');
     expect(text).toContain('Strategy: Balanced');
+    expect(text).toContain('Printer:  Bambu Lab A1 (bed 256 x 256 mm)');
+  });
+
+  it('disables the download button while the form is invalid', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '' } });
+    expect((screen.getByRole('button', { name: 'Download print list' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '1000' } });
+    expect((screen.getByRole('button', { name: 'Download print list' }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('credits the author in the footer', () => {

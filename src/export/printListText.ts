@@ -9,6 +9,8 @@ export interface PrintListInput {
 
 const WRAP = 78;
 const mm = (n: number) => String(Math.round(n));
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const localDate = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 export function printListFileName(widthMm: number, heightMm: number): string {
   return `board-plan-${mm(widthMm)}x${mm(heightMm)}.txt`;
@@ -28,11 +30,11 @@ function mark(b: PlacedBoard): string {
   return '';
 }
 
-function wrap(text: string): string[] {
+export function wrapText(text: string, width = WRAP): string[] {
   const out: string[] = [];
   let line = '';
   for (const word of text.split(' ')) {
-    if ((line + ' ' + word).trim().length > WRAP) {
+    if (line !== '' && (line + ' ' + word).trim().length > width) {
       out.push(line.trim());
       line = word;
     } else {
@@ -89,11 +91,11 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date 
     'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
     ...layout(plan),
     '',
-    ...wrap(model.mirrorNote),
+    ...wrapText(model.mirrorNote),
     '',
     `Boards designed by ${model.author.name} - ${model.author.url}`,
     model.author.thanks,
-    `Generated ${date.toISOString().slice(0, 10)} with Board planner`,
+    `Generated ${localDate(date)} with Board planner`,
     '',
   ];
   return lines.join('\n');

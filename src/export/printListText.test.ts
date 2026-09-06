@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { formatPrintList, printListFileName } from './printListText';
+import { formatPrintList, printListFileName, wrapText } from './printListText';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
-const date = new Date('2026-09-05T12:00:00Z');
+const date = new Date(2026, 8, 5, 12);
 
 describe('printListFileName', () => {
   it('uses whole millimetres', () => {
@@ -38,7 +38,7 @@ describe('formatPrintList', () => {
         '9x9  9x9  9x9  9x9  9x9',
         '9x9  9x9  9x9  9x9  9x9',
         '',
-        ...wrap(skadisInfinity.mirrorNote),
+        ...wrapText(skadisInfinity.mirrorNote),
         '',
         'Boards designed by AU3D - https://makerworld.com/en/@AU3D',
         'Thank you for sharing them!',
@@ -58,18 +58,9 @@ describe('formatPrintList', () => {
   });
 });
 
-/** Same 78-column greedy wrap the formatter uses; kept in the test so the expectation is explicit. */
-function wrap(s: string): string[] {
-  const out: string[] = [];
-  let line = '';
-  for (const word of s.split(' ')) {
-    if ((line + ' ' + word).trim().length > 78) {
-      out.push(line.trim());
-      line = word;
-    } else {
-      line = (line + ' ' + word).trim();
-    }
-  }
-  if (line) out.push(line);
-  return out;
-}
+describe('wrapText', () => {
+  it('does not emit a blank line for a word longer than the wrap width', () => {
+    const word = 'a'.repeat(90);
+    expect(wrapText(`short ${word} tail`)).toEqual(['short', word, 'tail']);
+  });
+});
