@@ -129,9 +129,9 @@ function BoardInstances({
 }
 
 function mirrorLabel(b: PlacedBoard): string | null {
-  if (b.mirrorX && b.mirrorY) return 'mirror X+Y';
-  if (b.mirrorX) return 'mirror X';
-  if (b.mirrorY) return 'mirror Y';
+  if (b.mirrorX && b.mirrorY) return 'mirrored X + Y';
+  if (b.mirrorX) return 'mirrored X';
+  if (b.mirrorY) return 'mirrored Y';
   return null;
 }
 
