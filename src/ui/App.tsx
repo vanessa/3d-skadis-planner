@@ -102,9 +102,10 @@ export default function App() {
   }, [resolvedTheme]);
 
   useEffect(() => {
+    if (state.outcome.error !== null) return;
     if (isDefaultForm(state.form)) clearStoredForm();
     else writeStoredForm(state.form);
-  }, [state.form]);
+  }, [state.form, state.outcome.error]);
 
   const onChange = (patch: Partial<FormState>) => {
     setHighlight(null);

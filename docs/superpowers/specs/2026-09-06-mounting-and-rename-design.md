@@ -52,8 +52,6 @@ export type NodeKind = 'board' | 'junction' | 'edgeNode' | 'outerCorner' | 'seam
 export interface HardwareItem { name: string; per: Partial<Record<NodeKind, number>>; note?: string }
 export interface MountSystem {
   id: string; name: string; url: string; description: string;
-  /** True when the counts are assumed rather than read from the model page. */
-  assumed?: boolean;
   items: HardwareItem[];
 }
 ```
@@ -62,20 +60,14 @@ export interface MountSystem {
 |---|---|---|
 | `wall-mounts` (default) | Wall mounts (AU3D) | Quad wall mount: junction 1 · Double wall mount: edgeNode 1 · Single wall mount: outerCorner 1 (note: separate model, makerworld.com/en/models/420877) · M4×40–60 wall screw: junction 1, edgeNode 1, outerCorner 1 · M4×20 board screw: board 4 |
 | `spacers` | Screw spacers (AU3D) | Screw spacer 10/15/20 mm: board 4 · M4 wall screw (≥ 30 mm): board 4 · Wall plug: board 4 (note: if the wall needs them) |
-| `threaded-connectors` | Threaded connectors (Printables) — *assumed* | Threaded connector: seam 1 · Connector screw: seam 2 (note: assumed two per connector) · Spacer + M4 wall screw: outerCorner 1, edgeNode 1 (note: the outside of the assembly still needs fixing to the wall) |
 
 Descriptions (one line each, shown under the select):
 - Wall mounts: "One printed mount under every point where board corners meet, one wall hole per mount."
 - Spacers: "A spacer and a screw at every board corner, straight into the wall."
-- Threaded connectors: "Boards screwed to each other with printed threaded connectors along every seam, plus wall fixing around the outside. Counts are assumed; check the model page."
-
-Example, default 1000 × 600 mm on an A1 (5 × 3 boards, 15 boards): junctions 8, edge nodes 12, corners 4, seams 22. Wall mounts: 8 quad, 12 double, 4 single, 24 wall screws, 60 board screws. Spacers: 60 spacers, 60 screws, 60 plugs. Threaded: 22 connectors, 44 connector screws, 16 spacer+screw sets.
-
-Every item also carries a `source` of `'print'` or `'buy'`, printed items ordered before bought ones within each system. This is surfaced as a `Get` column in the Hardware table (`Print` or `Buy`, styled like the board table's `Print as` chip) and as `3D print:` / `Buy:` sub-groups in the TXT export's hardware block, whichever group has rows and printed first. The threaded-connector system's old combined `Wall fixing (spacer + M4 screw)` item is now two items: `Wall spacer` (print) and `M4 wall screw` (buy), both still counted per outer corner and edge node.
 
 ## UI
 
-- Panel section **Mounting** after Layout: `System` select (three names), a hint line with the description, and a `Mount files` link to the system's page (opens a new tab); the print list's hardware rows carry the item notes.
+- Panel section **Mounting** after Layout: `System` select (two names), a hint line with the description, and a `Mount files` link to the system's page (opens a new tab); the print list's hardware rows carry the item notes.
 - **Print list** section: under the board table, a second small table **Hardware** (captioned) with columns Item · Get · Qty; a note shown as muted text under the item name when present.
 - **TXT export**: after the board table, a `Hardware (<system name>)` block with `Qty  Item` rows (the Qty column widens for large counts), notes in parentheses, then a `Mount files: <url>` line. The file name becomes `skadis-plan-<W>x<H>.txt`, the title line `Skadis Planner - print list`.
 - Chip unchanged.

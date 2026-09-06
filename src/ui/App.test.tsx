@@ -192,6 +192,15 @@ describe('App', () => {
     expect(stored.width).toBe('500');
   });
 
+  it('does not persist a form that fails to compute', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '500' } });
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '' } });
+    expect(screen.getByRole('alert')).toBeTruthy();
+    const stored = JSON.parse(window.localStorage.getItem(FORM_STORAGE_KEY) ?? '{}');
+    expect(stored.width).toBe('500');
+  });
+
   it('renders the plan from a pre-seeded stored form', () => {
     window.localStorage.setItem(
       FORM_STORAGE_KEY,

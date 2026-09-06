@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FORM_STORAGE_KEY, readStoredForm, writeStoredForm, clearStoredForm } from './formStorage';
 import { DEFAULT_FORM, type FormState } from './planState';
 import { DEFAULT_MOUNT_ID } from '../mounting';
 
 describe('formStorage', () => {
   beforeEach(() => window.localStorage.clear());
+  afterEach(() => vi.restoreAllMocks());
 
   it('round-trips a written form', () => {
     const form: FormState = { ...DEFAULT_FORM, width: '820', height: '1000' };
@@ -39,12 +40,11 @@ describe('formStorage', () => {
   });
 
   it('returns null without throwing when storage access throws', () => {
-    const getItem = vi.spyOn(window.localStorage.__proto__, 'getItem').mockImplementation(() => {
+    vi.spyOn(Object.getPrototypeOf(window.localStorage), 'getItem').mockImplementation(() => {
       throw new Error('blocked');
     });
     expect(() => readStoredForm()).not.toThrow();
     expect(readStoredForm()).toBeNull();
-    getItem.mockRestore();
   });
 
   it('clearStoredForm removes the key', () => {

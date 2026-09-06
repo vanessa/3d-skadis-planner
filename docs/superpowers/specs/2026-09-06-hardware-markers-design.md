@@ -22,8 +22,9 @@ hardware, so markers and the Hardware table always agree.
 | `boardCorners` | inside each board, `screwInsetMm` in from each corner | 4·boards |
 | `seams` | midpoint of every shared edge between two adjacent boards | r(c−1)+c(r−1) |
 
-Systems: `wall-mounts` → `['nodes']`; `spacers` → `['boardCorners']`;
-`threaded-connectors` → `['seams', 'outerNodes']`.
+Systems: `wall-mounts` → `['nodes']`; `spacers` → `['boardCorners']`.
+`seams` and `outerNodes` are implemented and tested (via a fixture system
+in `src/mounting/testFixtures.ts`) but used by no shipped system.
 
 `BoardModel` gains `screwInsetMm: number` (Skadis Infinity: 10).
 
@@ -60,9 +61,10 @@ size). Positions use the covered area only (leftover strips get nothing).
   counts 8/12/4 at the expected coordinates (e.g. (0,0) outerCorner,
   (200,0) edgeNode, (200,200) junction, (1000,600) outerCorner); spacers 60
   corner points, first board's at (10,10), (190,10), (10,190), (190,190);
-  threaded 22 seam midpoints (e.g. (200,100) between the first two boards
-  of row 1) plus 16 outer nodes. 1×1 plan: wall mounts 4 corners, seams 0.
-  Marker counts equal the Hardware table's mount/connector counts.
+  the seam/outer-node fixture system gives 22 seam midpoints (e.g. (200,100)
+  between the first two boards of row 1) plus 16 outer nodes. 1×1 plan: wall
+  mounts 4 corners, seams 0. Marker counts equal the Hardware table's
+  mount/connector counts.
 - `Preview.test.tsx`: renders one `[data-marker]` per marker; none when
   `markers` is omitted; hidden when the board is under 32 px.
 - `App.test.tsx`: the default render has 24 markers; switching System to

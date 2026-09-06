@@ -23,14 +23,12 @@ No behaviour change.
 **Mounting descriptions** (`src/mounting/systems.ts`):
 - Wall mounts: `One printed mount wherever corners meet.`
 - Screw spacers: `A spacer and screw at each board corner.`
-- Threaded connectors: `Connectors along every seam. Counts assumed.`
 
 **Hardware items**: `HardwareItem` gains optional `link?: string` (a model
 page for that item). Notes are dropped except where they change what to
 buy:
 - Wall mounts: `Single wall mount` gets `link: https://makerworld.com/en/models/420877`, no note.
 - Spacers: `Wall plug` keeps no note.
-- Threaded: `Connector screw` no note; `Spacer and M4 wall screw` renamed `Wall fixing (spacer + M4 screw)`, no note.
 In the panel a linked item name renders as a link (new tab). In the TXT a
 linked item prints ` (model: <url>)`; notes, when present, still print in
 parentheses.

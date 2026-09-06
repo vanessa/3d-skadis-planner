@@ -2,24 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { hardwareMarkers } from './markers';
 import { getMountSystem } from './index';
 import { countNodes, hardwareList } from './hardware';
-import type { HardwareMarker, MountSystem } from './types';
+import { seamSystem } from './testFixtures';
+import type { HardwareMarker } from './types';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
-
-const seamSystem: MountSystem = {
-  id: 'test-seams',
-  name: 'Seams',
-  url: 'https://example.com',
-  description: '',
-  markers: ['seams', 'outerNodes'],
-  items: [
-    { name: 'Connector', per: { seam: 1 }, source: 'print' },
-    { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
-  ],
-};
 
 const byRole = (markers: HardwareMarker[]) => {
   const counts: Record<string, number> = {};

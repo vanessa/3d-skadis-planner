@@ -89,6 +89,8 @@ describe('PrintList', () => {
     expect(screen.queryByRole('link', { name: 'Single wall mount' })).toBeNull();
     const link = screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/models/420877');
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toContain('noopener');
   });
 
   it('renders a note under the item name for a system with a noted item', () => {

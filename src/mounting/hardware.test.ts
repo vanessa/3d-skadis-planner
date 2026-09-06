@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { countNodes, hardwareList } from './hardware';
 import { getMountSystem } from './index';
 import { MOUNT_SYSTEMS } from './systems';
-import type { MountSystem } from './types';
+import { seamSystem } from './testFixtures';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -10,18 +10,6 @@ import { getPrinter } from '../printers';
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const byName = (rows: { name: string; qty: number }[]) => Object.fromEntries(rows.map((r) => [r.name, r.qty]));
-
-const seamSystem: MountSystem = {
-  id: 'test-seams',
-  name: 'Seams',
-  url: 'https://example.com',
-  description: '',
-  markers: ['seams', 'outerNodes'],
-  items: [
-    { name: 'Connector', per: { seam: 1 }, source: 'print' },
-    { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
-  ],
-};
 
 describe('countNodes', () => {
   it('counts a 5 x 3 grid', () => {
