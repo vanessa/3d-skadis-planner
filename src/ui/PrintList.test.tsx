@@ -53,16 +53,16 @@ describe('PrintList', () => {
     expect(screen.getByText(/mirror image/)).toBeTruthy();
   });
 
-  it('lists the wall-mount hardware for the mini plan in a second table', () => {
+  it('lists the wall-mount hardware for the mini plan in a second, named table', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
-    const tables = screen.getAllByRole('table');
-    expect(tables).toHaveLength(2);
-    const headers = within(tables[1])
+    expect(screen.getAllByRole('table')).toHaveLength(2);
+    const hardwareTable = screen.getByRole('table', { name: 'Hardware' });
+    const headers = within(hardwareTable)
       .getAllByRole('columnheader')
       .map((h) => h.textContent);
     expect(headers).toEqual(['Item', 'Qty']);
-    const rows = within(tables[1]).getAllByRole('row').slice(1);
+    const rows = within(hardwareTable).getAllByRole('row').slice(1);
     const cellTexts = rows.map((r) => within(r).getAllByRole('cell').map((c) => c.textContent));
     expect(cellTexts).toEqual([
       ['Double wall mount', '2'],
@@ -78,5 +78,17 @@ describe('PrintList', () => {
     render(<PrintList plan={p} model={skadisInfinity} system={threaded} />);
     expect(screen.getByText(/Counts are assumed; check the model page\./)).toBeTruthy();
     expect(screen.getByText(/Assumed two per connector/)).toBeTruthy();
+  });
+
+  it('renders a note in full inside the item cell instead of clipping it', () => {
+    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
+    const threaded = getMountSystem('threaded-connectors');
+    render(<PrintList plan={p} model={skadisInfinity} system={threaded} />);
+    const hardwareTable = screen.getByRole('table', { name: 'Hardware' });
+    const rows = within(hardwareTable).getAllByRole('row').slice(1);
+    const connectorScrewRow = rows.find((r) => within(r).getAllByRole('cell')[0].textContent?.includes('Connector screw'));
+    expect(connectorScrewRow).toBeTruthy();
+    const itemCell = within(connectorScrewRow!).getAllByRole('cell')[0];
+    expect(itemCell.textContent).toContain('Assumed two per connector; check the model page');
   });
 });

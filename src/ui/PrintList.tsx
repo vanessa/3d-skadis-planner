@@ -36,6 +36,16 @@ const styles = stylex.create({
     borderBottomColor: mixes.divider,
     whiteSpace: 'nowrap',
   },
+  hardwareItem: {
+    whiteSpace: 'normal',
+  },
+  caption: {
+    fontSize: font.xs,
+    color: colors.muted,
+    textAlign: 'start',
+    paddingBlock: space.xs,
+    captionSide: 'top',
+  },
   count: {
     textAlign: 'end',
     fontWeight: 600,
@@ -60,13 +70,10 @@ const styles = stylex.create({
     color: colors.muted,
     margin: 0,
     lineHeight: 1.5,
+    whiteSpace: 'normal',
   },
-  assumedNote: {
-    fontSize: font.xs,
-    color: colors.muted,
-    margin: 0,
+  assumedGap: {
     marginBottom: space.xs,
-    lineHeight: 1.5,
   },
 });
 
@@ -130,9 +137,10 @@ export function PrintList({
         </tbody>
       </table>
       {system.assumed && (
-        <p {...stylex.props(styles.assumedNote)}>Counts are assumed; check the model page.</p>
+        <p {...stylex.props(styles.note, styles.assumedGap)}>Counts are assumed; check the model page.</p>
       )}
       <table {...stylex.props(styles.table)}>
+        <caption {...stylex.props(styles.caption)}>Hardware</caption>
         <thead>
           <tr>
             <th scope="col" {...stylex.props(styles.th)}>
@@ -146,7 +154,7 @@ export function PrintList({
         <tbody>
           {hardware.map((row) => (
             <tr key={row.name}>
-              <td {...stylex.props(styles.td)}>
+              <td {...stylex.props(styles.td, styles.hardwareItem)}>
                 {row.name}
                 {row.note && <p {...stylex.props(styles.note)}>{row.note}</p>}
               </td>

@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import App from './App';
 import { skadisInfinity } from '../models/skadisInfinity';
 
@@ -143,6 +143,19 @@ describe('App', () => {
     ]);
     const link = screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/models/861073');
+
+    fireEvent.change(select, { target: { value: 'spacers' } });
+    expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
+      'https://makerworld.com/en/models/418874',
+    );
+    expect(screen.getByText(/A spacer and a screw at every board corner/)).toBeTruthy();
+    const hardwareTable = screen.getByRole('table', { name: 'Hardware' });
+    expect(within(hardwareTable).getByText('Screw spacer (10, 15 or 20 mm)')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('Hardware (Screw spacers (AU3D))');
+    expect(text).toContain('Screw spacer');
   });
 
   it('includes the mounting hardware in the downloaded print list', () => {
