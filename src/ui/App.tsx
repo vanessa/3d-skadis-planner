@@ -127,7 +127,7 @@ export default function App() {
               Open files on MakerWorld
             </a>
             <p {...stylex.props(styles.credit)}>
-              Boards designed by{' '}
+              Boards by{' '}
               <a {...stylex.props(styles.creditLink)} href={model.author.url} target="_blank" rel="noopener noreferrer">
                 {model.author.name}
               </a>

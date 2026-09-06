@@ -92,7 +92,7 @@ export function bestPartition(
 export const balanced: Strategy = {
   id: 'balanced',
   name: 'Balanced',
-  description: 'Fewest boards, then the fewest mirrored boards and sizes, with the remainder spread out instead of left as a sliver.',
+  description: 'Fewest boards, sizes kept even.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: 0,
@@ -103,7 +103,7 @@ export const balanced: Strategy = {
 export const largestFirst: Strategy = {
   id: 'largest-first',
   name: 'Largest boards first',
-  description: 'Fewest boards using the biggest board that fits, with one smaller board for the remainder.',
+  description: 'Biggest boards, one small remainder.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: 0,
@@ -114,8 +114,7 @@ export const largestFirst: Strategy = {
 export const uniform: Strategy = {
   id: 'uniform',
   name: 'Same size only',
-  description:
-    'Every board the same size. Picks the size that needs the fewest boards without leaving a big strip uncovered.',
+  description: 'Every board the same size; a small strip may stay open.',
   search: (ctx) => {
     let best = null as number[] | null;
     let bestScore: Score = [];
@@ -137,8 +136,7 @@ export const uniform: Strategy = {
 export const noMirror: Strategy = {
   id: 'no-mirror',
   name: 'No mirroring',
-  description:
-    'Prefers symmetric boards so nothing needs mirroring in the slicer; may use an extra board or leave up to one pitch uncovered, and falls back to Balanced when no symmetric layout fits.',
+  description: 'Symmetric boards only, nothing to mirror.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: 1,
@@ -151,7 +149,7 @@ export const noMirror: Strategy = {
 export const allowGap: Strategy = {
   id: 'allow-gap',
   name: 'Allow a gap',
-  description: 'Fewest boards if up to the chosen gap may stay uncovered at the right or bottom edge.',
+  description: 'Fewest boards, leaving up to the gap open.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: ctx.gapUnits,

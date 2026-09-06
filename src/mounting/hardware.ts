@@ -20,6 +20,7 @@ export interface HardwareRow {
   name: string;
   qty: number;
   note?: string;
+  link?: string;
 }
 
 export function hardwareList(plan: Plan, system: MountSystem): HardwareRow[] {
@@ -29,6 +30,7 @@ export function hardwareList(plan: Plan, system: MountSystem): HardwareRow[] {
       name: item.name,
       qty: NODE_KINDS.reduce((sum, kind) => sum + (item.per[kind] ?? 0) * nodes[kind], 0),
       ...(item.note ? { note: item.note } : {}),
+      ...(item.link ? { link: item.link } : {}),
     }))
     .filter((row) => row.qty > 0);
 }

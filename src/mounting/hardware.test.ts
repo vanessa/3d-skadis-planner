@@ -34,10 +34,10 @@ describe('hardwareList', () => {
   });
   it('counts threaded connectors', () => {
     expect(byName(hardwareList(p, getMountSystem('threaded-connectors')))).toEqual({
-      'Threaded connector': 22, 'Connector screw': 44, 'Spacer and M4 wall screw': 16,
+      'Threaded connector': 22, 'Connector screw': 44, 'Wall fixing (spacer + M4 screw)': 16,
     });
   });
-  it('omits zero rows and keeps notes', () => {
+  it('omits zero rows and passes the link through', () => {
     const one = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     const rows = hardwareList(one, getMountSystem('wall-mounts'));
     expect(rows.map((r) => r.name)).toEqual(['Single wall mount', 'M4 x 40-60 wall screw', 'M4 x 20 board screw']);
@@ -45,6 +45,9 @@ describe('hardwareList', () => {
     expect(byName(hardwareList(mini2, getMountSystem('wall-mounts')))).toEqual({
       'Double wall mount': 2, 'Single wall mount': 4, 'M4 x 40-60 wall screw': 6, 'M4 x 20 board screw': 8,
     });
-    expect(hardwareList(one, getMountSystem('spacers')).find((r) => r.name === 'Wall plug')?.note).toMatch(/wall/i);
+    expect(rows.find((r) => r.name === 'Single wall mount')?.link).toBe(
+      'https://makerworld.com/en/models/420877',
+    );
+    expect(hardwareList(one, getMountSystem('spacers')).find((r) => r.name === 'Wall plug')?.note).toBeUndefined();
   });
 });

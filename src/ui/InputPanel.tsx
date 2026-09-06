@@ -58,7 +58,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
         />
       </PanelSection>
 
-      <PanelSection title="Board">
+      <PanelSection title="Board" defaultOpen={false}>
         <SelectField
           label="Model"
           value={form.modelId}

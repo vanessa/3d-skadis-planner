@@ -132,7 +132,7 @@ describe('App', () => {
     render(<App />);
     const link = screen.getByRole('link', { name: 'AU3D' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/@AU3D');
-    expect(screen.getByText(/Thank you for sharing them!/)).toBeTruthy();
+    expect(screen.getByText(/Thank you!/)).toBeTruthy();
   });
 
   it('offers mounting systems and links to the mount files', () => {
@@ -148,8 +148,8 @@ describe('App', () => {
     expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
       'https://makerworld.com/en/models/418874',
     );
-    expect(screen.getByText(/A spacer and a screw at every board corner/)).toBeTruthy();
-    const hardwareTable = screen.getByRole('table', { name: 'Hardware' });
+    expect(screen.getByText(/A spacer and screw at each board corner/)).toBeTruthy();
+    const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
     expect(within(hardwareTable).getByText('Screw spacer (10, 15 or 20 mm)')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));

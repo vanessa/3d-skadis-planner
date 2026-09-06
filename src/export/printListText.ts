@@ -72,7 +72,10 @@ function hardwareBlock(plan: Plan, system: MountSystem): string[] {
   const qtyWidth = Math.max(3, ...rows.map((r) => String(r.qty).length));
   return [
     `Hardware (${system.name})`,
-    ...rows.map((r) => `${String(r.qty).padStart(qtyWidth)}  ${r.name}${r.note ? ` (${r.note})` : ''}`),
+    ...rows.map(
+      (r) =>
+        `${String(r.qty).padStart(qtyWidth)}  ${r.name}${r.link ? ` (model: ${r.link})` : ''}${r.note ? ` (${r.note})` : ''}`,
+    ),
     ...(system.assumed ? ['Hardware counts are assumed; check the model page.'] : []),
     `Mount files: ${system.url}`,
   ];
@@ -114,7 +117,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date,
     '',
     ...wrapText(model.mirrorNote),
     '',
-    `Boards designed by ${model.author.name} - ${model.author.url}`,
+    `Boards by ${model.author.name} - ${model.author.url}`,
     model.author.thanks,
     `Generated ${localDate(date)} with Skadis Planner`,
     '',

@@ -72,8 +72,14 @@ const styles = stylex.create({
     lineHeight: 1.5,
     whiteSpace: 'normal',
   },
-  assumedGap: {
-    marginBottom: space.xs,
+  assumedBadge: {
+    marginInlineStart: space.xs,
+  },
+  itemLink: {
+    fontSize: font.xs,
+    lineHeight: '15px',
+    color: colors.muted,
+    textDecoration: 'underline',
   },
 });
 
@@ -137,7 +143,10 @@ export function PrintList({
         </tbody>
       </table>
       <table {...stylex.props(styles.table)}>
-        <caption {...stylex.props(styles.caption)}>Hardware</caption>
+        <caption {...stylex.props(styles.caption)}>
+          Hardware
+          {system.assumed && <span {...stylex.props(styles.mirror, styles.assumedBadge)}>assumed</span>}
+        </caption>
         <thead>
           <tr>
             <th scope="col" {...stylex.props(styles.th)}>
@@ -152,7 +161,13 @@ export function PrintList({
           {hardware.map((row) => (
             <tr key={row.name}>
               <td {...stylex.props(styles.td, styles.hardwareItem)}>
-                {row.name}
+                {row.link ? (
+                  <a {...stylex.props(styles.itemLink)} href={row.link} target="_blank" rel="noopener noreferrer">
+                    {row.name}
+                  </a>
+                ) : (
+                  row.name
+                )}
                 {row.note && <p {...stylex.props(styles.note)}>{row.note}</p>}
               </td>
               <td {...stylex.props(styles.td, styles.count)}>{row.qty}</td>
@@ -160,9 +175,6 @@ export function PrintList({
           ))}
         </tbody>
       </table>
-      {system.assumed && (
-        <p {...stylex.props(styles.note, styles.assumedGap)}>Hardware counts are assumed; check the model page.</p>
-      )}
       <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
     </>
   );

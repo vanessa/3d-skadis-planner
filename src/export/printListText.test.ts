@@ -40,7 +40,7 @@ describe('formatPrintList', () => {
         'Hardware (Wall mounts (AU3D))',
         '  8  Quad wall mount',
         ' 12  Double wall mount',
-        '  4  Single wall mount (Separate model: makerworld.com/en/models/420877)',
+        '  4  Single wall mount (model: https://makerworld.com/en/models/420877)',
         ' 24  M4 x 40-60 wall screw',
         ' 60  M4 x 20 board screw',
         'Mount files: https://makerworld.com/en/models/861073',
@@ -52,8 +52,8 @@ describe('formatPrintList', () => {
         '',
         ...wrapText(skadisInfinity.mirrorNote),
         '',
-        'Boards designed by AU3D - https://makerworld.com/en/@AU3D',
-        'Thank you for sharing them!',
+        'Boards by AU3D - https://makerworld.com/en/@AU3D',
+        'Thank you!',
         'Generated 2026-09-05 with Skadis Planner',
         '',
       ].join('\n'),
@@ -82,7 +82,7 @@ describe('formatPrintList', () => {
       plan: p, model: skadisInfinity, printer: a1, widthMm: 10000, heightMm: 10000, date, system: wallMounts,
     });
     expect(text).toContain('7056  M4 x 20 board screw');
-    expect(text).toContain('   4  Single wall mount (Separate model: makerworld.com/en/models/420877)');
+    expect(text).toContain('   4  Single wall mount (model: https://makerworld.com/en/models/420877)');
   });
 
   it('marks mirrored boards in the layout and lists every variant', () => {

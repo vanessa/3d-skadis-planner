@@ -28,7 +28,7 @@ describe('skadisInfinity', () => {
     expect(skadisInfinity.author).toEqual({
       name: 'AU3D',
       url: 'https://makerworld.com/en/@AU3D',
-      thanks: 'Thank you for sharing them!',
+      thanks: 'Thank you!',
     });
   });
 });

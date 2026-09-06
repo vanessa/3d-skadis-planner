@@ -4,6 +4,7 @@ export interface HardwareItem {
   name: string;
   per: Partial<Record<NodeKind, number>>;
   note?: string;
+  link?: string;
 }
 
 export interface MountSystem {

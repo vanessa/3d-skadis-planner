@@ -8,14 +8,23 @@ import { getPrinter } from '../printers';
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 
 describe('SummaryChip', () => {
-  it('shows count and coverage with no leftover text when leftover rounds to zero', () => {
+  it('shows count and coverage with no leftover text and no strategy suffix for Balanced', () => {
     const p = plan({ widthMm: 1000.3, heightMm: 600, model: skadisInfinity, printer: a1 });
     render(<SummaryChip plan={p} error={null} />);
     const text = screen.getByTestId('summary').textContent ?? '';
     expect(text).toMatch(/15 boards/);
     expect(text).toMatch(/1000 × 600 mm/);
     expect(text).not.toMatch(/left/);
-    expect(text).toMatch(/· Balanced$/);
+    expect(text).not.toMatch(/Balanced/);
+  });
+
+  it('appends the strategy name for an allow-gap plan', () => {
+    const p = plan({
+      widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1, strategyId: 'allow-gap', maxGapMm: 40,
+    });
+    render(<SummaryChip plan={p} error={null} />);
+    const text = screen.getByTestId('summary').textContent ?? '';
+    expect(text).toMatch(/· Allow a gap$/);
   });
 
   it('shows leftover on the right and at the bottom', () => {
