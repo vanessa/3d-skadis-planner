@@ -98,4 +98,16 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Fit to view' })).toBeTruthy();
     expect(screen.getByText('100%')).toBeTruthy();
   });
+
+  it('offers layout strategies and shows the gap field only for allow-gap', () => {
+    render(<App />);
+    const select = screen.getByLabelText('Strategy') as HTMLSelectElement;
+    expect([...select.options].map((o) => o.textContent)).toEqual([
+      'Balanced', 'Largest boards first', 'Same size only', 'No mirroring', 'Allow a gap',
+    ]);
+    expect(screen.queryByLabelText('Max gap')).toBeNull();
+    fireEvent.change(select, { target: { value: 'allow-gap' } });
+    expect((screen.getByLabelText('Max gap') as HTMLInputElement).value).toBe('40');
+    expect(screen.getByText(/12 boards/)).toBeTruthy();
+  });
 });

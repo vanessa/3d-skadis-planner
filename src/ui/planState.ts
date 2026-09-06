@@ -1,4 +1,4 @@
-import { plan, PlanError, type Plan } from '../solver';
+import { plan, PlanError, DEFAULT_STRATEGY_ID, type Plan, type StrategyId } from '../solver';
 import { getModel, DEFAULT_MODEL_ID } from '../models';
 import { getPrinter, DEFAULT_PRINTER_ID, CUSTOM_PRINTER_ID } from '../printers';
 import { toMm, type Unit } from '../units';
@@ -11,6 +11,8 @@ export interface FormState {
   printerId: string;
   customBedWidth: string;
   customBedDepth: string;
+  strategyId: StrategyId;
+  maxGap: string;
 }
 
 export const DEFAULT_FORM: FormState = {
@@ -21,6 +23,8 @@ export const DEFAULT_FORM: FormState = {
   printerId: DEFAULT_PRINTER_ID,
   customBedWidth: '256',
   customBedDepth: '256',
+  strategyId: DEFAULT_STRATEGY_ID,
+  maxGap: '40',
 };
 
 export interface PlanOutcome {
@@ -32,6 +36,8 @@ export interface PlanOutcome {
 export const MAX_AXIS_MM = 10_000;
 /** Custom bed widths and depths above this (in mm) are rejected. */
 export const MAX_BED_MM = 2_000;
+/** Max gap values above this (in mm) are rejected. */
+export const MAX_GAP_MM = 1000;
 
 function parsePositive(raw: string): number | null {
   const n = Number(raw.trim());
@@ -63,12 +69,23 @@ export function computePlan(form: FormState): PlanOutcome {
     bedDepthMm = d;
   }
 
+  let maxGapMm = 0;
+  if (form.strategyId === 'allow-gap') {
+    const g = Number(form.maxGap.trim());
+    if (form.maxGap.trim() === '' || !Number.isFinite(g) || g < 0 || g > MAX_GAP_MM) {
+      return { plan: null, error: `Enter a max gap between 0 and ${MAX_GAP_MM} mm.` };
+    }
+    maxGapMm = g;
+  }
+
   try {
     const result = plan({
       widthMm,
       heightMm,
       model: getModel(form.modelId),
       printer: getPrinter(form.printerId, { bedWidthMm, bedDepthMm }),
+      strategyId: form.strategyId,
+      maxGapMm,
     });
     return { plan: result, error: null };
   } catch (e) {

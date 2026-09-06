@@ -2,8 +2,9 @@ import type { FormState } from './planState';
 import { MODELS } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
+import { STRATEGIES, getStrategy, type StrategyId } from '../solver';
 import { PanelSection } from './PanelSection';
-import { FieldRow, NumberField, SelectField } from './fields';
+import { FieldRow, FieldHint, NumberField, SelectField } from './fields';
 
 export interface InputPanelProps {
   form: FormState;
@@ -75,6 +76,19 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
               onChange={(customBedDepth) => onChange({ customBedDepth })}
             />
           </FieldRow>
+        )}
+      </PanelSection>
+
+      <PanelSection title="Layout">
+        <SelectField
+          label="Strategy"
+          value={form.strategyId}
+          onChange={(strategyId) => onChange({ strategyId: strategyId as StrategyId })}
+          options={STRATEGIES.map((s) => ({ value: s.id, label: s.name }))}
+        />
+        <FieldHint>{getStrategy(form.strategyId).description}</FieldHint>
+        {form.strategyId === 'allow-gap' && (
+          <NumberField label="Max gap" value={form.maxGap} onChange={(maxGap) => onChange({ maxGap })} />
         )}
       </PanelSection>
     </form>

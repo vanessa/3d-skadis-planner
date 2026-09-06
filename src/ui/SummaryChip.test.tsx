@@ -15,6 +15,7 @@ describe('SummaryChip', () => {
     expect(text).toMatch(/15 boards/);
     expect(text).toMatch(/1000 × 600 mm/);
     expect(text).not.toMatch(/left/);
+    expect(text).toMatch(/· Balanced$/);
   });
 
   it('shows leftover on the right and at the bottom', () => {

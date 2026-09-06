@@ -77,10 +77,20 @@ const styles = stylex.create({
     gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
     gap: space.sm,
   },
+  hint: {
+    margin: 0,
+    fontSize: font.xs,
+    lineHeight: '15px',
+    color: colors.muted,
+  },
 });
 
 export function FieldRow({ children }: { children: ReactNode }) {
   return <div {...stylex.props(styles.row)}>{children}</div>;
+}
+
+export function FieldHint({ children }: { children: ReactNode }) {
+  return <p {...stylex.props(styles.hint)}>{children}</p>;
 }
 
 export function NumberField({

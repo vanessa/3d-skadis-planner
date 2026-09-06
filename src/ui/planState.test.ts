@@ -46,4 +46,18 @@ describe('computePlan', () => {
     const out = computePlan({ ...DEFAULT_FORM, printerId: 'custom', customBedWidth: '5000' });
     expect(out.error).toMatch(/2000/);
   });
+  it('defaults to the balanced strategy', () => {
+    expect(DEFAULT_FORM.strategyId).toBe('balanced');
+    expect(computePlan(DEFAULT_FORM).plan?.strategyId).toBe('balanced');
+  });
+  it('passes the strategy and gap to the solver', () => {
+    const out = computePlan({ ...DEFAULT_FORM, width: '820', height: '1000', strategyId: 'allow-gap', maxGap: '40' });
+    expect(out.plan?.boards).toHaveLength(16);
+  });
+  it('validates the gap only for allow-gap', () => {
+    expect(computePlan({ ...DEFAULT_FORM, strategyId: 'allow-gap', maxGap: '' }).error).toMatch(/max gap/i);
+    expect(computePlan({ ...DEFAULT_FORM, strategyId: 'allow-gap', maxGap: '5000' }).error).toMatch(/1000/);
+    expect(computePlan({ ...DEFAULT_FORM, strategyId: 'balanced', maxGap: '' }).error).toBeNull();
+    expect(computePlan({ ...DEFAULT_FORM, strategyId: 'allow-gap', maxGap: '0' }).error).toBeNull();
+  });
 });

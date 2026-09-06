@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
-import type { Plan } from '../solver';
+import { getStrategy, type Plan } from '../solver';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
@@ -49,6 +49,7 @@ export function SummaryChip({ plan, error }: { plan: Plan | null; error: string 
     parts.push(`${mm(plan.coveredWidthMm)} × ${mm(plan.coveredHeightMm)} mm`);
     if (Math.round(plan.leftoverWidthMm) > 0) parts.push(`${mm(plan.leftoverWidthMm)} mm left on the right`);
     if (Math.round(plan.leftoverHeightMm) > 0) parts.push(`${mm(plan.leftoverHeightMm)} mm left at the bottom`);
+    parts.push(getStrategy(plan.strategyId).name);
   }
   return (
     <div {...stylex.props(styles.wrap)}>
