@@ -30,7 +30,7 @@ Add an entry to `PRINTERS` in `src/printers/index.ts`.
 ## Credits
 
 The board models are [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity)
-by [AU3D](https://makerworld.com/en/@AU3D) on MakerWorld. Thank you for sharing them!
+by [AU3D](https://makerworld.com/en/@AU3D) on MakerWorld. Thank you!
 This tool only plans which of the author's files to print; download the files from
 MakerWorld under the author's licence. Nothing from the models is redistributed here.
 

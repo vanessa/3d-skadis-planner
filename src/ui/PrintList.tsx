@@ -76,9 +76,8 @@ const styles = stylex.create({
     marginInlineStart: space.xs,
   },
   itemLink: {
-    fontSize: font.xs,
-    lineHeight: '15px',
-    color: colors.muted,
+    fontSize: 'inherit',
+    color: colors.text,
     textDecoration: 'underline',
   },
 });
@@ -175,7 +174,9 @@ export function PrintList({
           ))}
         </tbody>
       </table>
-      <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
+      {plan.groups.some((g) => g.mirrorX || g.mirrorY) && (
+        <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
+      )}
     </>
   );
 }

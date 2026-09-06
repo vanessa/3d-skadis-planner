@@ -4,10 +4,18 @@ import { PrintList } from './PrintList';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
-import { getMountSystem } from '../mounting';
+import { getMountSystem, type MountSystem } from '../mounting';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
+const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const wallMounts = getMountSystem('wall-mounts');
+const notedSystem: MountSystem = {
+  id: 'test',
+  name: 'Test',
+  url: 'https://example.com',
+  description: '',
+  items: [{ name: 'Widget', per: { board: 1 }, note: 'Only if needed' }],
+};
 
 describe('PrintList', () => {
   it('renders nothing without a plan', () => {
@@ -95,5 +103,19 @@ describe('PrintList', () => {
     render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
     const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
     expect(within(hardwareTable).queryByText('assumed')).toBeNull();
+  });
+
+  it('renders a note under the item name for a system with a noted item', () => {
+    const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
+    render(<PrintList plan={p} model={skadisInfinity} system={notedSystem} />);
+    const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
+    expect(within(hardwareTable).getByText('Widget')).toBeTruthy();
+    expect(within(hardwareTable).getByText('Only if needed')).toBeTruthy();
+  });
+
+  it('renders no mirror note when no board in the plan needs mirroring', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
+    expect(screen.queryByText(/mirror image/)).toBeNull();
   });
 });

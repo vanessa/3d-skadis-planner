@@ -3,12 +3,19 @@ import { formatPrintList, printListFileName, wrapText } from './printListText';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
-import { getMountSystem } from '../mounting';
+import { getMountSystem, type MountSystem } from '../mounting';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const date = new Date(2026, 8, 5, 12);
 const wallMounts = getMountSystem('wall-mounts');
+const notedSystem: MountSystem = {
+  id: 'test',
+  name: 'Test',
+  url: 'https://example.com',
+  description: '',
+  items: [{ name: 'Widget', per: { board: 1 }, note: 'Only if needed' }],
+};
 
 describe('printListFileName', () => {
   it('uses whole millimetres', () => {
@@ -50,14 +57,28 @@ describe('formatPrintList', () => {
         '9x9  9x9  9x9  9x9  9x9',
         '9x9  9x9  9x9  9x9  9x9',
         '',
-        ...wrapText(skadisInfinity.mirrorNote),
-        '',
         'Boards by AU3D - https://makerworld.com/en/@AU3D',
         'Thank you!',
         'Generated 2026-09-05 with Skadis Planner',
         '',
       ].join('\n'),
     );
+  });
+
+  it('omits the mirror note when no board in the plan needs mirroring', () => {
+    const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
+    });
+    expect(text).not.toContain('mirror image');
+  });
+
+  it('prints a note in parentheses after the hardware item name', () => {
+    const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem,
+    });
+    expect(text).toContain('  1  Widget (Only if needed)');
   });
 
   it('adds the assumed line before Mount files when the system is assumed, but not otherwise', () => {
@@ -94,6 +115,7 @@ describe('formatPrintList', () => {
     expect(text).toContain('8x8+  8x8#  8x8+  8x8#');
     expect(text).toContain('  2  8 x 8.stl  180 x 180 mm  mirrored X + Y');
     expect(text).toContain('Strategy: Balanced');
+    expect(text).toContain('mirror image');
   });
 });
 

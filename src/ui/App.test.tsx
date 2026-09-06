@@ -132,7 +132,9 @@ describe('App', () => {
     render(<App />);
     const link = screen.getByRole('link', { name: 'AU3D' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/@AU3D');
-    expect(screen.getByText(/Thank you!/)).toBeTruthy();
+    const credit = link.closest('p');
+    expect(credit).toBeTruthy();
+    expect((credit!.textContent ?? '').replace(/\s+/g, ' ').trim()).toMatch(/^Boards by AU3D\. Thank you!$/);
   });
 
   it('offers mounting systems and links to the mount files', () => {

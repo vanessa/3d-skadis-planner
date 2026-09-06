@@ -97,6 +97,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date,
     `covers ${mm(plan.coveredWidthMm)} x ${mm(plan.coveredHeightMm)} mm`];
   if (Math.round(plan.leftoverWidthMm) > 0) result.push(`${mm(plan.leftoverWidthMm)} mm left on the right`);
   if (Math.round(plan.leftoverHeightMm) > 0) result.push(`${mm(plan.leftoverHeightMm)} mm left at the bottom`);
+  const hasMirror = plan.groups.some((g) => g.mirrorX || g.mirrorY);
   const title = 'Skadis Planner - print list';
   const lines = [
     title,
@@ -114,8 +115,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date,
     '',
     'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
     ...layout(plan),
-    '',
-    ...wrapText(model.mirrorNote),
+    ...(hasMirror ? ['', ...wrapText(model.mirrorNote)] : []),
     '',
     `Boards by ${model.author.name} - ${model.author.url}`,
     model.author.thanks,
