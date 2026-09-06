@@ -7,7 +7,6 @@ export const colors = stylex.defineVars({
   text: 'oklch(0.985 0 0)',
   muted: 'oklch(0.708 0 0)',
   mutedBg: '#262626',
-  accent: '#0c8ce9',
   attention: '#ea733a',
   destructive: 'hsl(0 84% 60%)',
   link: '#70b0fa',

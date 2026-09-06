@@ -145,6 +145,29 @@ describe('PrintList', () => {
     expect(onHighlight).toHaveBeenLastCalledWith({ kind: 'hardware', per: { junction: 1 } });
   });
 
+  it('reports a boards highlight on focus and clears it on blur for a board row', () => {
+    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
+    const onHighlight = vi.fn();
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} onHighlight={onHighlight} />);
+    const boardTable = screen.getAllByRole('table')[0];
+    const row = within(boardTable).getAllByRole('row')[1];
+    fireEvent.focus(row);
+    expect(onHighlight).toHaveBeenLastCalledWith({ kind: 'boards', cols: 8, rows: 8, mirrorX: false, mirrorY: false });
+    fireEvent.blur(row);
+    expect(onHighlight).toHaveBeenLastCalledWith(null);
+  });
+
+  it('reports a hardware highlight on focus and clears it on blur for the Quad wall mount row', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const onHighlight = vi.fn();
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} onHighlight={onHighlight} />);
+    const link = screen.getByRole('link', { name: 'Print Quad wall mount' });
+    fireEvent.focus(link);
+    expect(onHighlight).toHaveBeenLastCalledWith({ kind: 'hardware', per: { junction: 1 } });
+    fireEvent.blur(link);
+    expect(onHighlight).toHaveBeenLastCalledWith(null);
+  });
+
   it('links the Print chip to the item link, falling back to the system url', () => {
     const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
     render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);

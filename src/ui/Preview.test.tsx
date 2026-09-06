@@ -79,7 +79,6 @@ describe('Preview', () => {
     const g = container.querySelector('svg > g[transform]')!;
     expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1)');
   });
-
 });
 
 describe('Preview highlight', () => {
@@ -113,6 +112,33 @@ describe('Preview highlight', () => {
     expect(container.querySelectorAll('[data-markers] circle[data-dim]')).toHaveLength(circles.length - 8);
     expect(container.querySelectorAll('[data-board] rect[data-dim]')).toHaveLength(0);
     expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(0);
+  });
+
+  it('lights every board for a per-board hardware highlight when no marker matches', () => {
+    // wall-mounts only draws `nodes` markers, so a hardware row with per.board
+    // has nothing to match and must not dim everything on the preview.
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const wallMounts = getMountSystem('wall-mounts');
+    const markers = hardwareMarkers(p, wallMounts, skadisInfinity);
+    const highlight: Highlight = { kind: 'hardware', per: { board: 4 } };
+    const { container } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} highlight={highlight} />,
+    );
+    expect(container.querySelectorAll('[data-dim]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(15);
+  });
+
+  it('lights only matching board-corner markers for a per-board hardware highlight, leaving boards unlit', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const spacers = getMountSystem('spacers');
+    const markers = hardwareMarkers(p, spacers, skadisInfinity);
+    const highlight: Highlight = { kind: 'hardware', per: { board: 4 } };
+    const { container } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} highlight={highlight} />,
+    );
+    expect(container.querySelectorAll('[data-markers] circle[data-lit]')).toHaveLength(60);
+    expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-dim]')).toHaveLength(0);
   });
 
   it('has no lit/dim/highlight markup without a highlight prop', () => {

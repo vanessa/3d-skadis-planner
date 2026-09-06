@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { boardMatches, markerMatches, type Highlight } from './highlight';
+import { boardMatches, markerMatches, boardsFallback, type Highlight } from './highlight';
 import type { PlacedBoard } from '../solver';
 import type { HardwareMarker } from '../mounting';
 
@@ -82,5 +82,27 @@ describe('markerMatches', () => {
   it('a boards highlight never matches a marker', () => {
     const h: Highlight = { kind: 'boards', cols: 9, rows: 9, mirrorX: false, mirrorY: false };
     expect(markerMatches(h, marker({ kind: 'nodes', role: 'junction' }))).toBe(false);
+  });
+});
+
+describe('boardsFallback', () => {
+  it('is true for a per-board hardware highlight when no marker matched', () => {
+    const h: Highlight = { kind: 'hardware', per: { board: 4 } };
+    expect(boardsFallback(h, false)).toBe(true);
+  });
+
+  it('is false for a per-board hardware highlight when a marker matched', () => {
+    const h: Highlight = { kind: 'hardware', per: { board: 4 } };
+    expect(boardsFallback(h, true)).toBe(false);
+  });
+
+  it('is false when per.board is absent or zero', () => {
+    expect(boardsFallback({ kind: 'hardware', per: { junction: 1 } }, false)).toBe(false);
+    expect(boardsFallback({ kind: 'hardware', per: { board: 0 } }, false)).toBe(false);
+  });
+
+  it('is false for a boards highlight', () => {
+    const h: Highlight = { kind: 'boards', cols: 9, rows: 9, mirrorX: false, mirrorY: false };
+    expect(boardsFallback(h, false)).toBe(false);
   });
 });

@@ -7,7 +7,6 @@ export const lightTheme = stylex.createTheme(colors, {
   text: 'oklch(0.145 0 0)',
   muted: 'oklch(0.556 0 0)',
   mutedBg: '#f8f8f8',
-  accent: '#0c8ce9',
   attention: '#ea733a',
   destructive: 'hsl(0 84% 60%)',
   link: '#0c8ce9',

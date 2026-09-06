@@ -15,6 +15,7 @@ export const mixes = stylex.defineVars({
   vizGrid: `color-mix(in oklab, ${colors.text} 7%, ${colors.surface})`,
   vizFillDim: `color-mix(in oklab, ${colors.text} 14%, ${colors.surface})`,
   vizFill: `color-mix(in oklab, ${colors.text} 20%, ${colors.surface})`,
+  vizFillLit: `color-mix(in oklab, ${colors.text} 22%, ${colors.surface})`,
   vizLine: `color-mix(in oklab, ${colors.text} 30%, ${colors.surface})`,
   vizLineStrong: `color-mix(in oklab, ${colors.text} 45%, ${colors.surface})`,
   vizData: `color-mix(in oklab, ${colors.text} 62%, ${colors.surface})`,

@@ -5,7 +5,7 @@ import type { HardwareMarker } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, type Viewport } from './viewport';
-import { boardMatches, markerMatches, type Highlight } from './highlight';
+import { boardMatches, markerMatches, boardsFallback, type Highlight } from './highlight';
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
@@ -44,10 +44,10 @@ const styles = stylex.create({
     fill: mixes.vizFill,
   },
   boardLit: {
-    fill: mixes.vizLine,
+    fill: mixes.vizFillLit,
   },
   boardDim: {
-    opacity: 0.45,
+    opacity: 0.7,
   },
   value: {
     fill: colors.text,
@@ -84,7 +84,7 @@ const styles = stylex.create({
     stroke: mixes.vizLineStrong,
     strokeWidth: 1.5,
     pointerEvents: 'none',
-    transitionProperty: 'opacity, fill',
+    transitionProperty: 'opacity, stroke',
     transitionDuration: '120ms',
   },
   tickLit: {
@@ -201,6 +201,8 @@ export function Preview({
     markers.length > 0 &&
     markers.length <= MAX_MARKERS &&
     Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s >= MIN_MARKER_PX;
+  const litMarkers = highlight && showMarkers && markers ? markers.filter((m) => markerMatches(highlight, m)) : [];
+  const boardsLitFallback = !!highlight && boardsFallback(highlight, litMarkers.length > 0);
   return (
     <svg
       {...stylex.props(styles.svg)}
@@ -221,7 +223,7 @@ export function Preview({
           <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
         )}
         {plan.boards.map((b) => {
-          const lit = !!highlight && boardMatches(highlight, b);
+          const lit = !!highlight && (boardMatches(highlight, b) || boardsLitFallback);
           const dim = !!highlight && highlight.kind === 'boards' && !lit;
           return <Board key={`${b.col}-${b.row}`} b={b} scale={s} lit={lit} dim={dim} />;
         })}
@@ -229,7 +231,7 @@ export function Preview({
           <g data-markers>
             {markers.map((m) => {
               const lit = !!highlight && markerMatches(highlight, m);
-              const dim = !!highlight && highlight.kind === 'hardware' && !lit;
+              const dim = litMarkers.length > 0 && !lit;
               return <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} lit={lit} dim={dim} />;
             })}
           </g>

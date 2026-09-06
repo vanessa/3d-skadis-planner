@@ -10,6 +10,16 @@ export function boardMatches(h: Highlight, b: PlacedBoard): boolean {
   return h.cols === b.cols && h.rows === b.rows && h.mirrorX === b.mirrorX && h.mirrorY === b.mirrorY;
 }
 
+/**
+ * True when a per-board hardware highlight matched no marker at all (e.g. a
+ * system that only draws `nodes` markers has nothing for a `board`-keyed
+ * row like a board screw to match) — in that case every board should light
+ * up instead, so the highlight doesn't just dim everything on the preview.
+ */
+export function boardsFallback(h: Highlight, anyMarkerLit: boolean): boolean {
+  return h.kind === 'hardware' && !!h.per.board && h.per.board > 0 && !anyMarkerLit;
+}
+
 export function markerMatches(h: Highlight, m: HardwareMarker): boolean {
   if (h.kind !== 'hardware') return false;
   const isNode = m.kind === 'nodes' || m.kind === 'outerNodes';

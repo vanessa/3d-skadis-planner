@@ -148,6 +148,10 @@ export function PrintList({
                   onHighlight?.({ kind: 'boards', cols: g.cols, rows: g.rows, mirrorX: g.mirrorX, mirrorY: g.mirrorY })
                 }
                 onPointerLeave={() => onHighlight?.(null)}
+                onFocus={() =>
+                  onHighlight?.({ kind: 'boards', cols: g.cols, rows: g.rows, mirrorX: g.mirrorX, mirrorY: g.mirrorY })
+                }
+                onBlur={() => onHighlight?.(null)}
                 {...stylex.props(styles.row)}
               >
                 <td {...stylex.props(styles.td)}>{model.fileName(g.cols, g.rows)}</td>
@@ -200,6 +204,8 @@ export function PrintList({
               key={row.name}
               onPointerEnter={() => onHighlight?.({ kind: 'hardware', per: row.per })}
               onPointerLeave={() => onHighlight?.(null)}
+              onFocus={() => onHighlight?.({ kind: 'hardware', per: row.per })}
+              onBlur={() => onHighlight?.(null)}
               {...stylex.props(styles.row)}
             >
               <td {...stylex.props(styles.td, styles.hardwareItem)}>

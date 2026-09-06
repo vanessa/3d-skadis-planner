@@ -29,14 +29,26 @@ highlight never matches a marker).
 
 No accent ring or canvas-side hover state. `Preview` takes an optional
 `highlight`. A matching board gets `data-lit`/`boardLit` (`fill:
-mixes.vizLine`); for a `boards` highlight every other board also gets
-`data-dim`/`boardDim` (`opacity: 0.45`). For a `hardware` highlight, a
+mixes.vizFillLit`, `color-mix(in oklab, ${colors.text} 22%,
+${colors.surface})` — between the 14% `vizFillDim` base and the 30%
+`vizLine`); for a `boards` highlight every other board also gets
+`data-dim`/`boardDim` (`opacity: 0.7`). For a `hardware` highlight, a
 matching marker (circle + seam tick) gets `data-lit`/`markerLit`
 (`fill`/`stroke: colors.text`, +1 px radius); every other marker gets
 `data-dim`/`markerDim` (`opacity: 0.25`) — boards are never dimmed by a
 hardware highlight, markers never touched by a boards highlight. No
 `highlight` → no `data-lit`/`data-dim` anywhere. Base board/marker
-styles gained a 120ms opacity/fill transition.
+styles gained a 120ms opacity/fill transition (ticks transition
+opacity/stroke, since they use `stroke` rather than `fill`).
+
+A per-board hardware row (e.g. a board screw, `per: { board: 4 }`) has
+no marker to match on a system that only draws `nodes` markers
+(wall-mounts): when such a highlight matches zero markers, every board
+lights up instead (`boardsFallback` in `highlight.ts`) so the row
+doesn't just dim the whole preview with nothing lit. When the same
+per-board highlight does match markers (e.g. `boardCorners` on the
+spacers system), those markers light up as usual and boards stay
+untouched.
 
 ## Print chip link rule
 
