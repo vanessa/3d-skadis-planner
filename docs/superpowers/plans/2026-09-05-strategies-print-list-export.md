@@ -84,8 +84,9 @@ describe('registry', () => {
 
 describe('bestPartition', () => {
   it('enumerates exact covers with the fewest boards', () => {
+    // 50 = 12+12+12+11+3 (a 2-unit board would be below minU); larger-first picks it.
     const r = bestPartition(a1(50), { tol: 0, score: (u) => u.map((x) => -x) });
-    expect(r).toEqual([12, 12, 12, 12, 2].sort((a, b) => b - a));
+    expect(r).toEqual([12, 12, 12, 11, 3]);
   });
   it('allows a gap and uses fewer boards', () => {
     expect(bestPartition(a1(50), { tol: 2, score: () => [0] })).toEqual([12, 12, 12, 12]);
