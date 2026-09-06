@@ -1,9 +1,9 @@
 # Skadis Planner
 
-Enter the width and height of a wall area and get the fewest 3D-printable
-pegboard boards that cover it, sized to your printer's bed. Pick a layout
-strategy (Balanced, Largest boards first, Same size only, No mirroring,
-Allow a gap) and download the print list as text.
+Plan a wall of 3D-printed IKEA Skadis boards. Enter the width and height of
+the space, pick a printer and a mounting system, and get the fewest boards to
+print, sized to your printer's bed, with a print list and the hardware to
+fix them.
 
 First model: [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity) by AU3D.
 
