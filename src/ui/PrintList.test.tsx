@@ -83,13 +83,12 @@ describe('PrintList', () => {
     expect(getTexts).toEqual(['Print', 'Print', 'Buy', 'Buy']);
   });
 
-  it('renders the Single wall mount name as a link to its model page', () => {
+  it('shows the hardware name as plain text, with the model page carried by the Print chip', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
-    const link = screen.getByRole('link', { name: 'Single wall mount' }) as HTMLAnchorElement;
+    expect(screen.queryByRole('link', { name: 'Single wall mount' })).toBeNull();
+    const link = screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/models/420877');
-    expect(link.target).toBe('_blank');
-    expect(link.rel).toContain('noopener');
   });
 
   it('renders a note under the item name for a system with a noted item', () => {

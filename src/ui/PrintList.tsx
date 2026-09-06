@@ -73,11 +73,6 @@ const styles = stylex.create({
     lineHeight: 1.5,
     whiteSpace: 'normal',
   },
-  itemLink: {
-    fontSize: 'inherit',
-    color: colors.text,
-    textDecoration: 'underline',
-  },
   row: {
     backgroundColor: { default: 'transparent', ':hover': mixes.inputBg },
     cursor: 'default',
@@ -188,13 +183,7 @@ export function PrintList({
               {...stylex.props(styles.row)}
             >
               <td {...stylex.props(styles.td, styles.hardwareItem)}>
-                {row.link ? (
-                  <a {...stylex.props(styles.itemLink)} href={row.link} target="_blank" rel="noopener noreferrer">
-                    {row.name}
-                  </a>
-                ) : (
-                  row.name
-                )}
+                {row.name}
                 {row.note && <p {...stylex.props(styles.note)}>{row.note}</p>}
               </td>
               <td {...stylex.props(styles.td)}>
