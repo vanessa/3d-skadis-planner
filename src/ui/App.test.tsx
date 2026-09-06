@@ -173,4 +173,13 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(60);
   });
+
+  it('lights the matching hardware markers when hovering the Quad wall mount row and clears them on leave', () => {
+    const { container } = render(<App />);
+    const row = screen.getByText('Quad wall mount').closest('tr')!;
+    fireEvent.pointerEnter(row);
+    expect(container.querySelectorAll('[data-lit]')).toHaveLength(8);
+    fireEvent.pointerLeave(row);
+    expect(container.querySelectorAll('[data-lit]')).toHaveLength(0);
+  });
 });

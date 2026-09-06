@@ -27,4 +27,19 @@ describe('PanelSection', () => {
     );
     expect(screen.queryByText('body')).toBeNull();
   });
+
+  it('defaults to data-tone="default" and sets data-tone="emphasis" when passed', () => {
+    const { container, rerender } = render(
+      <PanelSection title="Space">
+        <p>body</p>
+      </PanelSection>,
+    );
+    expect(container.querySelector('section')!.getAttribute('data-tone')).toBe('default');
+    rerender(
+      <PanelSection title="Space" tone="emphasis">
+        <p>body</p>
+      </PanelSection>,
+    );
+    expect(container.querySelector('section')!.getAttribute('data-tone')).toBe('emphasis');
+  });
 });

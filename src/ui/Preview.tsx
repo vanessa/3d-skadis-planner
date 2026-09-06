@@ -1,10 +1,11 @@
-import { useEffect, useId, useState } from 'react';
+import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
 import type { HardwareMarker } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, type Viewport } from './viewport';
+import { boardMatches, markerMatches, type Highlight } from './highlight';
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
@@ -36,16 +37,17 @@ const styles = stylex.create({
     fill: mixes.vizFillDim,
     stroke: colors.surface,
     strokeWidth: 2,
-  },
-  /** Drawn once, after every board, so neighbouring strokes cannot cover it. */
-  highlight: {
-    fill: 'none',
-    stroke: colors.accent,
-    strokeWidth: 2,
-    pointerEvents: 'none',
+    transitionProperty: 'opacity, fill',
+    transitionDuration: '120ms',
   },
   boardMirrored: {
     fill: mixes.vizFill,
+  },
+  boardLit: {
+    fill: mixes.vizLine,
+  },
+  boardDim: {
+    opacity: 0.45,
   },
   value: {
     fill: colors.text,
@@ -69,17 +71,33 @@ const styles = stylex.create({
     stroke: colors.surface,
     strokeWidth: 1.5,
     pointerEvents: 'none',
+    transitionProperty: 'opacity, fill',
+    transitionDuration: '120ms',
+  },
+  markerLit: {
+    fill: colors.text,
+  },
+  markerDim: {
+    opacity: 0.25,
   },
   tick: {
     stroke: mixes.vizLineStrong,
     strokeWidth: 1.5,
     pointerEvents: 'none',
+    transitionProperty: 'opacity, fill',
+    transitionDuration: '120ms',
+  },
+  tickLit: {
+    stroke: colors.text,
+  },
+  tickDim: {
+    opacity: 0.25,
   },
 });
 
 function Board({
-  b, scale, onHover,
-}: { b: PlacedBoard; scale: number; onHover: (hovered: boolean) => void }) {
+  b, scale, lit, dim,
+}: { b: PlacedBoard; scale: number; lit: boolean; dim: boolean }) {
   const mirror = b.mirrorX && b.mirrorY ? 'xy' : b.mirrorX ? 'x' : b.mirrorY ? 'y' : undefined;
   const mirrorLabel =
     mirror === 'xy' ? 'mirrored X + Y' : mirror === 'x' ? 'mirrored X' : mirror === 'y' ? 'mirrored Y' : null;
@@ -91,14 +109,19 @@ function Board({
   return (
     <g data-board data-mirror={mirror}>
       <rect
-        {...stylex.props(styles.board, mirror !== undefined && styles.boardMirrored)}
+        {...stylex.props(
+          styles.board,
+          mirror !== undefined && styles.boardMirrored,
+          lit && styles.boardLit,
+          dim && styles.boardDim,
+        )}
+        data-lit={lit ? '' : undefined}
+        data-dim={dim ? '' : undefined}
         x={b.xMm}
         y={b.yMm}
         width={b.widthMm}
         height={b.heightMm}
         vectorEffect="non-scaling-stroke"
-        onPointerEnter={() => onHover(true)}
-        onPointerLeave={() => onHover(false)}
       />
       {showLabels && (
         <>
@@ -119,15 +142,19 @@ function Board({
   );
 }
 
-function MarkerDot({ m, scale }: { m: HardwareMarker; scale: number }) {
-  const r = markerRadiusPx(m) / scale;
+function MarkerDot({
+  m, scale, lit, dim,
+}: { m: HardwareMarker; scale: number; lit: boolean; dim: boolean }) {
+  const r = (markerRadiusPx(m) + (lit ? 1 : 0)) / scale;
   const tickHalf = TICK_PX / 2 / scale;
   return (
     <>
       {m.kind === 'seams' && (
         <line
           data-tick
-          {...stylex.props(styles.tick)}
+          {...stylex.props(styles.tick, lit && styles.tickLit, dim && styles.tickDim)}
+          data-lit={lit ? '' : undefined}
+          data-dim={dim ? '' : undefined}
           x1={m.orientation === 'vertical' ? m.x - tickHalf : m.x}
           y1={m.orientation === 'vertical' ? m.y : m.y - tickHalf}
           x2={m.orientation === 'vertical' ? m.x + tickHalf : m.x}
@@ -138,7 +165,9 @@ function MarkerDot({ m, scale }: { m: HardwareMarker; scale: number }) {
       <circle
         data-marker
         data-kind={m.kind}
-        {...stylex.props(styles.marker)}
+        {...stylex.props(styles.marker, lit && styles.markerLit, dim && styles.markerDim)}
+        data-lit={lit ? '' : undefined}
+        data-dim={dim ? '' : undefined}
         cx={m.x}
         cy={m.y}
         r={r}
@@ -149,13 +178,17 @@ function MarkerDot({ m, scale }: { m: HardwareMarker; scale: number }) {
 }
 
 export function Preview({
-  plan, viewport, width, height, markers,
-}: { plan: Plan | null; viewport: Viewport; width: number; height: number; markers?: HardwareMarker[] }) {
+  plan, viewport, width, height, markers, highlight,
+}: {
+  plan: Plan | null;
+  viewport: Viewport;
+  width: number;
+  height: number;
+  markers?: HardwareMarker[];
+  highlight?: Highlight | null;
+}) {
   const hatchId = useId();
-  const [hovered, setHovered] = useState<number | null>(null);
-  useEffect(() => setHovered(null), [plan]);
   if (!plan) return null;
-  const hoveredBoard = hovered !== null ? plan.boards[hovered] : undefined;
   const totalW = plan.coveredWidthMm + plan.leftoverWidthMm;
   const totalH = plan.coveredHeightMm + plan.leftoverHeightMm;
   const hasLayout = width > 0 && height > 0;
@@ -187,28 +220,21 @@ export function Preview({
         {plan.leftoverHeightMm > 0 && (
           <rect data-leftover x={0} y={plan.coveredHeightMm} width={plan.coveredWidthMm} height={plan.leftoverHeightMm} fill={`url(#${hatchId})`} />
         )}
-        {plan.boards.map((b, i) => (
-          <Board key={`${b.col}-${b.row}`} b={b} scale={s} onHover={(on) => setHovered(on ? i : null)} />
-        ))}
+        {plan.boards.map((b) => {
+          const lit = !!highlight && boardMatches(highlight, b);
+          const dim = !!highlight && highlight.kind === 'boards' && !lit;
+          return <Board key={`${b.col}-${b.row}`} b={b} scale={s} lit={lit} dim={dim} />;
+        })}
         {showMarkers && markers && (
           <g data-markers>
-            {markers.map((m) => (
-              <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} />
-            ))}
+            {markers.map((m) => {
+              const lit = !!highlight && markerMatches(highlight, m);
+              const dim = !!highlight && highlight.kind === 'hardware' && !lit;
+              return <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} lit={lit} dim={dim} />;
+            })}
           </g>
         )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
-        {hoveredBoard && (
-          <rect
-            data-highlight
-            {...stylex.props(styles.highlight)}
-            x={hoveredBoard.xMm}
-            y={hoveredBoard.yMm}
-            width={hoveredBoard.widthMm}
-            height={hoveredBoard.heightMm}
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
       </g>
     </svg>
   );

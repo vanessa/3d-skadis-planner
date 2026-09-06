@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import { PrintList, ASSUMED_TOOLTIP } from './PrintList';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
@@ -122,5 +122,35 @@ describe('PrintList', () => {
     const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
     render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
     expect(screen.queryByText(/mirror image/)).toBeNull();
+  });
+
+  it('reports a boards highlight on hover and clears it on leave for a board row', () => {
+    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
+    const onHighlight = vi.fn();
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} onHighlight={onHighlight} />);
+    const boardTable = screen.getAllByRole('table')[0];
+    const row = within(boardTable).getAllByRole('row')[1];
+    fireEvent.pointerEnter(row);
+    expect(onHighlight).toHaveBeenLastCalledWith({ kind: 'boards', cols: 8, rows: 8, mirrorX: false, mirrorY: false });
+    fireEvent.pointerLeave(row);
+    expect(onHighlight).toHaveBeenLastCalledWith(null);
+  });
+
+  it('reports a hardware highlight on hover for the Quad wall mount row', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const onHighlight = vi.fn();
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} onHighlight={onHighlight} />);
+    const row = screen.getByText('Quad wall mount').closest('tr')!;
+    fireEvent.pointerEnter(row);
+    expect(onHighlight).toHaveBeenLastCalledWith({ kind: 'hardware', per: { junction: 1 } });
+  });
+
+  it('links the Print chip to the item link, falling back to the system url', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
+    const single = screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement;
+    expect(single.href).toBe('https://makerworld.com/en/models/420877');
+    const quad = screen.getByRole('link', { name: 'Print Quad wall mount' }) as HTMLAnchorElement;
+    expect(quad.href).toBe('https://makerworld.com/en/models/861073');
   });
 });

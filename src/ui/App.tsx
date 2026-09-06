@@ -13,6 +13,7 @@ import { getPrinter } from '../printers';
 import { getMountSystem, hardwareMarkers } from '../mounting';
 import { formatPrintList, printListFileName } from '../export/printListText';
 import { downloadText } from './download';
+import type { Highlight } from './highlight';
 import { useTheme } from './useTheme';
 import { lightTheme } from './themes.stylex';
 import { colors, font, radius, space } from './tokens.stylex';
@@ -79,6 +80,7 @@ const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => stateFor(DEFAULT_FORM, null));
+  const [highlight, setHighlight] = useState<Highlight | null>(null);
   const { preference, resolvedTheme, setPreference } = useTheme();
 
   useEffect(() => {
@@ -88,8 +90,10 @@ export default function App() {
     root.style.colorScheme = resolvedTheme;
   }, [resolvedTheme]);
 
-  const onChange = (patch: Partial<FormState>) =>
+  const onChange = (patch: Partial<FormState>) => {
+    setHighlight(null);
     setState((s) => stateFor({ ...s.form, ...patch }, s.lastPlan));
+  };
 
   const model = getModel(state.form.modelId);
   const system = getMountSystem(state.form.mountId);
@@ -110,7 +114,7 @@ export default function App() {
 
   return (
     <div {...stylex.props(styles.app)}>
-      <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} />
+      <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} highlight={highlight} />
       <Panel
         title="Skadis Planner"
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
@@ -138,8 +142,8 @@ export default function App() {
         }
       >
         <InputPanel form={state.form} onChange={onChange} />
-        <PanelSection title="Print list">
-          <PrintList plan={state.lastPlan} model={model} system={system} />
+        <PanelSection title="Print list" tone="emphasis">
+          <PrintList plan={state.lastPlan} model={model} system={system} onHighlight={setHighlight} />
         </PanelSection>
       </Panel>
     </div>

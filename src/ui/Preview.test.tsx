@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 import { IDENTITY } from './viewport';
-import type { HardwareMarker } from '../mounting';
+import { getMountSystem, hardwareMarkers, type HardwareMarker } from '../mounting';
+import type { Highlight } from './highlight';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
@@ -79,20 +80,48 @@ describe('Preview', () => {
     expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1)');
   });
 
-  it('paints the hover highlight after every board so neighbours cannot cover it', () => {
+});
+
+describe('Preview highlight', () => {
+  it('lights every board that matches a boards highlight and dims the rest', () => {
     const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
-    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} />);
-    expect(container.querySelector('[data-highlight]')).toBeNull();
-    const rects = container.querySelectorAll('[data-board] rect');
-    fireEvent.pointerEnter(rects[7]);
-    const highlight = container.querySelector('[data-highlight]');
-    expect(highlight).not.toBeNull();
-    const group = container.querySelector('svg > g[transform]')!;
-    expect(group.lastElementChild).toBe(highlight);
-    expect(highlight!.getAttribute('x')).toBe('400');
-    expect(highlight!.getAttribute('y')).toBe('200');
-    expect(highlight!.getAttribute('width')).toBe('200');
-    fireEvent.pointerLeave(rects[7]);
+    const highlight: Highlight = { kind: 'boards', cols: 9, rows: 9, mirrorX: false, mirrorY: false };
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} highlight={highlight} />);
+    expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(15);
+    expect(container.querySelectorAll('[data-board] rect[data-dim]')).toHaveLength(0);
+  });
+
+  it('dims every board when a boards highlight matches none', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const highlight: Highlight = { kind: 'boards', cols: 5, rows: 5, mirrorX: false, mirrorY: false };
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} highlight={highlight} />);
+    expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-board] rect[data-dim]')).toHaveLength(15);
+  });
+
+  it('lights matching hardware markers and dims the rest without dimming boards', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const wallMounts = getMountSystem('wall-mounts');
+    const markers = hardwareMarkers(p, wallMounts, skadisInfinity);
+    const highlight: Highlight = { kind: 'hardware', per: { junction: 1 } };
+    const { container } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} highlight={highlight} />,
+    );
+    const circles = container.querySelectorAll('[data-markers] circle');
+    expect(circles.length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-markers] circle[data-lit]')).toHaveLength(8);
+    expect(container.querySelectorAll('[data-markers] circle[data-dim]')).toHaveLength(circles.length - 8);
+    expect(container.querySelectorAll('[data-board] rect[data-dim]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-board] rect[data-lit]')).toHaveLength(0);
+  });
+
+  it('has no lit/dim/highlight markup without a highlight prop', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const wallMounts = getMountSystem('wall-mounts');
+    const markers = hardwareMarkers(p, wallMounts, skadisInfinity);
+    const { container } = render(<Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={markers} />);
+    expect(container.querySelectorAll('[data-lit]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-dim]')).toHaveLength(0);
     expect(container.querySelector('[data-highlight]')).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import type { Plan } from '../solver';
-import type { MountSystem, NodeKind, HardwareSource } from './types';
+import type { MountSystem, NodeKind, HardwareSource, HardwareItem } from './types';
 
 export const NODE_KINDS: NodeKind[] = ['board', 'junction', 'edgeNode', 'outerCorner', 'seam'];
 
@@ -20,6 +20,7 @@ export interface HardwareRow {
   name: string;
   qty: number;
   source: HardwareSource;
+  per: HardwareItem['per'];
   note?: string;
   link?: string;
 }
@@ -31,6 +32,7 @@ export function hardwareList(plan: Plan, system: MountSystem): HardwareRow[] {
       name: item.name,
       qty: NODE_KINDS.reduce((sum, kind) => sum + (item.per[kind] ?? 0) * nodes[kind], 0),
       source: item.source,
+      per: item.per,
       ...(item.note ? { note: item.note } : {}),
       ...(item.link ? { link: item.link } : {}),
     }))

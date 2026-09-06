@@ -107,8 +107,11 @@ content lives in `<g transform="translate(tx ty) scale(scale)">`. Text
 sizes are `13 / scale` and `11 / scale` user units so they render at 13 and
 11 screen px. Labels show when `min(widthMm, heightMm) * scale >= 64`.
 The hatch pattern is `8 / scale` wide with a `3 / scale` stroke.
-`data-board`, `data-mirror`, `data-leftover`, `data-outline`, hover accent,
-and the pattern `useId` stay as they are.
+`data-board`, `data-mirror`, `data-leftover`, `data-outline`, and the
+pattern `useId` stay as they are. (The per-board hover accent ring
+described here was replaced by list-driven `data-lit`/`data-dim`
+highlighting on 2026-09-06 — see
+`2026-09-06-print-list-highlight-design.md`.)
 
 When `width` or `height` is 0 (no layout yet), the svg renders with
 `viewBox="0 0 worldW worldH"` and an identity transform so tests without

@@ -5,6 +5,7 @@ import type { MountSystem } from '../mounting';
 import { hardwareList } from '../mounting';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
+import type { Highlight } from './highlight';
 
 export const ASSUMED_TOOLTIP = 'Counts could not be checked against the model page. Verify before buying.';
 
@@ -86,6 +87,16 @@ const styles = stylex.create({
     color: colors.text,
     textDecoration: 'underline',
   },
+  row: {
+    backgroundColor: { default: 'transparent', ':hover': mixes.inputBg },
+    cursor: 'default',
+  },
+  printLink: {
+    textDecoration: 'none',
+    color: colors.text,
+    borderColor: { default: mixes.borderHover, ':hover': mixes.borderFocus },
+    backgroundColor: { default: 'transparent', ':hover': mixes.inputBg },
+  },
 });
 
 function mirrorLabel(g: BoardGroup): string | null {
@@ -99,10 +110,12 @@ export function PrintList({
   plan,
   model,
   system,
+  onHighlight,
 }: {
   plan: Plan | null;
   model: BoardModel;
   system: MountSystem;
+  onHighlight?: (h: Highlight | null) => void;
 }) {
   if (!plan) return null;
   const hardware = hardwareList(plan, system);
@@ -129,7 +142,14 @@ export function PrintList({
           {plan.groups.map((g) => {
             const label = mirrorLabel(g);
             return (
-              <tr key={`${g.cols}x${g.rows}-${g.mirrorX}-${g.mirrorY}`}>
+              <tr
+                key={`${g.cols}x${g.rows}-${g.mirrorX}-${g.mirrorY}`}
+                onPointerEnter={() =>
+                  onHighlight?.({ kind: 'boards', cols: g.cols, rows: g.rows, mirrorX: g.mirrorX, mirrorY: g.mirrorY })
+                }
+                onPointerLeave={() => onHighlight?.(null)}
+                {...stylex.props(styles.row)}
+              >
                 <td {...stylex.props(styles.td)}>{model.fileName(g.cols, g.rows)}</td>
                 <td {...stylex.props(styles.td)}>
                   {g.widthMm} × {g.heightMm} mm
@@ -176,7 +196,12 @@ export function PrintList({
         </thead>
         <tbody>
           {hardware.map((row) => (
-            <tr key={row.name}>
+            <tr
+              key={row.name}
+              onPointerEnter={() => onHighlight?.({ kind: 'hardware', per: row.per })}
+              onPointerLeave={() => onHighlight?.(null)}
+              {...stylex.props(styles.row)}
+            >
               <td {...stylex.props(styles.td, styles.hardwareItem)}>
                 {row.link ? (
                   <a {...stylex.props(styles.itemLink)} href={row.link} target="_blank" rel="noopener noreferrer">
@@ -189,7 +214,15 @@ export function PrintList({
               </td>
               <td {...stylex.props(styles.td)}>
                 {row.source === 'print' ? (
-                  <span {...stylex.props(styles.mirror)}>Print</span>
+                  <a
+                    href={row.link ?? system.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Print ${row.name}`}
+                    {...stylex.props(styles.mirror, styles.printLink)}
+                  >
+                    Print
+                  </a>
                 ) : (
                   <span {...stylex.props(styles.asIs)}>Buy</span>
                 )}

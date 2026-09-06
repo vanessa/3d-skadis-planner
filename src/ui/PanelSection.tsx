@@ -39,6 +39,15 @@ const styles = stylex.create({
   chevronClosed: {
     transform: 'rotate(-90deg)',
   },
+  sectionEmphasis: {
+    backgroundColor: mixes.inputBg,
+    borderTopWidth: '1px',
+    borderTopStyle: 'solid',
+    borderTopColor: mixes.borderHover,
+  },
+  headerEmphasis: {
+    fontWeight: 600,
+  },
   body: {
     display: 'flex',
     flexDirection: 'column',
@@ -52,22 +61,24 @@ const styles = stylex.create({
 export function PanelSection({
   title,
   defaultOpen = true,
+  tone = 'default',
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
+  tone?: 'default' | 'emphasis';
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const bodyId = useId();
   return (
-    <section {...stylex.props(styles.section)}>
+    <section data-tone={tone} {...stylex.props(styles.section, tone === 'emphasis' && styles.sectionEmphasis)}>
       <button
         type="button"
         aria-expanded={open}
         aria-controls={bodyId}
         onClick={() => setOpen((o) => !o)}
-        {...stylex.props(styles.header)}
+        {...stylex.props(styles.header, tone === 'emphasis' && styles.headerEmphasis)}
       >
         <span>{title}</span>
         <svg
