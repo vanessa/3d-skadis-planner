@@ -4,9 +4,11 @@ import { InputPanel } from './InputPanel';
 import { Panel } from './Panel';
 import { PanelSection } from './PanelSection';
 import { ThemeToggle } from './ThemeToggle';
+import { ResetButton } from './ResetButton';
 import { Canvas } from './Canvas';
 import { PrintList } from './PrintList';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
+import { readStoredForm, writeStoredForm, clearStoredForm } from './formStorage';
 import { getModel } from '../models';
 import type { Plan } from '../solver';
 import { getPrinter } from '../printers';
@@ -23,6 +25,11 @@ const styles = stylex.create({
   app: {
     fontFamily: font.family,
     color: colors.text,
+  },
+  headerEnd: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: space.xs,
   },
   footer: {
     display: 'flex',
@@ -76,10 +83,14 @@ function stateFor(form: FormState, lastPlan: Plan | null): AppState {
   return { form, outcome, lastPlan: outcome.plan ?? lastPlan };
 }
 
+function isDefaultForm(form: FormState): boolean {
+  return (Object.keys(DEFAULT_FORM) as (keyof FormState)[]).every((key) => form[key] === DEFAULT_FORM[key]);
+}
+
 const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').filter(Boolean);
 
 export default function App() {
-  const [state, setState] = useState<AppState>(() => stateFor(DEFAULT_FORM, null));
+  const [state, setState] = useState<AppState>(() => stateFor(readStoredForm() ?? DEFAULT_FORM, null));
   const [highlight, setHighlight] = useState<Highlight | null>(null);
   const { preference, resolvedTheme, setPreference } = useTheme();
 
@@ -90,9 +101,20 @@ export default function App() {
     root.style.colorScheme = resolvedTheme;
   }, [resolvedTheme]);
 
+  useEffect(() => {
+    if (isDefaultForm(state.form)) clearStoredForm();
+    else writeStoredForm(state.form);
+  }, [state.form]);
+
   const onChange = (patch: Partial<FormState>) => {
     setHighlight(null);
     setState((s) => stateFor({ ...s.form, ...patch }, s.lastPlan));
+  };
+
+  const onReset = () => {
+    clearStoredForm();
+    setHighlight(null);
+    setState(stateFor(DEFAULT_FORM, null));
   };
 
   const model = getModel(state.form.modelId);
@@ -117,7 +139,12 @@ export default function App() {
       <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} highlight={highlight} />
       <Panel
         title="Skadis Planner"
-        headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}
+        headerEnd={
+          <div {...stylex.props(styles.headerEnd)}>
+            <ResetButton onClick={onReset} disabled={isDefaultForm(state.form)} />
+            <ThemeToggle preference={preference} onChange={setPreference} />
+          </div>
+        }
         footer={
           <div {...stylex.props(styles.footer)}>
             <button

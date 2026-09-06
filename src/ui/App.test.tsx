@@ -3,6 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import App from './App';
 import { skadisInfinity } from '../models/skadisInfinity';
+import { FORM_STORAGE_KEY } from './formStorage';
+import { DEFAULT_FORM } from './planState';
 
 vi.mock('./download', () => ({ downloadText: vi.fn() }));
 import { downloadText } from './download';
@@ -181,5 +183,35 @@ describe('App', () => {
     expect(container.querySelectorAll('[data-lit]')).toHaveLength(8);
     fireEvent.pointerLeave(row);
     expect(container.querySelectorAll('[data-lit]')).toHaveLength(0);
+  });
+
+  it('writes the form to local storage when the width changes', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '500' } });
+    const stored = JSON.parse(window.localStorage.getItem(FORM_STORAGE_KEY) ?? '{}');
+    expect(stored.width).toBe('500');
+  });
+
+  it('renders the plan from a pre-seeded stored form', () => {
+    window.localStorage.setItem(
+      FORM_STORAGE_KEY,
+      JSON.stringify({ ...DEFAULT_FORM, width: '820', height: '1000' }),
+    );
+    render(<App />);
+    expect(screen.getByText(/820 × 1000 mm/)).toBeTruthy();
+  });
+
+  it('resets the form to defaults, clears storage, and disables itself again', () => {
+    render(<App />);
+    const resetButton = screen.getByRole('button', { name: 'Reset to defaults' });
+    expect((resetButton as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('Width'), { target: { value: '500' } });
+    expect((resetButton as HTMLButtonElement).disabled).toBe(false);
+
+    fireEvent.click(resetButton);
+    expect(screen.getByText(/15 boards/)).toBeTruthy();
+    expect(window.localStorage.getItem(FORM_STORAGE_KEY)).toBeNull();
+    expect((resetButton as HTMLButtonElement).disabled).toBe(true);
   });
 });
