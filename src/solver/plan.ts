@@ -1,10 +1,13 @@
 import { splitAxis } from './axis';
+import { DEFAULT_STRATEGY_ID, getStrategy } from './strategies';
 import type { BoardGroup, PlacedBoard, Plan, PlanRequest } from './types';
 
 export function plan(req: PlanRequest): Plan {
   const { model, printer } = req;
-  const x = splitAxis(req.widthMm, printer.bedWidthMm, model, 'x');
-  const y = splitAxis(req.heightMm, printer.bedDepthMm, model, 'y');
+  const strategy = getStrategy(req.strategyId ?? DEFAULT_STRATEGY_ID);
+  const gap = req.maxGapMm ?? 40;
+  const x = splitAxis(req.widthMm, printer.bedWidthMm, model, 'x', strategy, gap);
+  const y = splitAxis(req.heightMm, printer.bedDepthMm, model, 'y', strategy, gap);
 
   const colWidths = x.holes.map((h) => model.sizeMm(h));
   const rowHeights = y.holes.map((h) => model.sizeMm(h));
@@ -40,6 +43,7 @@ export function plan(req: PlanRequest): Plan {
     leftoverWidthMm: x.leftoverMm,
     leftoverHeightMm: y.leftoverMm,
     groups: groupBoards(boards),
+    strategyId: strategy.id,
   };
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { splitAxis } from './axis';
 import { PlanError } from './errors';
+import { getStrategy } from './strategies';
 import { skadisInfinity as model } from '../models/skadisInfinity';
 import type { BoardModel } from '../models/types';
 
@@ -87,5 +88,21 @@ describe('splitAxis errors', () => {
     // A model with only one size (3 holes = 4 units) on a 100 mm space: 5 units.
     const rigid: BoardModel = { ...model, minHoles: 3, maxHoles: 3 };
     expect(splitAxis(100, A1, rigid, 'x')).toEqual({ holes: [3], leftoverMm: 20 });
+  });
+});
+
+describe('splitAxis with strategies', () => {
+  it('uniform leaves a strip uncovered', () => {
+    expect(splitAxis(820, A1, model, 'x', getStrategy('uniform'))).toEqual({ holes: [9, 9, 9, 9], leftoverMm: 20 });
+  });
+  it('allow-gap honours the mm gap', () => {
+    expect(splitAxis(1000, A1, model, 'y', getStrategy('allow-gap'), 40)).toEqual({ holes: [11, 11, 11, 11], leftoverMm: 40 });
+    expect(splitAxis(1000, A1, model, 'y', getStrategy('allow-gap'), 0).holes).toEqual([9, 9, 9, 9, 9]);
+  });
+  it('no-mirror falls back to balanced when it has no candidate', () => {
+    expect(splitAxis(60, A1, model, 'x', getStrategy('no-mirror'))).toEqual({ holes: [2], leftoverMm: 0 });
+  });
+  it('defaults to balanced', () => {
+    expect(splitAxis(820, A1, model, 'x').holes).toEqual([10, 9, 9, 9]);
   });
 });

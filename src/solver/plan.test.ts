@@ -102,3 +102,17 @@ describe('plan errors', () => {
     expect(() => plan(req(50, 600))).toThrow(PlanError);
   });
 });
+
+describe('plan strategies', () => {
+  it('defaults to balanced and reports the strategy', () => {
+    expect(plan(req(820, 1000)).strategyId).toBe('balanced');
+  });
+  it('allow-gap 40 on 820 x 1000 gives 16 boards', () => {
+    const p = plan({ ...req(820, 1000), strategyId: 'allow-gap', maxGapMm: 40 });
+    expect(p.strategyId).toBe('allow-gap');
+    expect(p.columns).toEqual([9, 9, 9, 9]);
+    expect(p.rows).toEqual([11, 11, 11, 11]);
+    expect(p.boards).toHaveLength(16);
+    expect(p.leftoverHeightMm).toBe(40);
+  });
+});

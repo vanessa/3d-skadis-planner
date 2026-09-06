@@ -1,11 +1,14 @@
 import type { BoardModel } from '../models/types';
 import type { Printer } from '../printers';
+import type { StrategyId } from './strategies';
 
 export interface PlanRequest {
   widthMm: number;
   heightMm: number;
   model: BoardModel;
   printer: Printer;
+  strategyId?: StrategyId;
+  maxGapMm?: number;
 }
 
 export interface PlacedBoard {
@@ -46,4 +49,5 @@ export interface Plan {
   leftoverHeightMm: number;
   /** Print list, largest area first, unmirrored before mirrored. */
   groups: BoardGroup[];
+  strategyId: StrategyId;
 }
