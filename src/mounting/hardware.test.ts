@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { countNodes, hardwareList } from './hardware';
 import { getMountSystem } from './index';
 import { MOUNT_SYSTEMS } from './systems';
+import type { MountSystem } from './types';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -9,6 +10,18 @@ import { getPrinter } from '../printers';
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const byName = (rows: { name: string; qty: number }[]) => Object.fromEntries(rows.map((r) => [r.name, r.qty]));
+
+const seamSystem: MountSystem = {
+  id: 'test-seams',
+  name: 'Seams',
+  url: 'https://example.com',
+  description: '',
+  markers: ['seams', 'outerNodes'],
+  items: [
+    { name: 'Connector', per: { seam: 1 }, source: 'print' },
+    { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
+  ],
+};
 
 describe('countNodes', () => {
   it('counts a 5 x 3 grid', () => {
@@ -33,9 +46,9 @@ describe('hardwareList', () => {
       'Screw spacer (10, 15 or 20 mm)': 60, 'M4 wall screw (30 mm or longer)': 60, 'Wall plug': 60,
     });
   });
-  it('counts threaded connectors', () => {
-    expect(byName(hardwareList(p, getMountSystem('threaded-connectors')))).toEqual({
-      'Threaded connector': 22, 'Wall spacer': 16, 'Connector screw': 44, 'M4 wall screw': 16,
+  it('counts a seam-based system', () => {
+    expect(byName(hardwareList(p, seamSystem))).toEqual({
+      Connector: 22, 'Wall spacer': 16,
     });
   });
   it('omits zero rows and passes the link through', () => {
@@ -71,12 +84,5 @@ describe('source', () => {
         expect(lastPrint).toBeLessThan(firstBuy);
       }
     }
-  });
-
-  it('lists the threaded-connectors rows in print-then-buy order', () => {
-    const rows = hardwareList(p, getMountSystem('threaded-connectors'));
-    expect(rows.map((r) => r.name)).toEqual([
-      'Threaded connector', 'Wall spacer', 'Connector screw', 'M4 wall screw',
-    ]);
   });
 });

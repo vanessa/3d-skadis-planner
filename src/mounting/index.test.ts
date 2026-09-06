@@ -4,7 +4,7 @@ import { NODE_KINDS } from './hardware';
 
 describe('mounting registry', () => {
   it('lists systems in order', () => {
-    expect(MOUNT_SYSTEMS.map((s) => s.id)).toEqual(['wall-mounts', 'spacers', 'threaded-connectors']);
+    expect(MOUNT_SYSTEMS.map((s) => s.id)).toEqual(['wall-mounts', 'spacers']);
   });
 
   it('defaults to wall mounts', () => {
@@ -13,14 +13,6 @@ describe('mounting registry', () => {
 
   it('throws for an unknown id', () => {
     expect(() => getMountSystem('nope')).toThrow(/unknown mount/i);
-  });
-
-  it('marks the threaded connector system as assumed', () => {
-    expect(getMountSystem('threaded-connectors').assumed).toBe(true);
-  });
-
-  it('links the threaded connector system by Printables model id, not an unverified slug', () => {
-    expect(getMountSystem('threaded-connectors').url).toBe('https://www.printables.com/model/1371785');
   });
 
   it('gives every system at least one item', () => {

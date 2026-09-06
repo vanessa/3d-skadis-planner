@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
-import { PrintList, ASSUMED_TOOLTIP } from './PrintList';
+import { PrintList } from './PrintList';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -90,24 +90,6 @@ describe('PrintList', () => {
     expect(link.href).toBe('https://makerworld.com/en/models/420877');
     expect(link.target).toBe('_blank');
     expect(link.rel).toContain('noopener');
-  });
-
-  it('shows an assumed badge next to the Hardware caption only for the threaded system', () => {
-    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
-    const threaded = getMountSystem('threaded-connectors');
-    render(<PrintList plan={p} model={skadisInfinity} system={threaded} />);
-    const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
-    const badge = within(hardwareTable).getByText('assumed');
-    expect(badge).toBeTruthy();
-    expect(badge.getAttribute('title')).toBe(ASSUMED_TOOLTIP);
-    expect(screen.queryByText(/Hardware counts are assumed/)).toBeNull();
-  });
-
-  it('does not show an assumed badge for the wall-mount system', () => {
-    const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
-    render(<PrintList plan={p} model={skadisInfinity} system={wallMounts} />);
-    const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
-    expect(within(hardwareTable).queryByText('assumed')).toBeNull();
   });
 
   it('renders a note under the item name for a system with a noted item', () => {

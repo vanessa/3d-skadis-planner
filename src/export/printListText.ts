@@ -78,7 +78,6 @@ function hardwareBlock(plan: Plan, system: MountSystem): string[] {
     `Hardware (${system.name})`,
     ...(printed.length ? ['3D print:', ...printed.map(rowLine)] : []),
     ...(bought.length ? ['Buy:', ...bought.map(rowLine)] : []),
-    ...(system.assumed ? ['Hardware counts are assumed; check the model page.'] : []),
     `Mount files: ${system.url}`,
   ];
 }

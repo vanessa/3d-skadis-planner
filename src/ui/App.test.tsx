@@ -141,7 +141,7 @@ describe('App', () => {
     render(<App />);
     const select = screen.getByLabelText('System') as HTMLSelectElement;
     expect([...select.options].map((o) => o.textContent)).toEqual([
-      'Wall mounts (AU3D)', 'Screw spacers (AU3D)', 'Threaded connectors (Printables)',
+      'Wall mounts (AU3D)', 'Screw spacers (AU3D)',
     ]);
     const link = screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/models/861073');

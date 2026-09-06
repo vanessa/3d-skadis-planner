@@ -30,8 +30,6 @@ export interface MountSystem {
   name: string;
   url: string;
   description: string;
-  /** True when the counts are assumed rather than read from the model page. */
-  assumed?: boolean;
   items: HardwareItem[];
   /** Marker kinds drawn on the 2D preview for this system. */
   markers: MarkerKind[];

@@ -86,22 +86,6 @@ describe('formatPrintList', () => {
     expect(text).toContain('Buy:');
   });
 
-  it('adds the assumed line before Mount files when the system is assumed, but not otherwise', () => {
-    const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
-    const threaded = getMountSystem('threaded-connectors');
-    const assumedText = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: threaded,
-    });
-    const lines = assumedText.split('\n');
-    const mountFilesIndex = lines.indexOf(`Mount files: ${threaded.url}`);
-    expect(lines[mountFilesIndex - 1]).toBe('Hardware counts are assumed; check the model page.');
-
-    const wallText = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
-    });
-    expect(wallText).not.toContain('assumed');
-  });
-
   it('widens the Qty column in the hardware block to fit a four-digit quantity', () => {
     const p = plan({ widthMm: 10000, heightMm: 10000, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({

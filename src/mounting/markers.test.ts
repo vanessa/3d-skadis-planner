@@ -2,12 +2,24 @@ import { describe, it, expect } from 'vitest';
 import { hardwareMarkers } from './markers';
 import { getMountSystem } from './index';
 import { countNodes, hardwareList } from './hardware';
-import type { HardwareMarker } from './types';
+import type { HardwareMarker, MountSystem } from './types';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
+
+const seamSystem: MountSystem = {
+  id: 'test-seams',
+  name: 'Seams',
+  url: 'https://example.com',
+  description: '',
+  markers: ['seams', 'outerNodes'],
+  items: [
+    { name: 'Connector', per: { seam: 1 }, source: 'print' },
+    { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
+  ],
+};
 
 const byRole = (markers: HardwareMarker[]) => {
   const counts: Record<string, number> = {};
@@ -42,8 +54,8 @@ describe('hardwareMarkers', () => {
     ]);
   });
 
-  it('places seam midpoints and outer nodes for threaded connectors', () => {
-    const markers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
+  it('places seam midpoints and outer nodes for a seam-based system', () => {
+    const markers = hardwareMarkers(p, seamSystem, skadisInfinity);
     const seams = markers.filter((m) => m.kind === 'seams');
     const outer = markers.filter((m) => m.kind === 'outerNodes');
     expect(seams).toHaveLength(22);
@@ -56,7 +68,7 @@ describe('hardwareMarkers', () => {
     const one = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     expect(hardwareMarkers(one, getMountSystem('wall-mounts'), skadisInfinity)).toHaveLength(4);
     expect(
-      hardwareMarkers(one, getMountSystem('threaded-connectors'), skadisInfinity).filter((m) => m.kind === 'seams'),
+      hardwareMarkers(one, seamSystem, skadisInfinity).filter((m) => m.kind === 'seams'),
     ).toHaveLength(0);
   });
 });
@@ -89,9 +101,9 @@ describe('hardwareMarkers cross-checks against the grid facts and the Hardware t
       const spacerMarkers = hardwareMarkers(p, getMountSystem('spacers'), skadisInfinity);
       expect(spacerMarkers).toHaveLength(4 * nodes.board);
 
-      const threadedMarkers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
-      expect(threadedMarkers.filter((m) => m.kind === 'seams')).toHaveLength(nodes.seam);
-      expect(threadedMarkers.filter((m) => m.kind === 'outerNodes')).toHaveLength(nodes.edgeNode + nodes.outerCorner);
+      const seamMarkers = hardwareMarkers(p, seamSystem, skadisInfinity);
+      expect(seamMarkers.filter((m) => m.kind === 'seams')).toHaveLength(nodes.seam);
+      expect(seamMarkers.filter((m) => m.kind === 'outerNodes')).toHaveLength(nodes.edgeNode + nodes.outerCorner);
     });
 
     it(`matches the Hardware table's counts for ${label}`, () => {
@@ -105,11 +117,11 @@ describe('hardwareMarkers cross-checks against the grid facts and the Hardware t
       const spacerMarkers = hardwareMarkers(p, getMountSystem('spacers'), skadisInfinity);
       expect(spacerRows['Screw spacer (10, 15 or 20 mm)']).toBe(spacerMarkers.length);
 
-      const threadedRows = byName(hardwareList(p, getMountSystem('threaded-connectors')));
-      const threadedMarkers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
-      expect(threadedRows['Threaded connector']).toBe(threadedMarkers.filter((m) => m.kind === 'seams').length);
-      expect(threadedRows['Wall spacer']).toBe(
-        threadedMarkers.filter((m) => m.kind === 'outerNodes').length,
+      const seamRows = byName(hardwareList(p, seamSystem));
+      const seamMarkers = hardwareMarkers(p, seamSystem, skadisInfinity);
+      expect(seamRows['Connector']).toBe(seamMarkers.filter((m) => m.kind === 'seams').length);
+      expect(seamRows['Wall spacer']).toBe(
+        seamMarkers.filter((m) => m.kind === 'outerNodes').length,
       );
     });
   }

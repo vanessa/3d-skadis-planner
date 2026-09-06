@@ -32,18 +32,4 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
       { name: 'Wall plug', per: { board: 4 }, source: 'buy' },
     ],
   },
-  {
-    id: 'threaded-connectors',
-    name: 'Threaded connectors (Printables)',
-    url: 'https://www.printables.com/model/1371785',
-    description: 'Connectors along every seam. Counts assumed.',
-    assumed: true,
-    markers: ['seams', 'outerNodes'],
-    items: [
-      { name: 'Threaded connector', per: { seam: 1 }, source: 'print' },
-      { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
-      { name: 'Connector screw', per: { seam: 2 }, source: 'buy' },
-      { name: 'M4 wall screw', per: { outerCorner: 1, edgeNode: 1 }, source: 'buy' },
-    ],
-  },
 ];

@@ -35,11 +35,6 @@ In the panel a linked item name renders as a link (new tab). In the TXT a
 linked item prints ` (model: <url>)`; notes, when present, still print in
 parentheses.
 
-**Assumed counts**: the sentence under the Hardware table goes. The table
-caption becomes `Hardware` followed by a small outlined badge `assumed`
-when the system is assumed. The TXT keeps its one line
-`Hardware counts are assumed; check the model page.`
-
 **Mirror note** (`skadisInfinity.mirrorNote`):
 `Even-hole boards print as a mirror image so the slots line up. Bambu Studio: right-click, Mirror, then X or Y.`
 
@@ -58,9 +53,7 @@ Balanced.
 ## Testing
 
 Update the assertions that pin the old strings (App hint text, credit,
-PrintList note/assumed line, printListText expectations, SummaryChip
-`· Balanced`, hardware item names). Add: chip has no strategy suffix for
-Balanced and has ` · Allow a gap` for allow-gap; the Single wall mount row
-renders a link with the 420877 href; the assumed badge exists only for the
-threaded system. Screenshot of the panel for the default and the threaded
-system.
+PrintList note line, printListText expectations, SummaryChip `· Balanced`,
+hardware item names). Add: chip has no strategy suffix for Balanced and
+has ` · Allow a gap` for allow-gap; the Single wall mount row renders a
+link with the 420877 href. Screenshot of the panel for the default system.
