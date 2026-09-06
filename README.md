@@ -7,6 +7,10 @@ fix them.
 
 First model: [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity) by AU3D.
 
+<p align="center">
+  <img src="docs/images/screenshot.png" alt="Skadis Planner showing an 820 by 860 mm wall tiled with 16 boards and the print list" width="900">
+</p>
+
 ## Run
 
     npm install
