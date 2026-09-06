@@ -15,7 +15,7 @@ const notedSystem: MountSystem = {
   url: 'https://example.com',
   description: '',
   markers: [],
-  items: [{ name: 'Widget', per: { board: 1 }, note: 'Only if needed' }],
+  items: [{ name: 'Widget', per: { board: 1 }, source: 'buy', note: 'Only if needed' }],
 };
 
 describe('PrintList', () => {
@@ -70,15 +70,17 @@ describe('PrintList', () => {
     const headers = within(hardwareTable)
       .getAllByRole('columnheader')
       .map((h) => h.textContent);
-    expect(headers).toEqual(['Item', 'Qty']);
+    expect(headers).toEqual(['Item', 'Get', 'Qty']);
     const rows = within(hardwareTable).getAllByRole('row').slice(1);
     const itemTexts = rows.map((r) => within(r).getAllByRole('cell')[0].textContent);
-    const qtyTexts = rows.map((r) => within(r).getAllByRole('cell')[1].textContent);
+    const getTexts = rows.map((r) => within(r).getAllByRole('cell')[1].textContent);
+    const qtyTexts = rows.map((r) => within(r).getAllByRole('cell')[2].textContent);
     expect(qtyTexts).toEqual(['2', '4', '6', '8']);
     expect(itemTexts[0]).toBe('Double wall mount');
     expect(itemTexts[1]).toBe('Single wall mount');
     expect(itemTexts[2]).toBe('M4 x 40-60 wall screw');
     expect(itemTexts[3]).toBe('M4 x 20 board screw');
+    expect(getTexts).toEqual(['Print', 'Print', 'Buy', 'Buy']);
   });
 
   it('renders the Single wall mount name as a link to its model page', () => {

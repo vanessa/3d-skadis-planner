@@ -15,7 +15,7 @@ const notedSystem: MountSystem = {
   url: 'https://example.com',
   description: '',
   markers: [],
-  items: [{ name: 'Widget', per: { board: 1 }, note: 'Only if needed' }],
+  items: [{ name: 'Widget', per: { board: 1 }, source: 'buy', note: 'Only if needed' }],
 };
 
 describe('printListFileName', () => {
@@ -46,9 +46,11 @@ describe('formatPrintList', () => {
         ' 15  9 x 9.stl  200 x 200 mm  as is',
         '',
         'Hardware (Wall mounts (AU3D))',
+        '3D print:',
         '  8  Quad wall mount',
         ' 12  Double wall mount',
         '  4  Single wall mount (model: https://makerworld.com/en/models/420877)',
+        'Buy:',
         ' 24  M4 x 40-60 wall screw',
         ' 60  M4 x 20 board screw',
         'Mount files: https://makerworld.com/en/models/861073',

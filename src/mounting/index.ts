@@ -1,7 +1,7 @@
 import type { MountSystem } from './types';
 import { MOUNT_SYSTEMS } from './systems';
 
-export type { NodeKind, HardwareItem, MountSystem, MarkerKind, HardwareMarker } from './types';
+export type { NodeKind, HardwareItem, HardwareSource, MountSystem, MarkerKind, HardwareMarker } from './types';
 export { MOUNT_SYSTEMS } from './systems';
 export { hardwareList, countNodes } from './hardware';
 export type { HardwareRow } from './hardware';

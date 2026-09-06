@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { countNodes, hardwareList } from './hardware';
 import { getMountSystem } from './index';
+import { MOUNT_SYSTEMS } from './systems';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -34,7 +35,7 @@ describe('hardwareList', () => {
   });
   it('counts threaded connectors', () => {
     expect(byName(hardwareList(p, getMountSystem('threaded-connectors')))).toEqual({
-      'Threaded connector': 22, 'Connector screw': 44, 'Wall fixing (spacer + M4 screw)': 16,
+      'Threaded connector': 22, 'Wall spacer': 16, 'Connector screw': 44, 'M4 wall screw': 16,
     });
   });
   it('omits zero rows and passes the link through', () => {
@@ -49,5 +50,22 @@ describe('hardwareList', () => {
       'https://makerworld.com/en/models/420877',
     );
     expect(hardwareList(one, getMountSystem('spacers')).find((r) => r.name === 'Wall plug')?.note).toBeUndefined();
+  });
+});
+
+describe('source', () => {
+  it('is print or buy for every item of every system', () => {
+    for (const system of MOUNT_SYSTEMS) {
+      for (const item of system.items) {
+        expect(['print', 'buy']).toContain(item.source);
+      }
+    }
+  });
+
+  it('is carried through by hardwareList', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const rows = hardwareList(p, getMountSystem('wall-mounts'));
+    expect(rows.find((r) => r.name === 'Quad wall mount')?.source).toBe('print');
+    expect(rows.find((r) => r.name === 'M4 x 20 board screw')?.source).toBe('buy');
   });
 });

@@ -108,7 +108,7 @@ describe('hardwareMarkers cross-checks against the grid facts and the Hardware t
       const threadedRows = byName(hardwareList(p, getMountSystem('threaded-connectors')));
       const threadedMarkers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
       expect(threadedRows['Threaded connector']).toBe(threadedMarkers.filter((m) => m.kind === 'seams').length);
-      expect(threadedRows['Wall fixing (spacer + M4 screw)']).toBe(
+      expect(threadedRows['Wall spacer']).toBe(
         threadedMarkers.filter((m) => m.kind === 'outerNodes').length,
       );
     });

@@ -166,6 +166,9 @@ export function PrintList({
             <th scope="col" {...stylex.props(styles.th)}>
               Item
             </th>
+            <th scope="col" {...stylex.props(styles.th)}>
+              Get
+            </th>
             <th scope="col" {...stylex.props(styles.th, styles.thEnd)}>
               Qty
             </th>
@@ -183,6 +186,13 @@ export function PrintList({
                   row.name
                 )}
                 {row.note && <p {...stylex.props(styles.note)}>{row.note}</p>}
+              </td>
+              <td {...stylex.props(styles.td)}>
+                {row.source === 'print' ? (
+                  <span {...stylex.props(styles.mirror)}>Print</span>
+                ) : (
+                  <span {...stylex.props(styles.asIs)}>Buy</span>
+                )}
               </td>
               <td {...stylex.props(styles.td, styles.count)}>{row.qty}</td>
             </tr>

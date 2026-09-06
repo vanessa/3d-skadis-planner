@@ -1,8 +1,13 @@
 export type NodeKind = 'board' | 'junction' | 'edgeNode' | 'outerCorner' | 'seam';
 
+/** Whether a hardware item is 3D printed or bought. */
+export type HardwareSource = 'print' | 'buy';
+
 export interface HardwareItem {
   name: string;
   per: Partial<Record<NodeKind, number>>;
+  /** Whether the item is 3D printed or bought. */
+  source: HardwareSource;
   note?: string;
   link?: string;
 }

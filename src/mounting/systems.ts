@@ -8,15 +8,16 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     description: 'One printed mount wherever corners meet.',
     markers: ['nodes'],
     items: [
-      { name: 'Quad wall mount', per: { junction: 1 } },
-      { name: 'Double wall mount', per: { edgeNode: 1 } },
+      { name: 'Quad wall mount', per: { junction: 1 }, source: 'print' },
+      { name: 'Double wall mount', per: { edgeNode: 1 }, source: 'print' },
       {
         name: 'Single wall mount',
         per: { outerCorner: 1 },
+        source: 'print',
         link: 'https://makerworld.com/en/models/420877',
       },
-      { name: 'M4 x 40-60 wall screw', per: { junction: 1, edgeNode: 1, outerCorner: 1 } },
-      { name: 'M4 x 20 board screw', per: { board: 4 } },
+      { name: 'M4 x 40-60 wall screw', per: { junction: 1, edgeNode: 1, outerCorner: 1 }, source: 'buy' },
+      { name: 'M4 x 20 board screw', per: { board: 4 }, source: 'buy' },
     ],
   },
   {
@@ -26,9 +27,9 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     description: 'A spacer and screw at each board corner.',
     markers: ['boardCorners'],
     items: [
-      { name: 'Screw spacer (10, 15 or 20 mm)', per: { board: 4 } },
-      { name: 'M4 wall screw (30 mm or longer)', per: { board: 4 } },
-      { name: 'Wall plug', per: { board: 4 } },
+      { name: 'Screw spacer (10, 15 or 20 mm)', per: { board: 4 }, source: 'print' },
+      { name: 'M4 wall screw (30 mm or longer)', per: { board: 4 }, source: 'buy' },
+      { name: 'Wall plug', per: { board: 4 }, source: 'buy' },
     ],
   },
   {
@@ -39,9 +40,10 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     assumed: true,
     markers: ['seams', 'outerNodes'],
     items: [
-      { name: 'Threaded connector', per: { seam: 1 } },
-      { name: 'Connector screw', per: { seam: 2 } },
-      { name: 'Wall fixing (spacer + M4 screw)', per: { outerCorner: 1, edgeNode: 1 } },
+      { name: 'Threaded connector', per: { seam: 1 }, source: 'print' },
+      { name: 'Wall spacer', per: { outerCorner: 1, edgeNode: 1 }, source: 'print' },
+      { name: 'Connector screw', per: { seam: 2 }, source: 'buy' },
+      { name: 'M4 wall screw', per: { outerCorner: 1, edgeNode: 1 }, source: 'buy' },
     ],
   },
 ];

@@ -70,12 +70,14 @@ function table(groups: BoardGroup[], model: BoardModel): string[] {
 function hardwareBlock(plan: Plan, system: MountSystem): string[] {
   const rows = hardwareList(plan, system);
   const qtyWidth = Math.max(3, ...rows.map((r) => String(r.qty).length));
+  const rowLine = (r: (typeof rows)[number]) =>
+    `${String(r.qty).padStart(qtyWidth)}  ${r.name}${r.link ? ` (model: ${r.link})` : ''}${r.note ? ` (${r.note})` : ''}`;
+  const printed = rows.filter((r) => r.source === 'print');
+  const bought = rows.filter((r) => r.source === 'buy');
   return [
     `Hardware (${system.name})`,
-    ...rows.map(
-      (r) =>
-        `${String(r.qty).padStart(qtyWidth)}  ${r.name}${r.link ? ` (model: ${r.link})` : ''}${r.note ? ` (${r.note})` : ''}`,
-    ),
+    ...(printed.length ? ['3D print:', ...printed.map(rowLine)] : []),
+    ...(bought.length ? ['Buy:', ...bought.map(rowLine)] : []),
     ...(system.assumed ? ['Hardware counts are assumed; check the model page.'] : []),
     `Mount files: ${system.url}`,
   ];

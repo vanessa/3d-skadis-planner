@@ -74,6 +74,8 @@ Descriptions (one line each, shown under the select):
 
 Example, default 1000 × 600 mm on an A1 (5 × 3 boards, 15 boards): junctions 8, edge nodes 12, corners 4, seams 22. Wall mounts: 8 quad, 12 double, 4 single, 24 wall screws, 60 board screws. Spacers: 60 spacers, 60 screws, 60 plugs. Threaded: 22 connectors, 44 connector screws, 16 spacer+screw sets.
 
+Every item also carries a `source` of `'print'` or `'buy'`, printed items ordered before bought ones within each system. This is surfaced as a `Get` column in the Hardware table (`Print` or `Buy`, styled like the board table's `Print as` chip) and as `3D print:` / `Buy:` sub-groups in the TXT export's hardware block, whichever group has rows and printed first. The threaded-connector system's old combined `Wall fixing (spacer + M4 screw)` item is now two items: `Wall spacer` (print) and `M4 wall screw` (buy), both still counted per outer corner and edge node.
+
 ## UI
 
 - Panel section **Mounting** after Layout: `System` select (three names), a hint line with the description, and a `Mount files` link to the system's page (opens a new tab). When `assumed` is set the hint ends with "Counts are assumed; check the model page." (already part of the description text for that system) and the print list's hardware rows carry the item notes.
