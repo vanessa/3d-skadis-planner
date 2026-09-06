@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import { PrintList } from './PrintList';
+import { PrintList, ASSUMED_TOOLTIP } from './PrintList';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -95,7 +95,9 @@ describe('PrintList', () => {
     const threaded = getMountSystem('threaded-connectors');
     render(<PrintList plan={p} model={skadisInfinity} system={threaded} />);
     const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
-    expect(within(hardwareTable).getByText('assumed')).toBeTruthy();
+    const badge = within(hardwareTable).getByText('assumed');
+    expect(badge).toBeTruthy();
+    expect(badge.getAttribute('title')).toBe(ASSUMED_TOOLTIP);
     expect(screen.queryByText(/Hardware counts are assumed/)).toBeNull();
   });
 

@@ -6,6 +6,8 @@ import { hardwareList } from '../mounting';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 
+export const ASSUMED_TOOLTIP = 'Counts could not be checked against the model page. Verify before buying.';
+
 const styles = stylex.create({
   table: {
     width: '100%',
@@ -74,6 +76,10 @@ const styles = stylex.create({
   },
   assumedBadge: {
     marginInlineStart: space.xs,
+    cursor: 'help',
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+    textUnderlineOffset: '2px',
   },
   itemLink: {
     fontSize: 'inherit',
@@ -144,7 +150,16 @@ export function PrintList({
       <table {...stylex.props(styles.table)}>
         <caption {...stylex.props(styles.caption)}>
           Hardware
-          {system.assumed && <span {...stylex.props(styles.mirror, styles.assumedBadge)}>assumed</span>}
+          {system.assumed && (
+            <span
+              {...stylex.props(styles.mirror, styles.assumedBadge)}
+              title={ASSUMED_TOOLTIP}
+              aria-label={`assumed: ${ASSUMED_TOOLTIP}`}
+              tabIndex={0}
+            >
+              assumed
+            </span>
+          )}
         </caption>
         <thead>
           <tr>
