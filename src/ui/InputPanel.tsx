@@ -88,7 +88,7 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
         />
         <FieldHint>{getStrategy(form.strategyId).description}</FieldHint>
         {form.strategyId === 'allow-gap' && (
-          <NumberField label="Max gap" value={form.maxGap} onChange={(maxGap) => onChange({ maxGap })} />
+          <NumberField label="Max gap (mm)" value={form.maxGap} onChange={(maxGap) => onChange({ maxGap })} />
         )}
       </PanelSection>
     </form>

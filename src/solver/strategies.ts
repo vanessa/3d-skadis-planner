@@ -137,7 +137,8 @@ export const uniform: Strategy = {
 export const noMirror: Strategy = {
   id: 'no-mirror',
   name: 'No mirroring',
-  description: 'Only symmetric boards, so nothing needs mirroring in the slicer. May use an extra board or leave up to one pitch uncovered.',
+  description:
+    'Prefers symmetric boards so nothing needs mirroring in the slicer; may use an extra board or leave up to one pitch uncovered, and falls back to Balanced when no symmetric layout fits.',
   search: (ctx) =>
     bestPartition(ctx, {
       tol: 1,

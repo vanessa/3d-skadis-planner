@@ -108,9 +108,9 @@ describe('App', () => {
     expect([...select.options].map((o) => o.textContent)).toEqual([
       'Balanced', 'Largest boards first', 'Same size only', 'No mirroring', 'Allow a gap',
     ]);
-    expect(screen.queryByLabelText('Max gap')).toBeNull();
+    expect(screen.queryByLabelText('Max gap (mm)')).toBeNull();
     fireEvent.change(select, { target: { value: 'allow-gap' } });
-    expect((screen.getByLabelText('Max gap') as HTMLInputElement).value).toBe('40');
+    expect((screen.getByLabelText('Max gap (mm)') as HTMLInputElement).value).toBe('40');
     expect(screen.getByText(/12 boards/)).toBeTruthy();
   });
 

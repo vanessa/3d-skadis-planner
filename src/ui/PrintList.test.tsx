@@ -13,9 +13,12 @@ describe('PrintList', () => {
     expect(container.querySelector('table')).toBeNull();
   });
 
-  it('lists one row per group with size, holes, quantity and mirror', () => {
+  it('lists one row per group with file, size, quantity and print instruction', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     render(<PrintList plan={p} model={skadisInfinity} />);
+    expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
+      'File', 'Size', 'Qty', 'Print as',
+    ]);
     const rows = screen.getAllByRole('row').slice(1); // skip header
     expect(rows).toHaveLength(2);
     const cells0 = within(rows[0])

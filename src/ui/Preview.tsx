@@ -50,7 +50,7 @@ const styles = stylex.create({
 function Board({ b, scale }: { b: PlacedBoard; scale: number }) {
   const mirror = b.mirrorX && b.mirrorY ? 'xy' : b.mirrorX ? 'x' : b.mirrorY ? 'y' : undefined;
   const mirrorLabel =
-    mirror === 'xy' ? 'mirror X+Y' : mirror === 'x' ? 'mirror X' : mirror === 'y' ? 'mirror Y' : null;
+    mirror === 'xy' ? 'mirrored X + Y' : mirror === 'x' ? 'mirrored X' : mirror === 'y' ? 'mirrored Y' : null;
   const showLabels = Math.min(b.widthMm, b.heightMm) * scale >= MIN_LABEL_PX;
   const fs = LABEL_PX / scale;
   const ds = DETAIL_PX / scale;

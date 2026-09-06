@@ -63,4 +63,10 @@ describe('wrapText', () => {
     const word = 'a'.repeat(90);
     expect(wrapText(`short ${word} tail`)).toEqual(['short', word, 'tail']);
   });
+
+  it('wraps at the given width and keeps every line within 78 columns', () => {
+    expect(wrapText('aa bb cc', 5)).toEqual(['aa bb', 'cc']);
+    expect(wrapText(skadisInfinity.mirrorNote).every((l) => l.length <= 78)).toBe(true);
+    expect(wrapText(skadisInfinity.mirrorNote).length).toBeGreaterThan(1);
+  });
 });
