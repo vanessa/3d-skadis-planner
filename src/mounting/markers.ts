@@ -54,16 +54,19 @@ function boardCornerMarkers(boards: PlacedBoard[], insetMm: number): HardwareMar
 function seamMarkers(boards: PlacedBoard[], colCount: number, rowCount: number, colB: number[], rowB: number[]): HardwareMarker[] {
   const at = new Map<string, PlacedBoard>();
   for (const b of boards) at.set(`${b.row},${b.col}`, b);
+  const boardAt = (row: number, col: number) => at.get(`${row},${col}`);
   const markers: HardwareMarker[] = [];
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < colCount - 1; col++) {
-      const b = at.get(`${row},${col}`)!;
+      const b = boardAt(row, col);
+      if (!b) continue;
       markers.push({ x: colB[col + 1], y: b.yMm + b.heightMm / 2, kind: 'seams', orientation: 'vertical' });
     }
   }
   for (let col = 0; col < colCount; col++) {
     for (let row = 0; row < rowCount - 1; row++) {
-      const b = at.get(`${row},${col}`)!;
+      const b = boardAt(row, col);
+      if (!b) continue;
       markers.push({ x: b.xMm + b.widthMm / 2, y: rowB[row + 1], kind: 'seams', orientation: 'horizontal' });
     }
   }
@@ -75,8 +78,8 @@ export function hardwareMarkers(plan: Plan, system: MountSystem, model: BoardMod
   const c = plan.columns.length;
   const r = plan.rows.length;
   if (c === 0 || r === 0) return [];
-  const colB = boundaries(plan.columns.map(model.sizeMm));
-  const rowB = boundaries(plan.rows.map(model.sizeMm));
+  const colB = boundaries(plan.columns.map((h) => model.sizeMm(h)));
+  const rowB = boundaries(plan.rows.map((h) => model.sizeMm(h)));
   const markers: HardwareMarker[] = [];
   for (const kind of system.markers) {
     if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB));

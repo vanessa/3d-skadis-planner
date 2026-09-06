@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { hardwareMarkers } from './markers';
 import { getMountSystem } from './index';
+import { countNodes, hardwareList } from './hardware';
 import type { HardwareMarker } from './types';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
@@ -58,4 +59,58 @@ describe('hardwareMarkers', () => {
       hardwareMarkers(one, getMountSystem('threaded-connectors'), skadisInfinity).filter((m) => m.kind === 'seams'),
     ).toHaveLength(0);
   });
+});
+
+const byName = (rows: { name: string; qty: number }[]) => Object.fromEntries(rows.map((r) => [r.name, r.qty]));
+
+describe('hardwareMarkers cross-checks against the grid facts and the Hardware table', () => {
+  const plans = [
+    {
+      label: '5 x 3 default plan',
+      p: plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 }),
+    },
+    {
+      label: '820 x 1000 plan (columns [10,9,9,9], rows [9x5])',
+      p: plan({ widthMm: 820, heightMm: 1000, model: skadisInfinity, printer: a1 }),
+    },
+  ];
+
+  for (const { label, p } of plans) {
+    const nodes = countNodes(p.columns.length, p.rows.length);
+
+    it(`matches countNodes' grid facts, per kind, for ${label}`, () => {
+      const wallMarkers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
+      const roles = byRole(wallMarkers);
+      expect(wallMarkers).toHaveLength(nodes.junction + nodes.edgeNode + nodes.outerCorner);
+      expect(roles.junction ?? 0).toBe(nodes.junction);
+      expect(roles.edgeNode ?? 0).toBe(nodes.edgeNode);
+      expect(roles.outerCorner ?? 0).toBe(nodes.outerCorner);
+
+      const spacerMarkers = hardwareMarkers(p, getMountSystem('spacers'), skadisInfinity);
+      expect(spacerMarkers).toHaveLength(4 * nodes.board);
+
+      const threadedMarkers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
+      expect(threadedMarkers.filter((m) => m.kind === 'seams')).toHaveLength(nodes.seam);
+      expect(threadedMarkers.filter((m) => m.kind === 'outerNodes')).toHaveLength(nodes.edgeNode + nodes.outerCorner);
+    });
+
+    it(`matches the Hardware table's counts for ${label}`, () => {
+      const wallRows = byName(hardwareList(p, getMountSystem('wall-mounts')));
+      const wallRoles = byRole(hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity));
+      expect(wallRows['Quad wall mount']).toBe(wallRoles.junction ?? 0);
+      expect(wallRows['Double wall mount']).toBe(wallRoles.edgeNode ?? 0);
+      expect(wallRows['Single wall mount']).toBe(wallRoles.outerCorner ?? 0);
+
+      const spacerRows = byName(hardwareList(p, getMountSystem('spacers')));
+      const spacerMarkers = hardwareMarkers(p, getMountSystem('spacers'), skadisInfinity);
+      expect(spacerRows['Screw spacer (10, 15 or 20 mm)']).toBe(spacerMarkers.length);
+
+      const threadedRows = byName(hardwareList(p, getMountSystem('threaded-connectors')));
+      const threadedMarkers = hardwareMarkers(p, getMountSystem('threaded-connectors'), skadisInfinity);
+      expect(threadedRows['Threaded connector']).toBe(threadedMarkers.filter((m) => m.kind === 'seams').length);
+      expect(threadedRows['Wall fixing (spacer + M4 screw)']).toBe(
+        threadedMarkers.filter((m) => m.kind === 'outerNodes').length,
+      );
+    });
+  }
 });

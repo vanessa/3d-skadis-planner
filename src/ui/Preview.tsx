@@ -15,6 +15,8 @@ const DETAIL_PX = 11;
 const HATCH_PX = 8;
 /** Seam tick length in screen px, split evenly across the seam. */
 const TICK_PX = 12;
+/** Hard cap on markers drawn, to bound SVG node count for pathological plans. */
+const MAX_MARKERS = 4000;
 
 /** Screen-px radius for a marker, constant under zoom. */
 function markerRadiusPx(m: HardwareMarker): number {
@@ -161,7 +163,11 @@ export function Preview({
   const s = v.scale;
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
-  const minSide = Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm)));
+  const showMarkers =
+    !!markers &&
+    markers.length > 0 &&
+    markers.length <= MAX_MARKERS &&
+    Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s >= MIN_MARKER_PX;
   return (
     <svg
       {...stylex.props(styles.svg)}
@@ -184,10 +190,10 @@ export function Preview({
         {plan.boards.map((b, i) => (
           <Board key={`${b.col}-${b.row}`} b={b} scale={s} onHover={(on) => setHovered(on ? i : null)} />
         ))}
-        {markers && markers.length > 0 && minSide * s >= MIN_MARKER_PX && (
+        {showMarkers && markers && (
           <g data-markers>
-            {markers.map((m, i) => (
-              <MarkerDot key={i} m={m} scale={s} />
+            {markers.map((m) => (
+              <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} />
             ))}
           </g>
         )}

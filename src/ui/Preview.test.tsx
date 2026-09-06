@@ -139,4 +139,18 @@ describe('Preview markers', () => {
     expect(boardIdx).toBeLessThan(markersIdx);
     expect(markersIdx).toBeLessThan(outlineIdx);
   });
+
+  it('caps the marker count so a pathological plan cannot flood the SVG', () => {
+    const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const many = (n: number): HardwareMarker[] =>
+      Array.from({ length: n }, (_, i) => ({ x: i, y: 0, kind: 'boardCorners' }));
+    const { container: atCap } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={many(4000)} />,
+    );
+    expect(atCap.querySelectorAll('[data-marker]')).toHaveLength(4000);
+    const { container: overCap } = render(
+      <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={many(4001)} />,
+    );
+    expect(overCap.querySelectorAll('[data-marker]')).toHaveLength(0);
+  });
 });
