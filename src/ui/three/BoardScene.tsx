@@ -230,7 +230,8 @@ export default function BoardScene({ plan, model }: { plan: Plan; model: BoardMo
           dampingFactor={0.15}
           screenSpacePanning
           rotateSpeed={0.3}
-          maxPolarAngle={Math.PI * 0.45}
+          minPolarAngle={Math.PI * 0.25}
+          maxPolarAngle={Math.PI * 0.75}
         />
       </Canvas>
     </div>

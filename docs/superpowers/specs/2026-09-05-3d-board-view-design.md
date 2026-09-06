@@ -50,16 +50,23 @@ src/
     outline.ts           boardOutline(): slots and screw holes in mm
     geometry.ts          buildBoardGeometry() + cache -> THREE.ExtrudeGeometry
     placement.ts         instancesFor(plan): per-group instance positions
+    limits.ts            MAX_3D_BOARDS, re-exported from placement.ts;
+                          does not import three, so PreviewCard can read
+                          it without pulling three into the eager bundle
   ui/
     PreviewCard.tsx      2D/3D toggle, lazy-loads BoardScene
     three/BoardScene.tsx Canvas, camera, controls, grid, instanced boards, hover label
     three/useTokenColor.ts  resolves a StyleX var string to a hex colour
 ```
 
-`boards3d` depends on `models` and `solver` types and on `three`. It never
-imports React. `ui/three` depends on `boards3d`, react-three-fiber and drei.
-`PreviewCard` is the only new thing `App.tsx` renders; it replaces the
-direct `<Preview>` element and wraps both views.
+`boards3d` depends on `models` and `solver` types and on `three` (except
+`limits.ts`, which has no dependencies). It never imports React. `ui/three`
+depends on `boards3d`, react-three-fiber and drei. `ui/PreviewCard.tsx`
+depends on `boards3d/limits` only, not `boards3d/placement` or `three` —
+importing the board-count cap must not pull three.js into the eager
+(non-lazy) bundle. `Canvas.tsx` wraps its 2D input surface in `PreviewCard`;
+`App.tsx` only passes `model` to `Canvas` — it does not render `PreviewCard`
+directly.
 
 ### Model extension (`src/models/types.ts`)
 
@@ -147,11 +154,14 @@ Default export `BoardScene({ plan, model }: { plan: Plan; model: BoardModel })`.
   `MapControls`' own `invalidate()` calls (see the controls bullet below).
 - drei `MapControls` for pan and zoom; `enableRotate` follows the `Orbit`
   toggle (a small button overlaid top-right of the canvas). Damping on.
-  `rotateSpeed` 0.3 (slower than the default 1) and `maxPolarAngle`
-  `0.45 * Math.PI` so the wall cannot be tilted past near edge-on
-  (`minPolarAngle` stays at its default, 0). With `Orbit` on, the LEFT
-  mouse button rotates and RIGHT pans; with it off the mapping is
-  swapped back (LEFT pans, RIGHT rotates).
+  `rotateSpeed` 0.3 (slower than the default 1). The camera sits on +Z
+  with `up` = +Y, so head-on (looking straight at the wall) is polar
+  angle `0.5 * Math.PI`, not 0. The polar angle is clamped to
+  `minPolarAngle={Math.PI * 0.25}` / `maxPolarAngle={Math.PI * 0.75}`, a
+  band around that head-on `0.5π`, so the wall cannot be tilted past
+  about 45° either way (and true edge-on, polar 0 or π, is unreachable).
+  With `Orbit` on, the LEFT mouse button rotates and RIGHT pans; with it
+  off the mapping is swapped back (LEFT pans, RIGHT rotates).
 - drei `Grid` on the wall plane behind the boards: `cellSize 20`,
   `sectionSize 100`, `fadeDistance` large, colours from tokens (`border` for
   cells, `muted` for sections), `infiniteGrid`.
@@ -234,9 +244,10 @@ meshes would stall the browser well before rendering.
 
 Another session is restyling `src/ui` toward the toolcraft direction on
 `main`. This feature lives on branch `worktree-3d-view`. New files do not
-conflict; the only shared edits are the one-line `App.tsx` swap and the new
-`pattern` field in `models/types.ts` and `skadisInfinity.ts`. Merge after
-the restyle lands and re-run the screenshot check.
+conflict; the only shared edits are `Canvas.tsx` wrapping its 2D surface in
+`PreviewCard` (passing `model` through from `App.tsx`) and the new `pattern`
+field in `models/types.ts` and `skadisInfinity.ts`. Merge after the restyle
+lands and re-run the screenshot check.
 
 ## Testing
 

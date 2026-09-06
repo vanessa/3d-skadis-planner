@@ -12,7 +12,7 @@ import {
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { BoardModel } from '../models';
-import { MAX_3D_BOARDS } from '../boards3d/placement';
+import { MAX_3D_BOARDS } from '../boards3d/limits';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { stageLayout } from './stageLayout';
