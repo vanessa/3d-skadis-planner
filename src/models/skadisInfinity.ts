@@ -19,12 +19,4 @@ export const skadisInfinity: BoardModel = {
     'then X or Y. The preview marks which positions get mirrored boards.',
   fileName: (cols, rows) => `${cols} x ${rows}.stl`,
   author: { name: 'AU3D', url: 'https://makerworld.com/en/@AU3D', thanks: 'Thank you for sharing them!' },
-  pattern: {
-    thicknessMm: 5,
-    slotWidthMm: 5,
-    slotHeightMm: 15,
-    isHole: (col, row) => (col + row) % 2 === 1,
-    screwHoleRadiusMm: 1.5,
-    screwInsetMm: 10,
-  },
 };

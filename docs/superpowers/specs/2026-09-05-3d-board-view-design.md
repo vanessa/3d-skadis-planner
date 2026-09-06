@@ -1,7 +1,7 @@
 # 3D board view — design
 
 Date: 2026-09-05
-Status: approved for planning
+Status: implemented 2026-09-05, then REMOVED on 2026-09-06 at Vanessa's request (the tool is 2D only). Kept for history.
 Builds on: `2026-09-05-skadis-board-planner-design.md`
 
 ## Goal

@@ -165,8 +165,8 @@ describe('useViewport', () => {
     const scaleAfterFirstWheel = read().viewport.scale;
     expect(scaleAfterFirstWheel).toBeCloseTo(0.752 * Math.exp(0.15));
 
-    // Unmount the stage element (as happens when a parallel PreviewCard hides
-    // it in 3D mode) and remount a brand-new node (2D mode again).
+    // Unmount the stage element and remount a brand-new node; the hook must
+    // re-measure and re-attach its wheel listener to the new element.
     rerender(<Harness world={world} show={false} />);
     rerender(<Harness world={world} show />);
 

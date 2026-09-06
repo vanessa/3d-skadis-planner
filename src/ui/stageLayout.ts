@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 
 const MOBILE = '@media (max-width: 800px)';
 
-/** The stage box on the canvas. Shared with the 3D branch's PreviewCard. */
+/** The stage box on the canvas: the area the preview may occupy. */
 export const stageLayout = stylex.create({
   stage: {
     position: 'absolute',

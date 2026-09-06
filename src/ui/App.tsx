@@ -104,7 +104,7 @@ export default function App() {
 
   return (
     <div {...stylex.props(styles.app)}>
-      <Canvas plan={state.lastPlan} error={state.outcome.error} model={model} />
+      <Canvas plan={state.lastPlan} error={state.outcome.error} />
       <Panel
         title="Board planner"
         headerEnd={<ThemeToggle preference={preference} onChange={setPreference} />}

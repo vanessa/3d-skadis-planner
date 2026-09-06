@@ -1,13 +1,12 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
-import type { BoardModel } from '../models';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
-import { PreviewCard } from './PreviewCard';
 import { SummaryChip } from './SummaryChip';
 import { useViewport } from './useViewport';
 import { CanvasToolbar } from './CanvasToolbar';
+import { stageLayout } from './stageLayout';
 
 const styles = stylex.create({
   canvas: {
@@ -44,15 +43,7 @@ const styles = stylex.create({
   },
 });
 
-export function Canvas({
-  plan,
-  error,
-  model,
-}: {
-  plan: Plan | null;
-  error: string | null;
-  model: BoardModel;
-}) {
+export function Canvas({ plan, error }: { plan: Plan | null; error: string | null }) {
   const world = plan
     ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
     : null;
@@ -62,12 +53,12 @@ export function Canvas({
       <div {...stylex.props(styles.chip)}>
         <SummaryChip plan={plan} error={error} />
       </div>
-      <PreviewCard plan={plan} model={model}>
+      <div {...stylex.props(stageLayout.stage)}>
         <div ref={stageRef} {...handlers} {...stylex.props(styles.surface, dragging && styles.dragging)}>
           <Preview plan={plan} viewport={viewport} width={size.width} height={size.height} />
           {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
         </div>
-      </PreviewCard>
+      </div>
     </main>
   );
 }

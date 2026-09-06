@@ -90,11 +90,6 @@ describe('App', () => {
     expect(screen.getByRole('main')).toBeTruthy();
   });
 
-  it('offers a 2D / 3D preview toggle', () => {
-    render(<App />);
-    expect(screen.getByRole('radio', { name: '2D' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: '3D' })).toBeTruthy();
-  });
 
   it('shows the fit control and zoom readout on the canvas', () => {
     render(<App />);

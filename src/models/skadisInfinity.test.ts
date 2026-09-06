@@ -43,23 +43,3 @@ describe('model registry', () => {
   });
 });
 
-describe('skadisInfinity pattern', () => {
-  it('has slots on a checkerboard where col + row is odd', () => {
-    const { pattern } = skadisInfinity;
-    expect(pattern.isHole(0, 0)).toBe(false);
-    expect(pattern.isHole(1, 0)).toBe(true);
-    expect(pattern.isHole(0, 1)).toBe(true);
-    expect(pattern.isHole(1, 1)).toBe(false);
-    expect(pattern.isHole(2, 3)).toBe(true);
-  });
-
-  it('matches the geometry measured from the STL files', () => {
-    expect(skadisInfinity.pattern).toMatchObject({
-      thicknessMm: 5,
-      slotWidthMm: 5,
-      slotHeightMm: 15,
-      screwHoleRadiusMm: 1.5,
-      screwInsetMm: 10,
-    });
-  });
-});
