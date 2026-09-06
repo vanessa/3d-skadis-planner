@@ -62,6 +62,14 @@ const styles = stylex.create({
     paddingInlineEnd: '28px',
     cursor: 'default',
   },
+  /**
+   * Native select popups draw options over the OS surface (white on Windows
+   * even in dark mode), so options need an explicit background and colour.
+   */
+  option: {
+    backgroundColor: colors.surface,
+    color: colors.text,
+  },
   chevron: {
     position: 'absolute',
     insetInlineEnd: space.sm,
@@ -139,7 +147,7 @@ export function SelectField({
           onChange={(e) => onChange(e.target.value)}
         >
           {options.map((o) => (
-            <option key={o.value} value={o.value}>
+            <option key={o.value} value={o.value} {...stylex.props(styles.option)}>
               {o.label}
             </option>
           ))}

@@ -32,4 +32,21 @@ describe('fields', () => {
     fireEvent.change(select, { target: { value: 'cm' } });
     expect(onChange).toHaveBeenCalledWith('cm');
   });
+
+  it('styles options explicitly so native popups stay readable in dark mode', () => {
+    render(
+      <SelectField
+        label="Unit"
+        value="mm"
+        onChange={() => {}}
+        options={[
+          { value: 'mm', label: 'mm' },
+          { value: 'cm', label: 'cm' },
+        ]}
+      />,
+    );
+    const options = (screen.getByLabelText('Unit') as HTMLSelectElement).options;
+    expect(options[0].className).not.toBe('');
+    expect(options[1].className).toBe(options[0].className);
+  });
 });
