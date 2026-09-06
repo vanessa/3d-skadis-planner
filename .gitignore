@@ -2,3 +2,5 @@
 node_modules
 dist
 .claude/worktrees/
+*.zip
+*:Zone.Identifier
