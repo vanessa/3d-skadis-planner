@@ -64,7 +64,7 @@ has any. Uniform runs its own loop over sizes.
 
 A new panel section **Layout** after Printer: a `Strategy` select listing the
 five names, a one-line description under it (11 px muted), and, only for
-Allow a gap, a `Max gap` field in mm (default 40; 0 to 1000). The summary
+Allow a gap, a `Max gap (mm)` field (default 40; 0 to 1000; always mm regardless of the Unit selector). The summary
 chip appends ` · <strategy name>`. The TXT export names the strategy.
 
 ## 2. Clearer print list
