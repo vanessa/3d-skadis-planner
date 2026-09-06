@@ -10,7 +10,11 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     items: [
       { name: 'Quad wall mount', per: { junction: 1 } },
       { name: 'Double wall mount', per: { edgeNode: 1 } },
-      { name: 'Single wall mount', per: { outerCorner: 1 } },
+      {
+        name: 'Single wall mount',
+        per: { outerCorner: 1 },
+        note: 'Separate model: makerworld.com/en/models/420877',
+      },
       { name: 'M4 x 40-60 wall screw', per: { junction: 1, edgeNode: 1, outerCorner: 1 } },
       { name: 'M4 x 20 board screw', per: { board: 4 } },
     ],
@@ -29,7 +33,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
   {
     id: 'threaded-connectors',
     name: 'Threaded connectors (Printables)',
-    url: 'https://www.printables.com/model/1371785-threaded-connector-for-ikea-skadis-infinity',
+    url: 'https://www.printables.com/model/1371785',
     description:
       'Boards screwed to each other with printed threaded connectors along every seam, plus wall ' +
       'fixing around the outside. Counts are assumed; check the model page.',

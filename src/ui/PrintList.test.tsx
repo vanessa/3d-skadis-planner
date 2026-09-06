@@ -63,20 +63,24 @@ describe('PrintList', () => {
       .map((h) => h.textContent);
     expect(headers).toEqual(['Item', 'Qty']);
     const rows = within(hardwareTable).getAllByRole('row').slice(1);
-    const cellTexts = rows.map((r) => within(r).getAllByRole('cell').map((c) => c.textContent));
-    expect(cellTexts).toEqual([
-      ['Double wall mount', '2'],
-      ['Single wall mount', '4'],
-      ['M4 x 40-60 wall screw', '6'],
-      ['M4 x 20 board screw', '8'],
-    ]);
+    const itemTexts = rows.map((r) => within(r).getAllByRole('cell')[0].textContent);
+    const qtyTexts = rows.map((r) => within(r).getAllByRole('cell')[1].textContent);
+    expect(qtyTexts).toEqual(['2', '4', '6', '8']);
+    expect(itemTexts[0]).toBe('Double wall mount');
+    expect(itemTexts[1]).toContain('Single wall mount');
+    expect(itemTexts[1]).toContain('Separate model: makerworld.com/en/models/420877');
+    expect(itemTexts[2]).toBe('M4 x 40-60 wall screw');
+    expect(itemTexts[3]).toBe('M4 x 20 board screw');
   });
 
-  it('shows a note under an item name and an assumed line when the system is assumed', () => {
+  it('shows a note under an item name and an assumed line after the Hardware table when the system is assumed', () => {
     const p = plan({ widthMm: 360, heightMm: 180, model: skadisInfinity, printer: mini });
     const threaded = getMountSystem('threaded-connectors');
     render(<PrintList plan={p} model={skadisInfinity} system={threaded} />);
-    expect(screen.getByText(/Counts are assumed; check the model page\./)).toBeTruthy();
+    const assumed = screen.getByText(/Hardware counts are assumed/);
+    expect(assumed).toBeTruthy();
+    const hardwareTable = screen.getByRole('table', { name: 'Hardware' });
+    expect(hardwareTable.compareDocumentPosition(assumed) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText(/Assumed two per connector/)).toBeTruthy();
   });
 

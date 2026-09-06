@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('Unhandled error in the board planner UI:', error, info.componentStack);
+    console.error('Unhandled error in the Skadis Planner UI:', error, info.componentStack);
   }
 
   override render(): ReactNode {

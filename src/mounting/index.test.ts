@@ -19,6 +19,16 @@ describe('mounting registry', () => {
     expect(getMountSystem('threaded-connectors').assumed).toBe(true);
   });
 
+  it('links the threaded connector system by Printables model id, not an unverified slug', () => {
+    expect(getMountSystem('threaded-connectors').url).toBe('https://www.printables.com/model/1371785');
+  });
+
+  it('gives every system at least one item', () => {
+    for (const system of MOUNT_SYSTEMS) {
+      expect(system.items.length).toBeGreaterThan(0);
+    }
+  });
+
   it('gives every item at least one positive integer per-kind multiplier', () => {
     for (const system of MOUNT_SYSTEMS) {
       for (const item of system.items) {

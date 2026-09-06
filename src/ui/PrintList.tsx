@@ -136,9 +136,6 @@ export function PrintList({
           })}
         </tbody>
       </table>
-      {system.assumed && (
-        <p {...stylex.props(styles.note, styles.assumedGap)}>Counts are assumed; check the model page.</p>
-      )}
       <table {...stylex.props(styles.table)}>
         <caption {...stylex.props(styles.caption)}>Hardware</caption>
         <thead>
@@ -163,6 +160,9 @@ export function PrintList({
           ))}
         </tbody>
       </table>
+      {system.assumed && (
+        <p {...stylex.props(styles.note, styles.assumedGap)}>Hardware counts are assumed; check the model page.</p>
+      )}
       <p {...stylex.props(styles.note)}>{model.mirrorNote}</p>
     </>
   );

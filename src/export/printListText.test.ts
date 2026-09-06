@@ -40,7 +40,7 @@ describe('formatPrintList', () => {
         'Hardware (Wall mounts (AU3D))',
         '  8  Quad wall mount',
         ' 12  Double wall mount',
-        '  4  Single wall mount',
+        '  4  Single wall mount (Separate model: makerworld.com/en/models/420877)',
         ' 24  M4 x 40-60 wall screw',
         ' 60  M4 x 20 board screw',
         'Mount files: https://makerworld.com/en/models/861073',
@@ -58,6 +58,31 @@ describe('formatPrintList', () => {
         '',
       ].join('\n'),
     );
+  });
+
+  it('adds the assumed line before Mount files when the system is assumed, but not otherwise', () => {
+    const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const threaded = getMountSystem('threaded-connectors');
+    const assumedText = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: threaded,
+    });
+    const lines = assumedText.split('\n');
+    const mountFilesIndex = lines.indexOf(`Mount files: ${threaded.url}`);
+    expect(lines[mountFilesIndex - 1]).toBe('Hardware counts are assumed; check the model page.');
+
+    const wallText = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
+    });
+    expect(wallText).not.toContain('assumed');
+  });
+
+  it('widens the Qty column in the hardware block to fit a four-digit quantity', () => {
+    const p = plan({ widthMm: 10000, heightMm: 10000, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 10000, heightMm: 10000, date, system: wallMounts,
+    });
+    expect(text).toContain('7056  M4 x 20 board screw');
+    expect(text).toContain('   4  Single wall mount (Separate model: makerworld.com/en/models/420877)');
   });
 
   it('marks mirrored boards in the layout and lists every variant', () => {
