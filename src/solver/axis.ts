@@ -44,7 +44,13 @@ export function splitAxis(
     );
   }
 
-  const ctx = { avail, minU, maxU, needsMirror, gapUnits: Math.max(0, Math.floor(maxGapMm / pitch)) };
+  const ctx = {
+    avail,
+    minU,
+    maxU,
+    needsMirror,
+    gapUnits: Math.min(Math.max(0, Math.floor(maxGapMm / pitch)), maxU - 1),
+  };
   const k = Math.ceil(avail / maxU);
   const units =
     k * minU > avail

@@ -99,6 +99,14 @@ describe('splitAxis with strategies', () => {
     expect(splitAxis(1000, A1, model, 'y', getStrategy('allow-gap'), 40)).toEqual({ holes: [11, 11, 11, 11], leftoverMm: 40 });
     expect(splitAxis(1000, A1, model, 'y', getStrategy('allow-gap'), 0).holes).toEqual([9, 9, 9, 9, 9]);
   });
+  it('allow-gap caps the gap at one board width below the largest board', () => {
+    // A huge requested gap must not collapse 500 mm on A1 down to a single
+    // board; the cap keeps it at two 240 mm boards.
+    expect(splitAxis(500, A1, model, 'x', getStrategy('allow-gap'), 1000)).toEqual({
+      holes: [11, 11],
+      leftoverMm: 20,
+    });
+  });
   it('no-mirror falls back to balanced when it has no candidate', () => {
     expect(splitAxis(60, A1, model, 'x', getStrategy('no-mirror'))).toEqual({ holes: [2], leftoverMm: 0 });
   });

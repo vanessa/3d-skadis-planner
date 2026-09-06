@@ -21,6 +21,9 @@ describe('bestPartition', () => {
   });
   it('allows a gap and uses fewer boards', () => {
     expect(bestPartition(a1(50), { tol: 2, score: () => [0] })).toEqual([12, 12, 12, 12]);
+    // avail 47, tol 3 -> target 44 -> k = 4, sums 44..47; several candidates
+    // tie at k = 4, and the score prefers the largest first board.
+    expect(bestPartition(a1(47), { tol: 3, score: (u) => [u.length, -u[0]] })).toEqual([12, 12, 12, 11]);
   });
   it('returns null when nothing is accepted within extraK', () => {
     expect(bestPartition(a1(41), { tol: 0, accept: () => false, score: () => [0] })).toBeNull();
@@ -41,6 +44,9 @@ describe('strategies on an A1 axis', () => {
     expect(run('uniform', 41)).toEqual([9, 9, 9, 9]);
     expect(run('uniform', 50)).toEqual([9, 9, 9, 9, 9]);
     expect(run('uniform', 13)).toEqual([11]);
+    // 499: 41 boards of 12 units (11 holes) costs 7 (gap) + 41 = 48, beating
+    // 45 boards of 11 units (gap 4 + 45 = 49) and every other size.
+    expect(run('uniform', 499)).toEqual(Array(41).fill(11));
   });
   it('no-mirror', () => {
     expect(run('no-mirror', 41)).toEqual([9, 9, 9, 9]);
