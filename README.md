@@ -33,8 +33,11 @@ Add an entry to `PRINTERS` in `src/printers/index.ts`.
 
 ## Credits
 
-The board models are [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity)
-by [AU3D](https://makerworld.com/en/@AU3D) on MakerWorld. Thank you!
+Everything this tool plans for is by [AU3D](https://makerworld.com/en/@AU3D) on MakerWorld:
+the [IKEA Skadis Infinity](https://makerworld.com/en/models/1309689-ikea-skadis-infinity) boards,
+the [Multi Board Wall Mount](https://makerworld.com/en/models/861073) and
+[Single Wall Mount](https://makerworld.com/en/models/420877), and the
+[Screw Spacers](https://makerworld.com/en/models/418874). Thank you!
 This tool only plans which of the author's files to print; download the files from
 MakerWorld under the author's licence. Nothing from the models is redistributed here.
 
@@ -49,5 +52,3 @@ MakerWorld under the author's licence. Nothing from the models is redistributed 
   geometry ladder for the preview. Tokens live in `src/ui/tokens.stylex.ts`
   and `src/ui/mixes.stylex.ts`; the light theme in `src/ui/themes.stylex.ts`.
   Theme preference is stored under `appearance.theme.v1`.
-
-Design spec: `docs/superpowers/specs/2026-09-05-skadis-board-planner-design.md`.

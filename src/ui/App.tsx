@@ -13,7 +13,7 @@ import { getModel } from '../models';
 import type { Plan } from '../solver';
 import { getPrinter } from '../printers';
 import { getMountSystem, hardwareMarkers, resolveMountSystem } from '../mounting';
-import { formatPrintList, printListFileName } from '../export/printListText';
+import { formatPrintList, printListFileName, creditLines } from '../export/printListText';
 import { downloadText } from './download';
 import type { Highlight } from './highlight';
 import { useTheme } from './useTheme';
@@ -122,6 +122,7 @@ export default function App() {
   const wallDistanceMm = Number(state.form.wallDistance);
   const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm);
   const markers = state.lastPlan ? hardwareMarkers(state.lastPlan, system, model) : undefined;
+  const credits = creditLines(model, system);
 
   const download = () => {
     const p = state.lastPlan;
@@ -161,10 +162,15 @@ export default function App() {
               Open files on MakerWorld
             </a>
             <p {...stylex.props(styles.credit)}>
-              Boards by{' '}
-              <a {...stylex.props(styles.creditLink)} href={model.author.url} target="_blank" rel="noopener noreferrer">
-                {model.author.name}
-              </a>
+              {credits.map((c, i) => (
+                <span key={c.label}>
+                  {i > 0 && ', '}
+                  {c.label} by{' '}
+                  <a {...stylex.props(styles.creditLink)} href={c.url} target="_blank" rel="noopener noreferrer">
+                    {c.name}
+                  </a>
+                </span>
+              ))}
               . {model.author.thanks}
             </p>
           </div>

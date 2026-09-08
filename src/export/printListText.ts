@@ -22,6 +22,21 @@ const mm = (n: number) => String(Math.round(n));
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const localDate = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
+export interface CreditLine {
+  /** What is being credited: `Boards`, `Mounts`, or `Boards and mounts` when one author made both. */
+  label: string;
+  name: string;
+  url: string;
+}
+
+/** Who to thank for the boards and the mount files, merged into one line when they share an author. */
+export function creditLines(model: BoardModel, system: MountSystem): CreditLine[] {
+  const boards = { label: 'Boards', name: model.author.name, url: model.author.url };
+  if (!system.author) return [boards];
+  if (system.author.name === model.author.name) return [{ ...boards, label: 'Boards and mounts' }];
+  return [boards, { label: 'Mounts', name: system.author.name, url: system.author.url }];
+}
+
 export function printListFileName(widthMm: number, heightMm: number): string {
   return `skadis-plan-${mm(widthMm)}x${mm(heightMm)}.txt`;
 }
@@ -123,7 +138,7 @@ export function formatPrintList({
     ...layout(plan),
     ...(hasMirror ? ['', ...wrapText(model.mirrorNote)] : []),
     '',
-    `Boards by ${model.author.name} - ${model.author.url}`,
+    ...creditLines(model, system).map((c) => `${c.label} by ${c.name} - ${c.url}`),
     model.author.thanks,
     `Generated ${localDate(date)} with Skadis Planner`,
     '',

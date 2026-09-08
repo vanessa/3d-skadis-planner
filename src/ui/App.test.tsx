@@ -136,7 +136,7 @@ describe('App', () => {
     expect(link.href).toBe('https://makerworld.com/en/@AU3D');
     const credit = link.closest('p');
     expect(credit).toBeTruthy();
-    expect((credit!.textContent ?? '').replace(/\s+/g, ' ').trim()).toMatch(/^Boards by AU3D\. Thank you!$/);
+    expect((credit!.textContent ?? '').replace(/\s+/g, ' ').trim()).toMatch(/^Boards and mounts by AU3D\. Thank you!$/);
   });
 
   it('offers mounting systems and links to the mount files', () => {

@@ -3,12 +3,14 @@ import type { MountSystem } from './types';
 const multiMount = 'https://makerworld.com/en/models/861073';
 const singleMount = 'https://makerworld.com/en/models/420877';
 const spacers = 'https://makerworld.com/en/models/418874';
+const au3d = { name: 'AU3D', url: 'https://makerworld.com/en/@AU3D' };
 
 export const MOUNT_SYSTEMS: MountSystem[] = [
   {
     id: 'wall-mounts',
     name: 'Wall mounts (AU3D)',
     url: multiMount,
+    author: au3d,
     profiles: { 10: `${multiMount}#profileId-1609221`, 20: `${multiMount}#profileId-811358` },
     description: 'One printed mount wherever corners meet.',
     markers: ['nodes'],
@@ -30,6 +32,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     id: 'spacers',
     name: 'Screw spacers (AU3D)',
     url: spacers,
+    author: au3d,
     profiles: {
       10: `${spacers}#profileId-321444`,
       15: `${spacers}#profileId-321441`,

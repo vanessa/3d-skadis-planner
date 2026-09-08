@@ -37,8 +37,8 @@ parentheses.
 `Even-hole boards print as a mirror image so the slots line up. Bambu Studio: right-click, Mirror, then X or Y.`
 
 **Credit**: `author.thanks` becomes `Thank you!`; the footer reads
-`Boards by AU3D. Thank you!` with the name linked. TXT footer:
-`Boards by AU3D - <url>` then `Thank you!`.
+`Boards and mounts by AU3D. Thank you!` with the name linked (one line per author when the boards and the mounts differ, since 2026-09-08). TXT footer:
+`Boards and mounts by AU3D - <url>` then `Thank you!`.
 
 **Chip**: the strategy name is appended only when the strategy is not
 Balanced.

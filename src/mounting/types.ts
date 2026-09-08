@@ -40,4 +40,6 @@ export interface MountSystem {
   markers: MarkerKind[];
   /** Profile per wall distance, used in place of `url` once resolved. Its keys are the distances offered. */
   profiles?: WallProfiles;
+  /** Who designed the mount files, for the credit line. */
+  author?: { name: string; url: string };
 }

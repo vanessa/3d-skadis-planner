@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPrintList, printListFileName, wrapText } from './printListText';
+import { formatPrintList, printListFileName, wrapText, creditLines } from './printListText';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -60,7 +60,7 @@ describe('formatPrintList', () => {
         '9x9  9x9  9x9  9x9  9x9',
         '9x9  9x9  9x9  9x9  9x9',
         '',
-        'Boards by AU3D - https://makerworld.com/en/@AU3D',
+        'Boards and mounts by AU3D - https://makerworld.com/en/@AU3D',
         'Thank you!',
         'Generated 2026-09-05 with Skadis Planner',
         '',
@@ -77,6 +77,18 @@ describe('formatPrintList', () => {
     expect(text).toContain('Hardware (Wall mounts (AU3D), 20 mm from the wall)');
     expect(text).toContain('  4  Single wall mount (model: https://makerworld.com/en/models/420877#profileId-323616)');
     expect(text).toContain('Mount files: https://makerworld.com/en/models/861073#profileId-811358');
+  });
+
+  it('credits the boards and the mounts separately when their authors differ', () => {
+    const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
+    const other: MountSystem = { ...notedSystem, author: { name: 'Someone', url: 'https://example.com/someone' } };
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: other,
+    });
+    expect(text).toContain('Boards by AU3D - https://makerworld.com/en/@AU3D\nMounts by Someone - https://example.com/someone');
+    expect(creditLines(skadisInfinity, notedSystem)).toEqual([
+      { label: 'Boards', name: 'AU3D', url: 'https://makerworld.com/en/@AU3D' },
+    ]);
   });
 
   it('omits the mirror note when no board in the plan needs mirroring', () => {
