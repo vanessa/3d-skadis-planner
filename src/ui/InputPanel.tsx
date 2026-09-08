@@ -4,7 +4,7 @@ import { MODELS } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
 import { STRATEGIES, getStrategy, type StrategyId } from '../solver';
-import { MOUNT_SYSTEMS, getMountSystem } from '../mounting';
+import { MOUNT_SYSTEMS, getMountSystem, defaultWallDistance, resolveMountSystem, wallDistances } from '../mounting';
 import { PanelSection } from './PanelSection';
 import { FieldRow, FieldHint, NumberField, SelectField } from './fields';
 import { colors, font } from './tokens.stylex';
@@ -34,6 +34,13 @@ function convert(value: string, from: Unit, to: Unit): string {
 export function InputPanel({ form, onChange }: InputPanelProps) {
   const isCustom = form.printerId === CUSTOM_PRINTER_ID;
   const mountSystem = getMountSystem(form.mountId);
+  const distances = wallDistances(mountSystem);
+
+  const changeMount = (mountId: string) => {
+    const next = getMountSystem(mountId);
+    const keep = wallDistances(next).includes(Number(form.wallDistance));
+    onChange({ mountId, wallDistance: keep ? form.wallDistance : String(defaultWallDistance(next)) });
+  };
 
   const changeUnit = (unit: Unit) => {
     onChange({
@@ -110,13 +117,21 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
         <SelectField
           label="System"
           value={form.mountId}
-          onChange={(mountId) => onChange({ mountId })}
+          onChange={changeMount}
           options={MOUNT_SYSTEMS.map((s) => ({ value: s.id, label: s.name }))}
         />
         <FieldHint>{mountSystem.description}</FieldHint>
+        {distances.length > 0 && (
+          <SelectField
+            label="Wall distance"
+            value={form.wallDistance}
+            onChange={(wallDistance) => onChange({ wallDistance })}
+            options={distances.map((mm) => ({ value: String(mm), label: `${mm} mm` }))}
+          />
+        )}
         <a
           {...stylex.props(styles.mountLink)}
-          href={mountSystem.url}
+          href={resolveMountSystem(mountSystem, Number(form.wallDistance)).url}
           target="_blank"
           rel="noopener noreferrer"
         >

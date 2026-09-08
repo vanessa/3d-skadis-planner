@@ -31,7 +31,7 @@ describe('hardwareList', () => {
   });
   it('counts spacers', () => {
     expect(byName(hardwareList(p, getMountSystem('spacers')))).toEqual({
-      'Screw spacer (10, 15 or 20 mm)': 60, 'M4 wall screw (30 mm or longer)': 60, 'Wall plug': 60,
+      'Screw spacer': 60, 'M4 wall screw (30 mm or longer)': 60, 'Wall plug': 60,
     });
   });
   it('counts a seam-based system', () => {

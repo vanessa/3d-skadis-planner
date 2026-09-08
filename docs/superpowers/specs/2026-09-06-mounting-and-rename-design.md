@@ -20,7 +20,9 @@ Builds on: `2026-09-05-strategies-print-list-export-design.md`
   boards meet, a double where two boards meet along an outer edge, and a
   single mount (models/420877) at an outer corner with no neighbour. One
   wall screw per mount (author recommends M4×40 to 60), one M4×20 screw per
-  board corner into the mount. 20 mm board-to-wall clearance.
+  board corner into the mount. 20 mm board-to-wall clearance by default;
+  10 and 15 mm profiles exist too (see `2026-09-08-wall-distance-design.md`,
+  which adds a Wall distance select defaulting to 10 mm).
 - AU3D's **Screw Spacers** (makerworld.com/en/models/418874) come in 10, 15
   and 20 mm, four per print profile; one spacer and one M4 wall screw per
   board corner, straight into the wall.

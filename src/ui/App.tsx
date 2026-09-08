@@ -12,7 +12,7 @@ import { readStoredForm, writeStoredForm, clearStoredForm } from './formStorage'
 import { getModel } from '../models';
 import type { Plan } from '../solver';
 import { getPrinter } from '../printers';
-import { getMountSystem, hardwareMarkers } from '../mounting';
+import { getMountSystem, hardwareMarkers, resolveMountSystem } from '../mounting';
 import { formatPrintList, printListFileName } from '../export/printListText';
 import { downloadText } from './download';
 import type { Highlight } from './highlight';
@@ -119,7 +119,8 @@ export default function App() {
   };
 
   const model = getModel(state.form.modelId);
-  const system = getMountSystem(state.form.mountId);
+  const wallDistanceMm = Number(state.form.wallDistance);
+  const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm);
   const markers = state.lastPlan ? hardwareMarkers(state.lastPlan, system, model) : undefined;
 
   const download = () => {
@@ -131,7 +132,7 @@ export default function App() {
     const heightMm = p.coveredHeightMm + p.leftoverHeightMm;
     downloadText(
       printListFileName(widthMm, heightMm),
-      formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date(), system }),
+      formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date(), system, wallDistanceMm }),
     );
   };
 

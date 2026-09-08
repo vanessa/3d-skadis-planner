@@ -104,7 +104,7 @@ describe('hardwareMarkers cross-checks against the grid facts and the Hardware t
 
       const spacerRows = byName(hardwareList(p, getMountSystem('spacers')));
       const spacerMarkers = hardwareMarkers(p, getMountSystem('spacers'), skadisInfinity);
-      expect(spacerRows['Screw spacer (10, 15 or 20 mm)']).toBe(spacerMarkers.length);
+      expect(spacerRows['Screw spacer']).toBe(spacerMarkers.length);
 
       const seamRows = byName(hardwareList(p, seamSystem));
       const seamMarkers = hardwareMarkers(p, seamSystem, skadisInfinity);

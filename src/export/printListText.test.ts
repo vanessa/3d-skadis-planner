@@ -3,7 +3,7 @@ import { formatPrintList, printListFileName, wrapText } from './printListText';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
-import { getMountSystem, type MountSystem } from '../mounting';
+import { getMountSystem, resolveMountSystem, type MountSystem } from '../mounting';
 
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
@@ -66,6 +66,17 @@ describe('formatPrintList', () => {
         '',
       ].join('\n'),
     );
+  });
+
+  it('names the wall distance in the hardware header and links the resolved profiles', () => {
+    const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date,
+      system: resolveMountSystem(wallMounts, 20), wallDistanceMm: 20,
+    });
+    expect(text).toContain('Hardware (Wall mounts (AU3D), 20 mm from the wall)');
+    expect(text).toContain('  4  Single wall mount (model: https://makerworld.com/en/models/420877#profileId-323616)');
+    expect(text).toContain('Mount files: https://makerworld.com/en/models/861073#profileId-811358');
   });
 
   it('omits the mirror note when no board in the plan needs mirroring', () => {

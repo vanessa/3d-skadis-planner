@@ -2,7 +2,7 @@ import { plan, PlanError, DEFAULT_STRATEGY_ID, type Plan, type StrategyId } from
 import { getModel, DEFAULT_MODEL_ID } from '../models';
 import { getPrinter, DEFAULT_PRINTER_ID, CUSTOM_PRINTER_ID } from '../printers';
 import { toMm, type Unit } from '../units';
-import { DEFAULT_MOUNT_ID } from '../mounting';
+import { DEFAULT_MOUNT_ID, DEFAULT_WALL_DISTANCE_MM } from '../mounting';
 
 export interface FormState {
   width: string;
@@ -15,6 +15,8 @@ export interface FormState {
   strategyId: StrategyId;
   maxGap: string;
   mountId: string;
+  /** Board-to-wall distance in mm, one of the mount system's offered distances. */
+  wallDistance: string;
 }
 
 export const DEFAULT_FORM: FormState = {
@@ -28,6 +30,7 @@ export const DEFAULT_FORM: FormState = {
   strategyId: DEFAULT_STRATEGY_ID,
   maxGap: '40',
   mountId: DEFAULT_MOUNT_ID,
+  wallDistance: String(DEFAULT_WALL_DISTANCE_MM),
 };
 
 export interface PlanOutcome {

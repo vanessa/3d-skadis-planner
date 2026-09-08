@@ -32,6 +32,20 @@ describe('formStorage', () => {
     expect(form?.width).toBe('500');
   });
 
+  it('keeps a stored wall distance the stored system offers', () => {
+    window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ mountId: 'spacers', wallDistance: '15' }));
+    const form = readStoredForm();
+    expect(form?.mountId).toBe('spacers');
+    expect(form?.wallDistance).toBe('15');
+  });
+
+  it('falls back to the default wall distance when the stored system does not offer it', () => {
+    window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ mountId: 'wall-mounts', wallDistance: '15' }));
+    expect(readStoredForm()?.wallDistance).toBe('10');
+    window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ width: '500', wallDistance: 'abc' }));
+    expect(readStoredForm()?.wallDistance).toBe('10');
+  });
+
   it('ignores a non-string width', () => {
     window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ width: 123, height: '700' }));
     const form = readStoredForm();

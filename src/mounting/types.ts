@@ -3,6 +3,9 @@ export type NodeKind = 'board' | 'junction' | 'edgeNode' | 'outerCorner' | 'seam
 /** Whether a hardware item is 3D printed or bought. */
 export type HardwareSource = 'print' | 'buy';
 
+/** Print profile URL per board-to-wall distance in mm. */
+export type WallProfiles = Record<number, string>;
+
 export interface HardwareItem {
   name: string;
   per: Partial<Record<NodeKind, number>>;
@@ -10,6 +13,8 @@ export interface HardwareItem {
   source: HardwareSource;
   note?: string;
   link?: string;
+  /** Profile per wall distance, used in place of `link` once resolved. */
+  profiles?: WallProfiles;
 }
 
 /** Kinds of hardware marker drawn on the 2D preview. */
@@ -33,4 +38,6 @@ export interface MountSystem {
   items: HardwareItem[];
   /** Marker kinds drawn on the 2D preview for this system. */
   markers: MarkerKind[];
+  /** Profile per wall distance, used in place of `url` once resolved. Its keys are the distances offered. */
+  profiles?: WallProfiles;
 }

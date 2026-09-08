@@ -146,20 +146,63 @@ describe('App', () => {
       'Wall mounts (AU3D)', 'Screw spacers (AU3D)',
     ]);
     const link = screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement;
-    expect(link.href).toBe('https://makerworld.com/en/models/861073');
+    expect(link.href).toBe('https://makerworld.com/en/models/861073#profileId-1609221');
 
     fireEvent.change(select, { target: { value: 'spacers' } });
     expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
-      'https://makerworld.com/en/models/418874',
+      'https://makerworld.com/en/models/418874#profileId-321444',
     );
     expect(screen.getByText(/A spacer and screw at each board corner/)).toBeTruthy();
     const hardwareTable = screen.getByRole('table', { name: /^Hardware/ });
-    expect(within(hardwareTable).getByText('Screw spacer (10, 15 or 20 mm)')).toBeTruthy();
+    expect(within(hardwareTable).getByText('Screw spacer')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
     const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
-    expect(text).toContain('Hardware (Screw spacers (AU3D))');
+    expect(text).toContain('Hardware (Screw spacers (AU3D), 10 mm from the wall)');
     expect(text).toContain('Screw spacer');
+  });
+
+  it('defaults the wall distance to 10 mm and points every link at that profile', () => {
+    render(<App />);
+    const distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
+    expect(distance.value).toBe('10');
+    expect([...distance.options].map((o) => o.textContent)).toEqual(['10 mm', '20 mm']);
+    const single = screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement;
+    expect(single.href).toBe('https://makerworld.com/en/models/420877#profileId-323619');
+    const quad = screen.getByRole('link', { name: 'Print Quad wall mount' }) as HTMLAnchorElement;
+    expect(quad.href).toBe('https://makerworld.com/en/models/861073#profileId-1609221');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('Hardware (Wall mounts (AU3D), 10 mm from the wall)');
+    expect(text).toContain('(model: https://makerworld.com/en/models/420877#profileId-323619)');
+    expect(text).toContain('Mount files: https://makerworld.com/en/models/861073#profileId-1609221');
+  });
+
+  it('switches every link when the wall distance changes', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Wall distance'), { target: { value: '20' } });
+    expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
+      'https://makerworld.com/en/models/861073#profileId-811358',
+    );
+    expect((screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement).href).toBe(
+      'https://makerworld.com/en/models/420877#profileId-323616',
+    );
+  });
+
+  it('keeps the wall distance across systems when offered and falls back to the default otherwise', () => {
+    render(<App />);
+    const system = screen.getByLabelText('System');
+    fireEvent.change(screen.getByLabelText('Wall distance'), { target: { value: '20' } });
+    fireEvent.change(system, { target: { value: 'spacers' } });
+    let distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
+    expect(distance.value).toBe('20');
+    expect([...distance.options].map((o) => o.textContent)).toEqual(['10 mm', '15 mm', '20 mm']);
+
+    fireEvent.change(distance, { target: { value: '15' } });
+    fireEvent.change(system, { target: { value: 'wall-mounts' } });
+    distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
+    expect(distance.value).toBe('10');
   });
 
   it('includes the mounting hardware in the downloaded print list', () => {

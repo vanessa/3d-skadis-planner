@@ -13,6 +13,8 @@ export interface PrintListInput {
   heightMm: number;
   date: Date;
   system: MountSystem;
+  /** Board-to-wall distance in mm; omitted when the system offers none. */
+  wallDistanceMm?: number;
 }
 
 const WRAP = 78;
@@ -67,15 +69,16 @@ function table(groups: BoardGroup[], model: BoardModel): string[] {
   return [line(header, false), ...rows.map((r) => line(r, true))];
 }
 
-function hardwareBlock(plan: Plan, system: MountSystem): string[] {
+function hardwareBlock(plan: Plan, system: MountSystem, wallDistanceMm?: number): string[] {
   const rows = hardwareList(plan, system);
+  const distance = wallDistanceMm === undefined ? '' : `, ${wallDistanceMm} mm from the wall`;
   const qtyWidth = Math.max(3, ...rows.map((r) => String(r.qty).length));
   const rowLine = (r: (typeof rows)[number]) =>
     `${String(r.qty).padStart(qtyWidth)}  ${r.name}${r.link ? ` (model: ${r.link})` : ''}${r.note ? ` (${r.note})` : ''}`;
   const printed = rows.filter((r) => r.source === 'print');
   const bought = rows.filter((r) => r.source === 'buy');
   return [
-    `Hardware (${system.name})`,
+    `Hardware (${system.name}${distance})`,
     ...(printed.length ? ['3D print:', ...printed.map(rowLine)] : []),
     ...(bought.length ? ['Buy:', ...bought.map(rowLine)] : []),
     `Mount files: ${system.url}`,
@@ -93,7 +96,9 @@ function layout(plan: Plan): string[] {
   return lines;
 }
 
-export function formatPrintList({ plan, model, printer, widthMm, heightMm, date, system }: PrintListInput): string {
+export function formatPrintList({
+  plan, model, printer, widthMm, heightMm, date, system, wallDistanceMm,
+}: PrintListInput): string {
   const result = [`${plan.boards.length} ${plan.boards.length === 1 ? 'board' : 'boards'}`,
     `covers ${mm(plan.coveredWidthMm)} x ${mm(plan.coveredHeightMm)} mm`];
   if (Math.round(plan.leftoverWidthMm) > 0) result.push(`${mm(plan.leftoverWidthMm)} mm left on the right`);
@@ -112,7 +117,7 @@ export function formatPrintList({ plan, model, printer, widthMm, heightMm, date,
     '',
     ...table(plan.groups, model),
     '',
-    ...hardwareBlock(plan, system),
+    ...hardwareBlock(plan, system, wallDistanceMm),
     '',
     'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
     ...layout(plan),
