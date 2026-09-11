@@ -253,19 +253,20 @@ describe('App', () => {
     expect(screen.getByText(/820 × 1000 mm/)).toBeTruthy();
   });
 
-  it('toggles the canvas between hardware markers and measurement dimension lines', () => {
+  it('toggles the dimension overlay on the canvas, keeping the mount markers visible throughout', () => {
     const { container } = render(<App />);
-    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
+    const markerCount = container.querySelectorAll('[data-marker]').length;
+    expect(markerCount).toBeGreaterThan(0);
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
-    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
     expect(container.querySelectorAll('[data-dim-line]').length).toBeGreaterThan(0);
     expect(container.querySelector('[data-dim-line][data-axis="x"][data-value="1000"]')).toBeTruthy();
     expect(container.querySelector('[data-dim-line][data-axis="y"][data-value="600"]')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
-    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
   });
 

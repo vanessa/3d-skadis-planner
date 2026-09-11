@@ -224,11 +224,12 @@ describe('Preview measurements mode', () => {
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
   });
 
-  it('draws dimension lines and no hardware dots in measurements mode', () => {
+  it('draws dimension lines alongside the hardware dots in measurements mode, not instead of them', () => {
     const { container } = render(
       <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" />,
     );
-    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+    // The dots stay visible so it's still clear what each dimension line is measuring.
+    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
     const lines = container.querySelectorAll('[data-dim-line]');
     // 400x400 wall-mounts: X = [200, 400], Y = [200, 400] once the origin corner is dropped.
     expect(lines).toHaveLength(4);

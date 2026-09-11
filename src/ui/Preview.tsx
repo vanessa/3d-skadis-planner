@@ -2,11 +2,12 @@ import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
 import {
-  laneChains, overlayLegible, type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM,
+  laneChains, overlayLegible, scaleAwareMinGapMm,
+  type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM,
 } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
-import { IDENTITY, type Viewport } from './viewport';
+import { IDENTITY, fitViewport, type Viewport } from './viewport';
 import { boardMatches, markerMatches, boardsFallback, type Highlight } from './highlight';
 
 /** Boards narrower than this on screen get no labels. */
@@ -251,9 +252,9 @@ function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
 }
 
 function DimensionOverlay({
-  markers, totalHeightMm, scale,
-}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number }) {
-  const { x, y } = laneChains(markers, totalHeightMm);
+  markers, totalHeightMm, scale, minGapMm,
+}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number; minGapMm: number }) {
+  const { x, y } = laneChains(markers, totalHeightMm, minGapMm);
   return (
     <g data-dimensions>
       {x.map((v: DimensionValue) => (
@@ -290,8 +291,13 @@ export function Preview({
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
   const legible = overlayLegible(plan.boards, s);
-  const showMarkers = mode === 'hardware' && !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && legible;
+  const showMarkers = !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && legible;
   const showMeasurements = mode === 'measurements' && !!markers && markers.length > 0 && legible;
+  // Same approximation Canvas.tsx's measurementsMargin uses when sizing the
+  // margin, from the same stage/plan inputs — so the lane count (and thus
+  // gap) this renders with matches what margin was actually reserved for.
+  const baseFit = fitViewport({ width, height }, { width: totalW, height: totalH });
+  const minGapMm = scaleAwareMinGapMm(baseFit.scale);
   const litMarkers = highlight && showMarkers && markers ? markers.filter((m) => markerMatches(highlight, m)) : [];
   const boardsLitFallback = !!highlight && boardsFallback(highlight, litMarkers.length > 0);
   return (
@@ -328,7 +334,7 @@ export function Preview({
           </g>
         )}
         {showMeasurements && markers && (
-          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} />
+          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} minGapMm={minGapMm} />
         )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
       </g>

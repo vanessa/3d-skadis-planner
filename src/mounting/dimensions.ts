@@ -15,6 +15,15 @@ export const LANE_SPACING_MM = 40;
 export const BASE_GAP_MM = 24;
 /** Boards with a shorter side under this on screen get no hardware markers or dimension overlay. */
 export const MIN_MARKER_PX = 32;
+/**
+ * Screen px a dimension label needs between its center and its neighbor's to
+ * avoid touching. Dimension labels render at the midpoint of their baseline
+ * (from 0 to the value), so two same-lane values only end up this far apart
+ * on screen once the *value* gap between them is `2 * LABEL_GAP_PX / scale`
+ * (see `scaleAwareMinGapMm`) — half of the value gap is "spent" by the
+ * midpoint halving before it ever reaches the screen.
+ */
+export const LABEL_GAP_PX = 50;
 
 function uniqueSorted(values: number[]): number[] {
   const rounded = values.map((v) => Math.round(v));
@@ -67,9 +76,22 @@ export function marginMm(laned: DimensionValue[]): number {
 }
 
 /**
+ * The mm gap same-lane values need at `scale` (screen px per mm) so their
+ * labels don't overlap, given labels render at the baseline's midpoint (see
+ * `LABEL_GAP_PX`). Never smaller than `MIN_GAP_MM`, the original fixed floor,
+ * so zoomed-in views keep at least that much breathing room too.
+ */
+export function scaleAwareMinGapMm(scale: number): number {
+  if (scale <= 0) return MIN_GAP_MM;
+  return Math.max(MIN_GAP_MM, (2 * LABEL_GAP_PX) / scale);
+}
+
+/**
  * The laned dimension chains for both axes, ready to render or to size a
  * margin from. The origin corner (0 mm on either axis) is dropped — it's the
- * drawing's own corner and needs no dimension line.
+ * drawing's own corner and needs no dimension line. `minGapMm` defaults to
+ * the fixed floor; pass `scaleAwareMinGapMm(scale)` for a threshold that
+ * actually keeps labels legible at the current zoom.
  */
 export function laneChains(
   markers: HardwareMarker[],

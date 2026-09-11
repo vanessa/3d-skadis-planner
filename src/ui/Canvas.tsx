@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { HardwareMarker } from '../mounting';
-import { laneChains, marginMm, overlayLegible } from '../mounting';
+import { laneChains, marginMm, overlayLegible, scaleAwareMinGapMm } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview, type PreviewMode } from './Preview';
@@ -57,7 +57,15 @@ const styles = stylex.create({
 export function measurementsMargin(
   stage: Size, plan: Plan, markers: HardwareMarker[], totalW: number, totalH: number,
 ): { left: number; bottom: number } | null {
-  const chains = laneChains(markers, totalH);
+  // Lane spacing needs to know the scale labels will render at, but scale
+  // depends on the margin the lanes need — so approximate it from the
+  // unmargined fit first. Margin only ever shrinks the fit further, so this
+  // slightly overestimates scale (and so underestimates the gap needed)
+  // only by the margin's own share of the stage, which the legibility check
+  // below still catches if it matters.
+  const baseFit = fitViewport(stage, { width: totalW, height: totalH });
+  const minGapMm = scaleAwareMinGapMm(baseFit.scale);
+  const chains = laneChains(markers, totalH, minGapMm);
   const left = marginMm(chains.y);
   const bottom = marginMm(chains.x);
   const fit = fitViewport(stage, { width: totalW + left, height: totalH + bottom });

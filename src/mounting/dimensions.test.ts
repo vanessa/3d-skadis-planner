@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  dimensionAxes, assignLanes, laneCount, marginMm, laneChains,
-  MIN_GAP_MM, MAX_LANES, LANE_SPACING_MM, BASE_GAP_MM,
+  dimensionAxes, assignLanes, laneCount, marginMm, laneChains, scaleAwareMinGapMm,
+  MIN_GAP_MM, MAX_LANES, LANE_SPACING_MM, BASE_GAP_MM, LABEL_GAP_PX,
 } from './dimensions';
 import { hardwareMarkers } from './markers';
 import { getMountSystem } from './index';
@@ -68,6 +68,30 @@ describe('laneCount and marginMm', () => {
     const laned = assignLanes([0, 10, 20], 60, 4); // lane 0, then 1, then 2
     expect(laneCount(laned)).toBe(3);
     expect(marginMm(laned)).toBe(BASE_GAP_MM + 3 * LANE_SPACING_MM);
+  });
+});
+
+describe('scaleAwareMinGapMm', () => {
+  it('never goes below the fixed MIN_GAP_MM floor', () => {
+    expect(scaleAwareMinGapMm(100)).toBe(MIN_GAP_MM);
+  });
+
+  it('grows the gap at low scale, since a fixed mm gap shrinks to fewer screen px', () => {
+    expect(scaleAwareMinGapMm(0.5)).toBe((2 * LABEL_GAP_PX) / 0.5);
+  });
+
+  it('falls back to the floor for a non-positive scale', () => {
+    expect(scaleAwareMinGapMm(0)).toBe(MIN_GAP_MM);
+    expect(scaleAwareMinGapMm(-1)).toBe(MIN_GAP_MM);
+  });
+
+  it('actually separates values onto more lanes at low scale than the fixed floor would', () => {
+    // 0 and 100 are 100mm apart: enough for the fixed 60mm floor to share lane 0,
+    // but not enough once a low scale demands more room for the labels.
+    const atFloor = assignLanes([0, 100], MIN_GAP_MM);
+    expect(atFloor.every((v) => v.lane === 0)).toBe(true);
+    const atLowScale = assignLanes([0, 100], scaleAwareMinGapMm(0.3));
+    expect(atLowScale.map((v) => v.lane)).toEqual([0, 1]);
   });
 });
 
