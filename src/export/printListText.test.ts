@@ -55,6 +55,10 @@ describe('formatPrintList', () => {
         ' 60  M4 x 20 board screw',
         'Mount files: https://makerworld.com/en/models/861073',
         '',
+        'Drill point measurements (mm, from the bottom-left corner)',
+        'X: 200, 400, 600, 800, 1000',
+        'Y: 200, 400, 600',
+        '',
         'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
         '9x9  9x9  9x9  9x9  9x9',
         '9x9  9x9  9x9  9x9  9x9',
@@ -128,6 +132,24 @@ describe('formatPrintList', () => {
     expect(text).toContain('  2  8 x 8.stl  180 x 180 mm  mirrored X + Y');
     expect(text).toContain('Strategy: Balanced');
     expect(text).toContain('mirror image');
+  });
+
+  it('lists the drill point measurements from the bottom-left corner', () => {
+    const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 400, heightMm: 400, date, system: wallMounts,
+    });
+    expect(text).toContain('Drill point measurements (mm, from the bottom-left corner)');
+    expect(text).toContain('X: 200, 400');
+    expect(text).toContain('Y: 200, 400');
+  });
+
+  it('omits the measurements block for a system with no markers', () => {
+    const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem,
+    });
+    expect(text).not.toContain('Drill point measurements');
   });
 });
 

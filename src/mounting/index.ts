@@ -8,6 +8,11 @@ export { MOUNT_SYSTEMS } from './systems';
 export { hardwareList, countNodes } from './hardware';
 export type { HardwareRow } from './hardware';
 export { hardwareMarkers } from './markers';
+export {
+  dimensionAxes, assignLanes, laneCount, marginMm, laneChains,
+  MIN_GAP_MM, MAX_LANES, LANE_SPACING_MM, BASE_GAP_MM,
+} from './dimensions';
+export type { DimensionValue } from './dimensions';
 
 export const DEFAULT_MOUNT_ID = 'wall-mounts';
 /** Board-to-wall distance picked until the user changes it, in mm. */

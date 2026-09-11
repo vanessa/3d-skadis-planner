@@ -3,7 +3,7 @@ import { getStrategy } from '../solver';
 import type { BoardModel } from '../models';
 import type { Printer } from '../printers';
 import type { MountSystem } from '../mounting';
-import { hardwareList } from '../mounting';
+import { hardwareList, hardwareMarkers, dimensionAxes } from '../mounting';
 
 export interface PrintListInput {
   plan: Plan;
@@ -100,6 +100,20 @@ function hardwareBlock(plan: Plan, system: MountSystem, wallDistanceMm?: number)
   ];
 }
 
+function measurementsBlock(plan: Plan, system: MountSystem, model: BoardModel, totalHeightMm: number): string[] {
+  const markers = hardwareMarkers(plan, system, model);
+  const { x, y } = dimensionAxes(markers, totalHeightMm);
+  const nonZero = (values: number[]) => values.filter((v) => v > 0);
+  const xVals = nonZero(x);
+  const yVals = nonZero(y);
+  if (xVals.length === 0 && yVals.length === 0) return [];
+  return [
+    'Drill point measurements (mm, from the bottom-left corner)',
+    `X: ${xVals.map(mm).join(', ')}`,
+    `Y: ${yVals.map(mm).join(', ')}`,
+  ];
+}
+
 function layout(plan: Plan): string[] {
   const cells = plan.boards.map((b) => `${b.cols}x${b.rows}${mark(b)}`);
   const width = Math.max(...cells.map((c) => c.length));
@@ -120,6 +134,7 @@ export function formatPrintList({
   if (Math.round(plan.leftoverHeightMm) > 0) result.push(`${mm(plan.leftoverHeightMm)} mm left at the bottom`);
   const hasMirror = plan.groups.some((g) => g.mirrorX || g.mirrorY);
   const title = 'Skadis Planner - print list';
+  const measurements = measurementsBlock(plan, system, model, heightMm);
   const lines = [
     title,
     '='.repeat(title.length),
@@ -134,6 +149,8 @@ export function formatPrintList({
     '',
     ...hardwareBlock(plan, system, wallDistanceMm),
     '',
+    ...measurements,
+    ...(measurements.length ? [''] : []),
     'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
     ...layout(plan),
     ...(hasMirror ? ['', ...wrapText(model.mirrorNote)] : []),
