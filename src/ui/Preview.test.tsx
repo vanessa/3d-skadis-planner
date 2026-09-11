@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { Preview } from './Preview';
+import { Preview, DIM_LABEL_INSET_PX } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -289,6 +289,67 @@ describe('Preview measurements mode', () => {
     });
     expect(Math.max(...xLineY1s)).toBe(totalH + expectedXMargin);
     expect(xLineY1s.every((y1) => y1 <= totalH + expectedXMargin)).toBe(true);
+  });
+
+  it('anchors each label next to its own point, inset a fixed screen distance back along the line', () => {
+    // The label must read as "this point's measurement", so it sits at the
+    // measured end of its line — not at the line's midpoint, which for a 400 mm
+    // line floats 200 mm away from the marker it belongs to. The inset is a
+    // screen-px amount (so it stays constant under zoom), derived here from the
+    // same constant and formula the component uses rather than a magic number.
+    const totalH = p.coveredHeightMm + p.leftoverHeightMm;
+    for (const scale of [1, 2]) {
+      const { container } = render(
+        <Preview plan={p} viewport={{ scale, tx: 0, ty: 0 }} width={800} height={800} markers={markers} mode="measurements" />,
+      );
+
+      const xGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="x"]'));
+      expect(xGroups.length).toBeGreaterThan(0);
+      for (const g of xGroups) {
+        const value = Number(g.getAttribute('data-value'));
+        const text = g.querySelector('text')!;
+        const labelX = Number(text.getAttribute('x'));
+        const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+        expect(labelX).toBeCloseTo(value - inset);
+        // Closer to the point than to the origin, i.e. not the old midpoint.
+        expect(labelX).toBeGreaterThan(value / 2);
+      }
+
+      const yGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
+      expect(yGroups.length).toBeGreaterThan(0);
+      for (const g of yGroups) {
+        const value = Number(g.getAttribute('data-value'));
+        const pointY = totalH - value;
+        const text = g.querySelector('text')!;
+        const labelX = Number(text.getAttribute('x'));
+        const labelY = Number(text.getAttribute('y'));
+        const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+        expect(labelY).toBeCloseTo(pointY + inset);
+        // Between the point and the floor, closer to the point than the old midpoint.
+        expect(labelY).toBeLessThan((totalH + pointY) / 2);
+        // The rotation must pivot on the label's own anchor or it drifts sideways.
+        expect(text.getAttribute('transform')).toBe(`rotate(-90 ${labelX} ${labelY})`);
+      }
+    }
+  });
+
+  it('never insets a label past the midpoint of a very short line', () => {
+    // 400x450 leaves a 10 mm leftover row, so the lowest Y marker is 10 mm from
+    // the floor: a line only 10 mm long, shorter than the 2 * inset it would need.
+    // The label falls back to the midpoint instead of crossing it.
+    const asym = plan({ widthMm: 400, heightMm: 450, model: skadisInfinity, printer: a1 });
+    const asymMarkers = hardwareMarkers(asym, getMountSystem('wall-mounts'), skadisInfinity);
+    const totalH = asym.coveredHeightMm + asym.leftoverHeightMm;
+    const { container } = render(
+      <Preview plan={asym} viewport={IDENTITY} width={800} height={800} markers={asymMarkers} mode="measurements" />,
+    );
+    const short = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'))
+      .find((g) => g.getAttribute('data-value') === '10')!;
+    expect(short).toBeDefined();
+    expect(10 / 2).toBeLessThan(DIM_LABEL_INSET_PX); // the fixture really is the short case
+    const text = short.querySelector('text')!;
+    const pointY = totalH - 10;
+    expect(Number(text.getAttribute('y'))).toBeCloseTo((totalH + pointY) / 2);
   });
 
   it('shifts the drawing by the given origin', () => {

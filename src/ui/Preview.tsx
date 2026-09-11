@@ -18,6 +18,13 @@ const HATCH_PX = 8;
 const DIM_LABEL_PX = 11;
 /** Seam tick length in screen px, split evenly across the seam. */
 const TICK_PX = 12;
+/**
+ * How far (screen px) a dimension label sits back from the point it measures,
+ * along its own line — enough to clear the end tick and stay inside the
+ * reserved margin, but close enough to read as labelling that point. Clamped
+ * to half the line so it never crosses the midpoint on very short lines.
+ */
+export const DIM_LABEL_INSET_PX = 20;
 /** Hard cap on markers drawn, to bound SVG node count for pathological plans. */
 const MAX_MARKERS = 4000;
 
@@ -203,6 +210,9 @@ function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
   const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
   const tick = TICK_PX / 2 / scale;
   const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (x = value), pulled back toward the wall by a
+  // fixed screen distance; never past the midpoint on lines too short for it.
+  const labelX = value - Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
   return (
     <g data-dim-line data-axis="x" data-value={value}>
       <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={0} y2={lineY} vectorEffect="non-scaling-stroke" />
@@ -212,7 +222,7 @@ function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <line {...stylex.props(styles.dimTick)} x1={value} y1={lineY - tick} x2={value} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
       <text
         {...stylex.props(styles.dimLabel)}
-        x={value / 2}
+        x={labelX}
         y={lineY}
         fontSize={fs}
         textAnchor="middle"
@@ -229,6 +239,10 @@ function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
   const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
   const tick = TICK_PX / 2 / scale;
   const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (y = pointY, above the floor at baseY), pulled
+  // back down toward the floor by a fixed screen distance; never past the
+  // midpoint on lines too short for it. The rotation pivots on the same anchor.
+  const labelY = pointY + Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
   return (
     <g data-dim-line data-axis="y" data-value={value}>
       <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={lineX} y2={baseY} vectorEffect="non-scaling-stroke" />
@@ -239,11 +253,11 @@ function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <text
         {...stylex.props(styles.dimLabel)}
         x={lineX}
-        y={(baseY + pointY) / 2}
+        y={labelY}
         fontSize={fs}
         textAnchor="middle"
         dominantBaseline="middle"
-        transform={`rotate(-90 ${lineX} ${(baseY + pointY) / 2})`}
+        transform={`rotate(-90 ${lineX} ${labelY})`}
       >
         {value} mm
       </text>
