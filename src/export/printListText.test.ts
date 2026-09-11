@@ -144,6 +144,21 @@ describe('formatPrintList', () => {
     expect(text).toContain('Y: 200, 400');
   });
 
+  it('flips Y from the total height (covered + leftover), not just the covered height', () => {
+    // Same fixture as plan.test.ts's "board count equals ceil..." case: 1015x725 on
+    // an A1 covers 1000x720mm (15 boards of 200x240mm) with 15mm left on the right
+    // and 5mm left at the bottom, so coveredHeightMm (720) !== heightMm (725).
+    // rowB = [0,240,480,720]; Y = 725 - rowB = [725,485,245,5], sorted, origin dropped.
+    // A regression that flipped off coveredHeightMm instead would produce
+    // Y: 240, 480, 720 instead - a different set, not just a different order.
+    const p = plan({ widthMm: 1015, heightMm: 725, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 725, date, system: wallMounts,
+    });
+    expect(text).toContain('X: 200, 400, 600, 800, 1000');
+    expect(text).toContain('Y: 5, 245, 485, 725');
+  });
+
   it('omits the measurements block for a system with no markers', () => {
     const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
