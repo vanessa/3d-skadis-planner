@@ -234,16 +234,26 @@ describe('Preview measurements mode', () => {
   });
 
   it('labels Y using height from the floor, not raw SVG y', () => {
+    // 400x450 leaves a 10mm leftover row: covered height 440 != total height 450.
+    // That asymmetry matters here — on the square 400x400 fixture above, raw SVG y
+    // values {0,200,400} and floor-relative values {400,200,0} are the same set, so
+    // a test that only checks label text can't tell a flipped implementation from
+    // an unflipped one. Here they're genuinely different sets: raw marker y is
+    // {0,240,440}, so floor-relative (totalHeightMm - y) is {450,210,10}, while an
+    // unflipped implementation would show 240mm/440mm instead of 210mm/450mm.
+    const asym = plan({ widthMm: 400, heightMm: 450, model: skadisInfinity, printer: a1 });
+    const asymMarkers = hardwareMarkers(asym, getMountSystem('wall-mounts'), skadisInfinity);
     const { container } = render(
-      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} mode="measurements" />,
+      <Preview plan={asym} viewport={viewport} width={800} height={800} markers={asymMarkers} mode="measurements" />,
     );
-    // totalHeightMm is 400; the row boundary at SVG y=0 is 400mm from the floor.
-    // Scoped to the Y axis: this square plan also has X values of 200/400, so an
-    // unscoped getByText('400 mm') would match both axes and be ambiguous.
     const yLines = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
     const yLabels = yLines.map((g) => g.querySelector('text')?.textContent);
-    expect(yLabels).toContain('400 mm');
-    expect(yLabels).toContain('200 mm');
+    expect(yLabels).toContain('10 mm');
+    expect(yLabels).toContain('210 mm');
+    expect(yLabels).toContain('450 mm');
+    // These would appear instead if the raw (unflipped) SVG y were used.
+    expect(yLabels).not.toContain('240 mm');
+    expect(yLabels).not.toContain('440 mm');
   });
 
   it('shifts the drawing by the given origin', () => {
