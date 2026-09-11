@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { Preview, DIM_LABEL_INSET_PX } from './Preview';
+import { Preview, DIM_LABEL_INSET_PX, DIM_LABEL_LINE_GAP_PX } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
@@ -346,6 +346,40 @@ describe('Preview measurements mode', () => {
         expect(labelY).toBeLessThan((totalH + pointY) / 2);
         // The rotation must pivot on the label's own anchor or it drifts sideways.
         expect(text.getAttribute('transform')).toBe(`rotate(-90 ${labelX} ${labelY})`);
+      }
+    }
+  });
+
+  it('sits each label off its own line, not centered on it, so the stroke runs beside the glyphs instead of through them', () => {
+    for (const scale of [1, 2]) {
+      const { container } = render(
+        <Preview plan={p} viewport={{ scale, tx: 0, ty: 0 }} width={800} height={800} markers={markers} mode="measurements" />,
+      );
+      const gap = DIM_LABEL_LINE_GAP_PX / scale;
+
+      const xGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="x"]'));
+      const xLabels = Array.from(container.querySelectorAll('[data-dim-label][data-axis="x"]'));
+      expect(xGroups.length).toBeGreaterThan(0);
+      for (const g of xGroups) {
+        const value = g.getAttribute('data-value');
+        const dimLine = Array.from(g.querySelectorAll('line')).find((l) => l.getAttribute('y1') === l.getAttribute('y2'))!;
+        const lineY = Number(dimLine.getAttribute('y1'));
+        const label = xLabels.find((t) => t.getAttribute('data-value') === value)!;
+        expect(Number(label.getAttribute('y'))).toBeCloseTo(lineY - gap);
+      }
+
+      const yGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
+      const yLabels = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'));
+      expect(yGroups.length).toBeGreaterThan(0);
+      for (const g of yGroups) {
+        const value = g.getAttribute('data-value');
+        const dimLine = Array.from(g.querySelectorAll('line')).find((l) => l.getAttribute('x1') === l.getAttribute('x2'))!;
+        const lineX = Number(dimLine.getAttribute('x1'));
+        const label = yLabels.find((t) => t.getAttribute('data-value') === value)!;
+        const labelX = Number(label.getAttribute('x'));
+        expect(labelX).toBeCloseTo(lineX + gap);
+        // The rotation must pivot on the shifted anchor or the label drifts back onto the line.
+        expect(label.getAttribute('transform')).toContain(`${labelX} `);
       }
     }
   });

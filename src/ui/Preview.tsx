@@ -25,6 +25,12 @@ const TICK_PX = 12;
  * to half the line so it never crosses the midpoint on very short lines.
  */
 export const DIM_LABEL_INSET_PX = 20;
+/**
+ * Screen px a dimension label sits off its own line (perpendicular to it), so
+ * the line's stroke runs beside the label instead of through the middle of
+ * its glyphs.
+ */
+export const DIM_LABEL_LINE_GAP_PX = 12;
 /** Hard cap on markers drawn, to bound SVG node count for pathological plans. */
 const MAX_MARKERS = 4000;
 
@@ -226,6 +232,9 @@ function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
   // Label at the measured end (x = value), pulled back toward the wall by a
   // fixed screen distance; never past the midpoint on lines too short for it.
   const labelX = value - Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  // Sits above the line (toward the boards, away from the outer margin edge)
+  // so the line's stroke doesn't run through the glyphs.
+  const labelY = lineY - DIM_LABEL_LINE_GAP_PX / scale;
   return (
     <text
       data-dim-label
@@ -233,7 +242,7 @@ function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
       data-value={value}
       {...stylex.props(styles.dimLabel)}
       x={labelX}
-      y={lineY}
+      y={labelY}
       fontSize={fs}
       textAnchor="middle"
       dominantBaseline="middle"
@@ -264,20 +273,24 @@ function YDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
   const fs = DIM_LABEL_PX / scale;
   // Label at the measured end (y = pointY, above the floor at baseY), pulled
   // back down toward the floor by a fixed screen distance; never past the
-  // midpoint on lines too short for it. The rotation pivots on the same anchor.
+  // midpoint on lines too short for it.
   const labelY = pointY + Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  // Sits beside the line (toward the boards) rather than centered on it, so
+  // after rotation the line's stroke doesn't run through the glyphs. The
+  // rotation pivots on this same shifted anchor.
+  const labelX = lineX + DIM_LABEL_LINE_GAP_PX / scale;
   return (
     <text
       data-dim-label
       data-axis="y"
       data-value={value}
       {...stylex.props(styles.dimLabel)}
-      x={lineX}
+      x={labelX}
       y={labelY}
       fontSize={fs}
       textAnchor="middle"
       dominantBaseline="middle"
-      transform={`rotate(-90 ${lineX} ${labelY})`}
+      transform={`rotate(-90 ${labelX} ${labelY})`}
     >
       {value} mm
     </text>
