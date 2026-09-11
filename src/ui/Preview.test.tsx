@@ -235,6 +235,25 @@ describe('Preview measurements mode', () => {
     expect(lines).toHaveLength(4);
   });
 
+  it('paints every dimension label after every dimension line, so a longer shared-lane line never covers a shorter one\'s label', () => {
+    // Baseline dimensioning runs every line from 0, so same-lane lines overlap:
+    // e.g. the 400 mm line's stroke spans the same range as the 200 mm line's.
+    // If a value's own label were painted as part of its own group, a later
+    // (longer) sibling's line would paint over an earlier (shorter) one's label.
+    const { container } = render(
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" />,
+    );
+    const dims = container.querySelector('[data-dimensions]')!;
+    const children = Array.from(dims.children);
+    const geometryIdx = children.findIndex((c) => c.hasAttribute('data-dim-geometry'));
+    const labelsIdx = children.findIndex((c) => c.hasAttribute('data-dim-labels'));
+    expect(geometryIdx).toBeGreaterThanOrEqual(0);
+    expect(labelsIdx).toBeGreaterThan(geometryIdx);
+    // Every actual label lives in the labels group, not inside a line group.
+    expect(container.querySelectorAll('[data-dim-line] text')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-dim-label]').length).toBeGreaterThan(0);
+  });
+
   it('labels Y using height from the floor, not raw SVG y', () => {
     // 400x450 leaves a 10mm leftover row: covered height 440 != total height 450.
     // That asymmetry matters here — on the square 400x400 fixture above, raw SVG y
@@ -248,8 +267,8 @@ describe('Preview measurements mode', () => {
     const { container } = render(
       <Preview plan={asym} viewport={IDENTITY} width={800} height={800} markers={asymMarkers} mode="measurements" />,
     );
-    const yLines = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
-    const yLabels = yLines.map((g) => g.querySelector('text')?.textContent);
+    const yLabelEls = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'));
+    const yLabels = yLabelEls.map((el) => el.textContent);
     expect(yLabels).toContain('10 mm');
     expect(yLabels).toContain('210 mm');
     expect(yLabels).toContain('450 mm');
@@ -303,11 +322,10 @@ describe('Preview measurements mode', () => {
         <Preview plan={p} viewport={{ scale, tx: 0, ty: 0 }} width={800} height={800} markers={markers} mode="measurements" />,
       );
 
-      const xGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="x"]'));
-      expect(xGroups.length).toBeGreaterThan(0);
-      for (const g of xGroups) {
-        const value = Number(g.getAttribute('data-value'));
-        const text = g.querySelector('text')!;
+      const xLabels = Array.from(container.querySelectorAll('[data-dim-label][data-axis="x"]'));
+      expect(xLabels.length).toBeGreaterThan(0);
+      for (const text of xLabels) {
+        const value = Number(text.getAttribute('data-value'));
         const labelX = Number(text.getAttribute('x'));
         const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
         expect(labelX).toBeCloseTo(value - inset);
@@ -315,12 +333,11 @@ describe('Preview measurements mode', () => {
         expect(labelX).toBeGreaterThan(value / 2);
       }
 
-      const yGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
-      expect(yGroups.length).toBeGreaterThan(0);
-      for (const g of yGroups) {
-        const value = Number(g.getAttribute('data-value'));
+      const yLabels = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'));
+      expect(yLabels.length).toBeGreaterThan(0);
+      for (const text of yLabels) {
+        const value = Number(text.getAttribute('data-value'));
         const pointY = totalH - value;
-        const text = g.querySelector('text')!;
         const labelX = Number(text.getAttribute('x'));
         const labelY = Number(text.getAttribute('y'));
         const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
@@ -343,11 +360,10 @@ describe('Preview measurements mode', () => {
     const { container } = render(
       <Preview plan={asym} viewport={IDENTITY} width={800} height={800} markers={asymMarkers} mode="measurements" />,
     );
-    const short = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'))
-      .find((g) => g.getAttribute('data-value') === '10')!;
-    expect(short).toBeDefined();
+    const text = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'))
+      .find((el) => el.getAttribute('data-value') === '10')!;
+    expect(text).toBeDefined();
     expect(10 / 2).toBeLessThan(DIM_LABEL_INSET_PX); // the fixture really is the short case
-    const text = short.querySelector('text')!;
     const pointY = totalH - 10;
     expect(Number(text.getAttribute('y'))).toBeCloseTo((totalH + pointY) / 2);
   });

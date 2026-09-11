@@ -206,13 +206,9 @@ function MarkerDot({
   );
 }
 
-function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+function XDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
   const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
   const tick = TICK_PX / 2 / scale;
-  const fs = DIM_LABEL_PX / scale;
-  // Label at the measured end (x = value), pulled back toward the wall by a
-  // fixed screen distance; never past the midpoint on lines too short for it.
-  const labelX = value - Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
   return (
     <g data-dim-line data-axis="x" data-value={value}>
       <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={0} y2={lineY} vectorEffect="non-scaling-stroke" />
@@ -220,29 +216,37 @@ function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <line {...stylex.props(styles.dimLine)} x1={0} y1={lineY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={0} y1={lineY - tick} x2={0} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={value} y1={lineY - tick} x2={value} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
-      <text
-        {...stylex.props(styles.dimLabel)}
-        x={labelX}
-        y={lineY}
-        fontSize={fs}
-        textAnchor="middle"
-        dominantBaseline="middle"
-      >
-        {value} mm
-      </text>
     </g>
   );
 }
 
-function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
+  const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (x = value), pulled back toward the wall by a
+  // fixed screen distance; never past the midpoint on lines too short for it.
+  const labelX = value - Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  return (
+    <text
+      data-dim-label
+      data-axis="x"
+      data-value={value}
+      {...stylex.props(styles.dimLabel)}
+      x={labelX}
+      y={lineY}
+      fontSize={fs}
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      {value} mm
+    </text>
+  );
+}
+
+function YDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
   const pointY = baseY - value;
   const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
   const tick = TICK_PX / 2 / scale;
-  const fs = DIM_LABEL_PX / scale;
-  // Label at the measured end (y = pointY, above the floor at baseY), pulled
-  // back down toward the floor by a fixed screen distance; never past the
-  // midpoint on lines too short for it. The rotation pivots on the same anchor.
-  const labelY = pointY + Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
   return (
     <g data-dim-line data-axis="y" data-value={value}>
       <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={lineX} y2={baseY} vectorEffect="non-scaling-stroke" />
@@ -250,18 +254,33 @@ function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <line {...stylex.props(styles.dimLine)} x1={lineX} y1={baseY} x2={lineX} y2={pointY} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={baseY} x2={lineX + tick} y2={baseY} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={pointY} x2={lineX + tick} y2={pointY} vectorEffect="non-scaling-stroke" />
-      <text
-        {...stylex.props(styles.dimLabel)}
-        x={lineX}
-        y={labelY}
-        fontSize={fs}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        transform={`rotate(-90 ${lineX} ${labelY})`}
-      >
-        {value} mm
-      </text>
     </g>
+  );
+}
+
+function YDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const pointY = baseY - value;
+  const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
+  const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (y = pointY, above the floor at baseY), pulled
+  // back down toward the floor by a fixed screen distance; never past the
+  // midpoint on lines too short for it. The rotation pivots on the same anchor.
+  const labelY = pointY + Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  return (
+    <text
+      data-dim-label
+      data-axis="y"
+      data-value={value}
+      {...stylex.props(styles.dimLabel)}
+      x={lineX}
+      y={labelY}
+      fontSize={fs}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      transform={`rotate(-90 ${lineX} ${labelY})`}
+    >
+      {value} mm
+    </text>
   );
 }
 
@@ -271,12 +290,27 @@ function DimensionOverlay({
   const { x, y } = laneChains(markers, totalHeightMm, minGapMm);
   return (
     <g data-dimensions>
-      {x.map((v: DimensionValue) => (
-        <XDimensionLine key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
-      ))}
-      {y.map((v: DimensionValue) => (
-        <YDimensionLine key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
-      ))}
+      {/* All geometry first, then all labels: dimension lines for different
+          values often share a lane and overlap (they all run from 0), so a
+          label painted inside its own value's group could still end up
+          underneath a later, longer line sharing that lane. Drawing every
+          label after every line guarantees labels are always on top. */}
+      <g data-dim-geometry>
+        {x.map((v: DimensionValue) => (
+          <XDimensionGeometry key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+        {y.map((v: DimensionValue) => (
+          <YDimensionGeometry key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+      </g>
+      <g data-dim-labels>
+        {x.map((v: DimensionValue) => (
+          <XDimensionLabel key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+        {y.map((v: DimensionValue) => (
+          <YDimensionLabel key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+      </g>
     </g>
   );
 }
