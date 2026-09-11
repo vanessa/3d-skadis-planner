@@ -230,11 +230,12 @@ function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={pointY} x2={lineX + tick} y2={pointY} vectorEffect="non-scaling-stroke" />
       <text
         {...stylex.props(styles.dimLabel)}
-        x={lineX - 4 / scale}
-        y={pointY}
+        x={lineX}
+        y={(baseY + pointY) / 2}
         fontSize={fs}
-        textAnchor="end"
+        textAnchor="middle"
         dominantBaseline="middle"
+        transform={`rotate(-90 ${lineX} ${(baseY + pointY) / 2})`}
       >
         {value} mm
       </text>
