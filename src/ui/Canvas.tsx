@@ -1,6 +1,7 @@
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { HardwareMarker } from '../mounting';
+import { laneChains, marginMm } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview } from './Preview';
@@ -46,11 +47,21 @@ const styles = stylex.create({
 });
 
 export function Canvas({
-  plan, error, markers, highlight,
-}: { plan: Plan | null; error: string | null; markers?: HardwareMarker[]; highlight?: Highlight | null }) {
-  const world = plan
-    ? { width: plan.coveredWidthMm + plan.leftoverWidthMm, height: plan.coveredHeightMm + plan.leftoverHeightMm }
-    : null;
+  plan, error, markers, highlight, mode, onModeChange,
+}: {
+  plan: Plan | null;
+  error: string | null;
+  markers?: HardwareMarker[];
+  highlight?: Highlight | null;
+  mode: 'hardware' | 'measurements';
+  onModeChange: (mode: 'hardware' | 'measurements') => void;
+}) {
+  const totalW = plan ? plan.coveredWidthMm + plan.leftoverWidthMm : 0;
+  const totalH = plan ? plan.coveredHeightMm + plan.leftoverHeightMm : 0;
+  const chains = plan && mode === 'measurements' && markers ? laneChains(markers, totalH) : null;
+  const marginLeft = chains ? marginMm(chains.y) : 0;
+  const marginBottom = chains ? marginMm(chains.x) : 0;
+  const world = plan ? { width: totalW + marginLeft, height: totalH + marginBottom } : null;
   const { size, viewport, ratio, refit, handlers, dragging, stageRef } = useViewport(world);
   return (
     <main {...stylex.props(styles.canvas)}>
@@ -66,8 +77,10 @@ export function Canvas({
             height={size.height}
             markers={markers}
             highlight={highlight}
+            mode={mode}
+            origin={{ x: marginLeft, y: 0 }}
           />
-          {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
+          {plan && <CanvasToolbar ratio={ratio} onFit={refit} mode={mode} onModeChange={onModeChange} />}
         </div>
       </div>
     </main>

@@ -92,6 +92,7 @@ const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').
 export default function App() {
   const [state, setState] = useState<AppState>(() => stateFor(readStoredForm() ?? DEFAULT_FORM, null));
   const [highlight, setHighlight] = useState<Highlight | null>(null);
+  const [mode, setMode] = useState<'hardware' | 'measurements'>('hardware');
   const { preference, resolvedTheme, setPreference } = useTheme();
 
   useEffect(() => {
@@ -139,7 +140,14 @@ export default function App() {
 
   return (
     <div {...stylex.props(styles.app)}>
-      <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} highlight={highlight} />
+      <Canvas
+        plan={state.lastPlan}
+        error={state.outcome.error}
+        markers={markers}
+        highlight={highlight}
+        mode={mode}
+        onModeChange={setMode}
+      />
       <Panel
         title="Skadis Planner"
         headerEnd={

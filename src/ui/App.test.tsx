@@ -253,6 +253,22 @@ describe('App', () => {
     expect(screen.getByText(/820 × 1000 mm/)).toBeTruthy();
   });
 
+  it('toggles the canvas between hardware markers and measurement dimension lines', () => {
+    const { container } = render(<App />);
+    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-dim-line]').length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-dim-line][data-axis="x"][data-value="1000"]')).toBeTruthy();
+    expect(container.querySelector('[data-dim-line][data-axis="y"][data-value="600"]')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
+    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
+  });
+
   it('resets the form to defaults, clears storage, and disables itself again', () => {
     render(<App />);
     const resetButton = screen.getByRole('button', { name: 'Reset to defaults' });

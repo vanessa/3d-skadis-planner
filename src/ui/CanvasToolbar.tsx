@@ -58,8 +58,14 @@ const styles = stylex.create({
 });
 
 export function CanvasToolbar({
-  ratio, onFit, children,
-}: { ratio: number; onFit: () => void; children?: ReactNode }) {
+  ratio, onFit, mode, onModeChange, children,
+}: {
+  ratio: number;
+  onFit: () => void;
+  mode: 'hardware' | 'measurements';
+  onModeChange: (mode: 'hardware' | 'measurements') => void;
+  children?: ReactNode;
+}) {
   const percent = Math.round(ratio * 100);
   const [announced, setAnnounced] = useState(percent);
   useEffect(() => {
@@ -74,6 +80,15 @@ export function CanvasToolbar({
     >
       <button type="button" aria-label="Fit to view" onClick={onFit} {...stylex.props(styles.button)}>
         Fit
+      </button>
+      <button
+        type="button"
+        aria-label="Measurements"
+        aria-pressed={mode === 'measurements'}
+        onClick={() => onModeChange(mode === 'measurements' ? 'hardware' : 'measurements')}
+        {...stylex.props(styles.button)}
+      >
+        Measurements
       </button>
       <span aria-hidden="true" {...stylex.props(styles.readout)}>
         {percent}%
