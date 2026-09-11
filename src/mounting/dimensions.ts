@@ -13,6 +13,8 @@ export const MAX_LANES = 4;
 export const LANE_SPACING_MM = 40;
 /** mm gap between the boards' edge and the first lane. */
 export const BASE_GAP_MM = 24;
+/** Boards with a shorter side under this on screen get no hardware markers or dimension overlay. */
+export const MIN_MARKER_PX = 32;
 
 function uniqueSorted(values: number[]): number[] {
   const rounded = values.map((v) => Math.round(v));
@@ -79,4 +81,16 @@ export function laneChains(
     x: assignLanes(x.filter((v) => v > 0), minGapMm),
     y: assignLanes(y.filter((v) => v > 0), minGapMm),
   };
+}
+
+/**
+ * Whether hardware markers / the dimension overlay are legible at `scale`: the
+ * shortest side of the smallest board maps to at least `MIN_MARKER_PX` screen px.
+ * Shared by Canvas (deciding whether to reserve margin for the overlay) and Preview
+ * (deciding whether to draw markers or the overlay), so the two can never disagree.
+ */
+export function overlayLegible(boards: { widthMm: number; heightMm: number }[], scale: number): boolean {
+  if (boards.length === 0) return false;
+  const minSideMm = Math.min(...boards.map((b) => Math.min(b.widthMm, b.heightMm)));
+  return minSideMm * scale >= MIN_MARKER_PX;
 }

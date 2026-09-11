@@ -23,7 +23,13 @@ interface Drag {
   moved: boolean;
 }
 
-export function useViewport(world: Size | null) {
+/**
+ * `world` is either a fixed size or a function of the measured stage size — the
+ * latter lets a caller decide world size (e.g. whether to reserve margin for an
+ * overlay) from the same stage px the resulting fit scale will use, rather than
+ * guessing at a size before it's known.
+ */
+export function useViewport(world: Size | null | ((stage: Size) => Size | null)) {
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
   const [fitted, setFitted] = useState(true);
   const [view, setView] = useState<Viewport>(IDENTITY);
@@ -32,8 +38,9 @@ export function useViewport(world: Size | null) {
   const [el, setEl] = useState<HTMLElement | null>(null);
   const stageRef = useCallback((node: HTMLElement | null) => setEl(node), []);
 
-  const worldW = world?.width ?? 0;
-  const worldH = world?.height ?? 0;
+  const resolvedWorld = typeof world === 'function' ? world(size) : world;
+  const worldW = resolvedWorld?.width ?? 0;
+  const worldH = resolvedWorld?.height ?? 0;
   const fit = useMemo(() => fitViewport(size, { width: worldW, height: worldH }), [size, worldW, worldH]);
   const fitRef = useRef(fit);
   useLayoutEffect(() => {

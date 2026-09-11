@@ -9,8 +9,8 @@ export { hardwareList, countNodes } from './hardware';
 export type { HardwareRow } from './hardware';
 export { hardwareMarkers } from './markers';
 export {
-  dimensionAxes, assignLanes, laneCount, marginMm, laneChains,
-  MIN_GAP_MM, MAX_LANES, LANE_SPACING_MM, BASE_GAP_MM,
+  dimensionAxes, marginMm, laneChains, overlayLegible,
+  LANE_SPACING_MM, BASE_GAP_MM, MIN_MARKER_PX,
 } from './dimensions';
 export type { DimensionValue } from './dimensions';
 

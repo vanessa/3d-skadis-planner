@@ -4,13 +4,14 @@ import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
-import { IDENTITY, type Viewport } from './viewport';
-import { getMountSystem, hardwareMarkers, type HardwareMarker } from '../mounting';
+import { IDENTITY } from './viewport';
+import {
+  getMountSystem, hardwareMarkers, laneChains, marginMm, type HardwareMarker,
+} from '../mounting';
 import type { Highlight } from './highlight';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
-const viewport: Viewport = { scale: 1, tx: 0, ty: 0 };
 
 describe('Preview', () => {
   it('renders nothing without a plan', () => {
@@ -217,7 +218,7 @@ describe('Preview measurements mode', () => {
 
   it('draws hardware dots and no dimension lines by default', () => {
     const { container } = render(
-      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} />,
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} />,
     );
     expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
@@ -225,7 +226,7 @@ describe('Preview measurements mode', () => {
 
   it('draws dimension lines and no hardware dots in measurements mode', () => {
     const { container } = render(
-      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} mode="measurements" />,
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" />,
     );
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
     const lines = container.querySelectorAll('[data-dim-line]');
@@ -244,7 +245,7 @@ describe('Preview measurements mode', () => {
     const asym = plan({ widthMm: 400, heightMm: 450, model: skadisInfinity, printer: a1 });
     const asymMarkers = hardwareMarkers(asym, getMountSystem('wall-mounts'), skadisInfinity);
     const { container } = render(
-      <Preview plan={asym} viewport={viewport} width={800} height={800} markers={asymMarkers} mode="measurements" />,
+      <Preview plan={asym} viewport={IDENTITY} width={800} height={800} markers={asymMarkers} mode="measurements" />,
     );
     const yLines = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
     const yLabels = yLines.map((g) => g.querySelector('text')?.textContent);
@@ -256,9 +257,42 @@ describe('Preview measurements mode', () => {
     expect(yLabels).not.toContain('440 mm');
   });
 
+  it('keeps the outermost dimension line on each axis exactly at the margin marginMm reserves for it', () => {
+    // marginMm() (dimensions.ts) and each line's own lane offset (XDimensionLine /
+    // YDimensionLine below) are two independent expressions that only agree because
+    // laneCount === maxLane + 1 by construction. Recompute the expected offsets from
+    // the real marginMm/laneChains — not a hardcoded number — so a future change to
+    // either formula that breaks their agreement fails this test, not just clips
+    // silently past the reserved margin.
+    const totalH = p.coveredHeightMm + p.leftoverHeightMm;
+    const chains = laneChains(markers, totalH);
+    const expectedYMargin = marginMm(chains.y);
+    const expectedXMargin = marginMm(chains.x);
+    const { container } = render(
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" />,
+    );
+
+    const yGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
+    const yLineX1s = yGroups.map((g) => {
+      const dimLine = Array.from(g.querySelectorAll('line')).find((l) => l.getAttribute('x1') === l.getAttribute('x2'));
+      return Number(dimLine?.getAttribute('x1'));
+    });
+    // The outermost lane's line sits exactly at -marginMm; no lane sits further out.
+    expect(Math.min(...yLineX1s)).toBe(-expectedYMargin);
+    expect(yLineX1s.every((x1) => x1 >= -expectedYMargin)).toBe(true);
+
+    const xGroups = Array.from(container.querySelectorAll('[data-dim-line][data-axis="x"]'));
+    const xLineY1s = xGroups.map((g) => {
+      const dimLine = Array.from(g.querySelectorAll('line')).find((l) => l.getAttribute('y1') === l.getAttribute('y2'));
+      return Number(dimLine?.getAttribute('y1'));
+    });
+    expect(Math.max(...xLineY1s)).toBe(totalH + expectedXMargin);
+    expect(xLineY1s.every((y1) => y1 <= totalH + expectedXMargin)).toBe(true);
+  });
+
   it('shifts the drawing by the given origin', () => {
     const { container } = render(
-      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} origin={{ x: 100, y: 0 }} />,
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} origin={{ x: 100, y: 0 }} />,
     );
     const board = container.querySelector('[data-board]') as SVGGElement;
     const rect = board.querySelector('rect')!;

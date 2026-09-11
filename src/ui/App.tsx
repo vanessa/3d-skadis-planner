@@ -6,6 +6,7 @@ import { PanelSection } from './PanelSection';
 import { ThemeToggle } from './ThemeToggle';
 import { ResetButton } from './ResetButton';
 import { Canvas } from './Canvas';
+import type { PreviewMode } from './Preview';
 import { PrintList } from './PrintList';
 import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import { readStoredForm, writeStoredForm, clearStoredForm } from './formStorage';
@@ -92,7 +93,7 @@ const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').
 export default function App() {
   const [state, setState] = useState<AppState>(() => stateFor(readStoredForm() ?? DEFAULT_FORM, null));
   const [highlight, setHighlight] = useState<Highlight | null>(null);
-  const [mode, setMode] = useState<'hardware' | 'measurements'>('hardware');
+  const [mode, setMode] = useState<PreviewMode>('hardware');
   const { preference, resolvedTheme, setPreference } = useTheme();
 
   useEffect(() => {

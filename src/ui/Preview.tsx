@@ -1,7 +1,9 @@
 import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
-import { laneChains, type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM } from '../mounting';
+import {
+  laneChains, overlayLegible, type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM,
+} from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, type Viewport } from './viewport';
@@ -9,8 +11,6 @@ import { boardMatches, markerMatches, boardsFallback, type Highlight } from './h
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
-/** Boards with a shorter side under this on screen get no hardware markers. */
-const MIN_MARKER_PX = 32;
 const LABEL_PX = 13;
 const DETAIL_PX = 11;
 const HATCH_PX = 8;
@@ -209,7 +209,14 @@ function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: nu
       <line {...stylex.props(styles.dimLine)} x1={0} y1={lineY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={0} y1={lineY - tick} x2={0} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
       <line {...stylex.props(styles.dimTick)} x1={value} y1={lineY - tick} x2={value} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
-      <text {...stylex.props(styles.dimLabel)} x={value} y={lineY + 14 / scale} fontSize={fs} textAnchor="middle">
+      <text
+        {...stylex.props(styles.dimLabel)}
+        x={value / 2}
+        y={lineY}
+        fontSize={fs}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
         {value} mm
       </text>
     </g>
@@ -259,6 +266,8 @@ function DimensionOverlay({
   );
 }
 
+export type PreviewMode = 'hardware' | 'measurements';
+
 export function Preview({
   plan, viewport, width, height, markers, highlight, mode = 'hardware', origin = { x: 0, y: 0 },
 }: {
@@ -268,7 +277,7 @@ export function Preview({
   height: number;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
-  mode?: 'hardware' | 'measurements';
+  mode?: PreviewMode;
   origin?: { x: number; y: number };
 }) {
   const hatchId = useId();
@@ -280,11 +289,9 @@ export function Preview({
   const s = v.scale;
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
-  const minBoardSidePx = plan.boards.length > 0
-    ? Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s
-    : 0;
-  const showMarkers = mode === 'hardware' && !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && minBoardSidePx >= MIN_MARKER_PX;
-  const showMeasurements = mode === 'measurements' && !!markers && markers.length > 0 && minBoardSidePx >= MIN_MARKER_PX;
+  const legible = overlayLegible(plan.boards, s);
+  const showMarkers = mode === 'hardware' && !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && legible;
+  const showMeasurements = mode === 'measurements' && !!markers && markers.length > 0 && legible;
   const litMarkers = highlight && showMarkers && markers ? markers.filter((m) => markerMatches(highlight, m)) : [];
   const boardsLitFallback = !!highlight && boardsFallback(highlight, litMarkers.length > 0);
   return (

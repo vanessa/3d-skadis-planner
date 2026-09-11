@@ -1,15 +1,17 @@
+import { useCallback } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { HardwareMarker } from '../mounting';
-import { laneChains, marginMm } from '../mounting';
+import { laneChains, marginMm, overlayLegible } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
-import { Preview } from './Preview';
+import { Preview, type PreviewMode } from './Preview';
 import type { Highlight } from './highlight';
 import { SummaryChip } from './SummaryChip';
 import { useViewport } from './useViewport';
 import { CanvasToolbar } from './CanvasToolbar';
 import { stageLayout } from './stageLayout';
+import { fitViewport, type Size } from './viewport';
 
 const styles = stylex.create({
   canvas: {
@@ -46,6 +48,22 @@ const styles = stylex.create({
   },
 });
 
+/**
+ * The margin `measurements` mode wants to reserve for its dimension lanes, or
+ * `null` if reserving it would leave the boards too small to be legible — in
+ * which case Canvas must fall back to the unmargined world so its fit scale
+ * agrees with what Preview's own (identical) legibility check will decide.
+ */
+export function measurementsMargin(
+  stage: Size, plan: Plan, markers: HardwareMarker[], totalW: number, totalH: number,
+): { left: number; bottom: number } | null {
+  const chains = laneChains(markers, totalH);
+  const left = marginMm(chains.y);
+  const bottom = marginMm(chains.x);
+  const fit = fitViewport(stage, { width: totalW + left, height: totalH + bottom });
+  return overlayLegible(plan.boards, fit.scale) ? { left, bottom } : null;
+}
+
 export function Canvas({
   plan, error, markers, highlight, mode, onModeChange,
 }: {
@@ -53,16 +71,25 @@ export function Canvas({
   error: string | null;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
-  mode: 'hardware' | 'measurements';
-  onModeChange: (mode: 'hardware' | 'measurements') => void;
+  mode: PreviewMode;
+  onModeChange: (mode: PreviewMode) => void;
 }) {
   const totalW = plan ? plan.coveredWidthMm + plan.leftoverWidthMm : 0;
   const totalH = plan ? plan.coveredHeightMm + plan.leftoverHeightMm : 0;
-  const chains = plan && mode === 'measurements' && markers ? laneChains(markers, totalH) : null;
-  const marginLeft = chains ? marginMm(chains.y) : 0;
-  const marginBottom = chains ? marginMm(chains.x) : 0;
-  const world = plan ? { width: totalW + marginLeft, height: totalH + marginBottom } : null;
-  const { size, viewport, ratio, refit, handlers, dragging, stageRef } = useViewport(world);
+  const wantsMeasurements = mode === 'measurements' && !!markers && markers.length > 0;
+
+  const worldFn = useCallback((stage: Size): Size | null => {
+    if (!plan) return null;
+    const base = { width: totalW, height: totalH };
+    if (!wantsMeasurements || !markers) return base;
+    const margin = measurementsMargin(stage, plan, markers, totalW, totalH);
+    return margin ? { width: totalW + margin.left, height: totalH + margin.bottom } : base;
+  }, [plan, wantsMeasurements, markers, totalW, totalH]);
+
+  const { size, viewport, ratio, refit, handlers, dragging, stageRef } = useViewport(worldFn);
+
+  const margin = plan && wantsMeasurements && markers ? measurementsMargin(size, plan, markers, totalW, totalH) : null;
+  const marginLeft = margin?.left ?? 0;
   return (
     <main {...stylex.props(styles.canvas)}>
       <div {...stylex.props(styles.chip)}>

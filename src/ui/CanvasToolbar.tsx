@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
+import type { PreviewMode } from './Preview';
 
 const styles = stylex.create({
   bar: {
@@ -40,6 +41,9 @@ const styles = stylex.create({
     outlineColor: colors.ring,
     outlineOffset: '1px',
   },
+  buttonPressed: {
+    backgroundColor: colors.mutedBg,
+  },
   readout: {
     minWidth: '40px',
     textAlign: 'end',
@@ -62,8 +66,8 @@ export function CanvasToolbar({
 }: {
   ratio: number;
   onFit: () => void;
-  mode: 'hardware' | 'measurements';
-  onModeChange: (mode: 'hardware' | 'measurements') => void;
+  mode: PreviewMode;
+  onModeChange: (mode: PreviewMode) => void;
   children?: ReactNode;
 }) {
   const percent = Math.round(ratio * 100);
@@ -83,10 +87,9 @@ export function CanvasToolbar({
       </button>
       <button
         type="button"
-        aria-label="Measurements"
         aria-pressed={mode === 'measurements'}
         onClick={() => onModeChange(mode === 'measurements' ? 'hardware' : 'measurements')}
-        {...stylex.props(styles.button)}
+        {...stylex.props(styles.button, mode === 'measurements' && styles.buttonPressed)}
       >
         Measurements
       </button>
