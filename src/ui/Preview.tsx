@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
-import type { HardwareMarker } from '../mounting';
+import { laneChains, type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM } from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, type Viewport } from './viewport';
@@ -14,6 +14,7 @@ const MIN_MARKER_PX = 32;
 const LABEL_PX = 13;
 const DETAIL_PX = 11;
 const HATCH_PX = 8;
+const DIM_LABEL_PX = 11;
 /** Seam tick length in screen px, split evenly across the seam. */
 const TICK_PX = 12;
 /** Hard cap on markers drawn, to bound SVG node count for pathological plans. */
@@ -92,6 +93,26 @@ const styles = stylex.create({
   },
   tickDim: {
     opacity: 0.25,
+  },
+  dimExt: {
+    stroke: mixes.vizLine,
+    strokeWidth: 1,
+    opacity: 0.6,
+    pointerEvents: 'none',
+  },
+  dimLine: {
+    stroke: mixes.vizLineStrong,
+    strokeWidth: 1,
+    pointerEvents: 'none',
+  },
+  dimTick: {
+    stroke: mixes.vizLineStrong,
+    strokeWidth: 1.5,
+    pointerEvents: 'none',
+  },
+  dimLabel: {
+    fill: colors.text,
+    pointerEvents: 'none',
   },
 });
 
@@ -177,8 +198,68 @@ function MarkerDot({
   );
 }
 
+function XDimensionLine({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
+  const tick = TICK_PX / 2 / scale;
+  const fs = DIM_LABEL_PX / scale;
+  return (
+    <g data-dim-line data-axis="x" data-value={value}>
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={0} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimExt)} x1={value} y1={baseY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimLine)} x1={0} y1={lineY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={0} y1={lineY - tick} x2={0} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={value} y1={lineY - tick} x2={value} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
+      <text {...stylex.props(styles.dimLabel)} x={value} y={lineY + 14 / scale} fontSize={fs} textAnchor="middle">
+        {value} mm
+      </text>
+    </g>
+  );
+}
+
+function YDimensionLine({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const pointY = baseY - value;
+  const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
+  const tick = TICK_PX / 2 / scale;
+  const fs = DIM_LABEL_PX / scale;
+  return (
+    <g data-dim-line data-axis="y" data-value={value}>
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={lineX} y2={baseY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={pointY} x2={lineX} y2={pointY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimLine)} x1={lineX} y1={baseY} x2={lineX} y2={pointY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={baseY} x2={lineX + tick} y2={baseY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={pointY} x2={lineX + tick} y2={pointY} vectorEffect="non-scaling-stroke" />
+      <text
+        {...stylex.props(styles.dimLabel)}
+        x={lineX - 4 / scale}
+        y={pointY}
+        fontSize={fs}
+        textAnchor="end"
+        dominantBaseline="middle"
+      >
+        {value} mm
+      </text>
+    </g>
+  );
+}
+
+function DimensionOverlay({
+  markers, totalHeightMm, scale,
+}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number }) {
+  const { x, y } = laneChains(markers, totalHeightMm);
+  return (
+    <g data-dimensions>
+      {x.map((v: DimensionValue) => (
+        <XDimensionLine key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+      ))}
+      {y.map((v: DimensionValue) => (
+        <YDimensionLine key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+      ))}
+    </g>
+  );
+}
+
 export function Preview({
-  plan, viewport, width, height, markers, highlight,
+  plan, viewport, width, height, markers, highlight, mode = 'hardware', origin = { x: 0, y: 0 },
 }: {
   plan: Plan | null;
   viewport: Viewport;
@@ -186,6 +267,8 @@ export function Preview({
   height: number;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
+  mode?: 'hardware' | 'measurements';
+  origin?: { x: number; y: number };
 }) {
   const hatchId = useId();
   if (!plan) return null;
@@ -196,11 +279,11 @@ export function Preview({
   const s = v.scale;
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
-  const showMarkers =
-    !!markers &&
-    markers.length > 0 &&
-    markers.length <= MAX_MARKERS &&
-    Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s >= MIN_MARKER_PX;
+  const minBoardSidePx = plan.boards.length > 0
+    ? Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s
+    : 0;
+  const showMarkers = mode === 'hardware' && !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && minBoardSidePx >= MIN_MARKER_PX;
+  const showMeasurements = mode === 'measurements' && !!markers && markers.length > 0 && minBoardSidePx >= MIN_MARKER_PX;
   const litMarkers = highlight && showMarkers && markers ? markers.filter((m) => markerMatches(highlight, m)) : [];
   const boardsLitFallback = !!highlight && boardsFallback(highlight, litMarkers.length > 0);
   return (
@@ -215,7 +298,7 @@ export function Preview({
           <line {...stylex.props(styles.hatch)} x1={hatch / 2} y1={0} x2={hatch / 2} y2={hatch} strokeWidth={3 / s} />
         </pattern>
       </defs>
-      <g transform={`translate(${v.tx} ${v.ty}) scale(${s})`}>
+      <g transform={`translate(${v.tx} ${v.ty}) scale(${s}) translate(${origin.x} ${origin.y})`}>
         {plan.leftoverWidthMm > 0 && (
           <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill={`url(#${hatchId})`} />
         )}
@@ -235,6 +318,9 @@ export function Preview({
               return <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} lit={lit} dim={dim} />;
             })}
           </g>
+        )}
+        {showMeasurements && markers && (
+          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} />
         )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
       </g>

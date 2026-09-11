@@ -4,12 +4,13 @@ import { Preview } from './Preview';
 import { plan } from '../solver';
 import { skadisInfinity } from '../models/skadisInfinity';
 import { getPrinter } from '../printers';
-import { IDENTITY } from './viewport';
+import { IDENTITY, type Viewport } from './viewport';
 import { getMountSystem, hardwareMarkers, type HardwareMarker } from '../mounting';
 import type { Highlight } from './highlight';
 
 const mini = getPrinter('a1-mini', { bedWidthMm: 0, bedDepthMm: 0 });
 const a1 = getPrinter('a1', { bedWidthMm: 0, bedDepthMm: 0 });
+const viewport: Viewport = { scale: 1, tx: 0, ty: 0 };
 
 describe('Preview', () => {
   it('renders nothing without a plan', () => {
@@ -56,7 +57,7 @@ describe('Preview', () => {
     const svg = container.querySelector('svg')!;
     expect(svg.getAttribute('viewBox')).toBe('0 0 1000 600');
     const g = container.querySelector('svg > g[transform]')!;
-    expect(g.getAttribute('transform')).toBe('translate(10 20) scale(2)');
+    expect(g.getAttribute('transform')).toBe('translate(10 20) scale(2) translate(0 0)');
     const texts = container.querySelectorAll('[data-board] text');
     expect(Number(texts[0].getAttribute('font-size'))).toBeCloseTo(13 / 2);
     expect(Number(texts[1].getAttribute('font-size'))).toBeCloseTo(11 / 2);
@@ -77,7 +78,7 @@ describe('Preview', () => {
     const svg = container.querySelector('svg')!;
     expect(svg.getAttribute('viewBox')).toBe('0 0 360 180');
     const g = container.querySelector('svg > g[transform]')!;
-    expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1)');
+    expect(g.getAttribute('transform')).toBe('translate(0 0) scale(1) translate(0 0)');
   });
 });
 
@@ -207,5 +208,52 @@ describe('Preview markers', () => {
       <Preview plan={p} viewport={IDENTITY} width={0} height={0} markers={many(4001)} />,
     );
     expect(overCap.querySelectorAll('[data-marker]')).toHaveLength(0);
+  });
+});
+
+describe('Preview measurements mode', () => {
+  const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
+  const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
+
+  it('draws hardware dots and no dimension lines by default', () => {
+    const { container } = render(
+      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} />,
+    );
+    expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
+  });
+
+  it('draws dimension lines and no hardware dots in measurements mode', () => {
+    const { container } = render(
+      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} mode="measurements" />,
+    );
+    expect(container.querySelectorAll('[data-marker]')).toHaveLength(0);
+    const lines = container.querySelectorAll('[data-dim-line]');
+    // 400x400 wall-mounts: X = [200, 400], Y = [200, 400] once the origin corner is dropped.
+    expect(lines).toHaveLength(4);
+  });
+
+  it('labels Y using height from the floor, not raw SVG y', () => {
+    const { container } = render(
+      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} mode="measurements" />,
+    );
+    // totalHeightMm is 400; the row boundary at SVG y=0 is 400mm from the floor.
+    // Scoped to the Y axis: this square plan also has X values of 200/400, so an
+    // unscoped getByText('400 mm') would match both axes and be ambiguous.
+    const yLines = Array.from(container.querySelectorAll('[data-dim-line][data-axis="y"]'));
+    const yLabels = yLines.map((g) => g.querySelector('text')?.textContent);
+    expect(yLabels).toContain('400 mm');
+    expect(yLabels).toContain('200 mm');
+  });
+
+  it('shifts the drawing by the given origin', () => {
+    const { container } = render(
+      <Preview plan={p} viewport={viewport} width={800} height={800} markers={markers} origin={{ x: 100, y: 0 }} />,
+    );
+    const board = container.querySelector('[data-board]') as SVGGElement;
+    const rect = board.querySelector('rect')!;
+    expect(rect.getAttribute('x')).toBe('0'); // board's own mm coords are unaffected
+    const outerGroup = container.querySelector('svg > g') as SVGGElement;
+    expect(outerGroup.getAttribute('transform')).toContain('translate(100 0)');
   });
 });
