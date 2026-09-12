@@ -158,12 +158,12 @@ export default function App() {
         headerEnd={
           <div {...stylex.props(styles.headerEnd)}>
             <ResetButton onClick={onReset} disabled={isDefaultForm(state.form)} />
-            <MeasurementsToggle mode={mode} onChange={setMode} />
             <ThemeToggle preference={preference} onChange={setPreference} />
           </div>
         }
         footer={
           <div {...stylex.props(styles.footer)}>
+            <MeasurementsToggle mode={mode} onChange={setMode} />
             <button
               type="button"
               onClick={download}

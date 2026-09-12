@@ -324,14 +324,14 @@ describe('App', () => {
     expect(markerCount).toBeGreaterThan(0);
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Measurements view' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Measurements view' }));
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
     expect(container.querySelectorAll('[data-dim-line]').length).toBeGreaterThan(0);
     // The outer corner mount insets 9mm from the true 1000/600 boundary.
     expect(container.querySelector('[data-dim-line][data-axis="x"][data-value="991"]')).toBeTruthy();
     expect(container.querySelector('[data-dim-line][data-axis="y"][data-value="591"]')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Measurements view' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Measurements view' }));
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
     expect(container.querySelectorAll('[data-dim-line]')).toHaveLength(0);
   });
@@ -339,9 +339,9 @@ describe('App', () => {
   it('renders the Measurements toggle in the sidebar, not floating over the canvas', () => {
     render(<App />);
     const sidebar = screen.getByRole('complementary', { name: 'Skadis Planner' });
-    expect(within(sidebar).getByRole('button', { name: 'Measurements view' })).toBeTruthy();
+    expect(within(sidebar).getByRole('switch', { name: 'Measurements view' })).toBeTruthy();
     const canvas = screen.getByRole('main');
-    expect(within(canvas).queryByRole('button', { name: 'Measurements view' })).toBeNull();
+    expect(within(canvas).queryByRole('switch', { name: 'Measurements view' })).toBeNull();
   });
 
   it('resets the form to defaults, clears storage, and disables itself again', () => {
