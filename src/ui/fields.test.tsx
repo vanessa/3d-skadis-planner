@@ -14,7 +14,7 @@ describe('fields', () => {
     expect(onChange).toHaveBeenCalledWith('12');
   });
 
-  it('SelectField renders options and reports the chosen value', () => {
+  it('SelectField opens a custom listbox and reports the chosen option', () => {
     const onChange = vi.fn();
     render(
       <SelectField
@@ -27,26 +27,36 @@ describe('fields', () => {
         ]}
       />,
     );
-    const select = screen.getByLabelText('Unit') as HTMLSelectElement;
-    expect(select.options).toHaveLength(2);
-    fireEvent.change(select, { target: { value: 'cm' } });
+    const trigger = screen.getByLabelText('Unit');
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getAllByRole('option')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('option', { name: 'cm' }));
     expect(onChange).toHaveBeenCalledWith('cm');
+    // Choosing an option closes the list and returns focus to the trigger.
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
 
-  it('styles options explicitly so native popups stay readable in dark mode', () => {
+  it('marks the current value as the selected option, and Escape closes without changing it', () => {
+    const onChange = vi.fn();
     render(
       <SelectField
         label="Unit"
         value="mm"
-        onChange={() => {}}
+        onChange={onChange}
         options={[
           { value: 'mm', label: 'mm' },
           { value: 'cm', label: 'cm' },
         ]}
       />,
     );
-    const options = (screen.getByLabelText('Unit') as HTMLSelectElement).options;
-    expect(options[0].className).not.toBe('');
-    expect(options[1].className).toBe(options[0].className);
+    fireEvent.click(screen.getByLabelText('Unit'));
+    expect(screen.getByRole('option', { name: 'mm' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('option', { name: 'cm' }).getAttribute('aria-selected')).toBe('false');
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,12 @@ import { DEFAULT_FORM } from './planState';
 vi.mock('./download', () => ({ downloadText: vi.fn() }));
 import { downloadText } from './download';
 
+/** Opens the custom Select labelled `labelText` and clicks the option named `optionText`. */
+function selectOption(labelText: string, optionText: string) {
+  fireEvent.click(screen.getByLabelText(labelText));
+  fireEvent.click(screen.getByRole('option', { name: optionText }));
+}
+
 describe('App', () => {
   beforeEach(() => window.localStorage.clear());
 
@@ -34,14 +40,14 @@ describe('App', () => {
   it('reveals bed inputs for a custom printer', () => {
     render(<App />);
     expect(screen.queryByLabelText('Bed width')).toBeNull();
-    fireEvent.change(screen.getByLabelText('Printer'), { target: { value: 'custom' } });
+    selectOption('Printer', 'Custom bed size');
     expect(screen.getByLabelText('Bed width')).toBeTruthy();
     expect(screen.getByLabelText('Bed depth')).toBeTruthy();
   });
 
   it('converts the typed values when the unit changes', () => {
     render(<App />);
-    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'cm' } });
+    selectOption('Unit', 'cm');
     expect((screen.getByLabelText('Width') as HTMLInputElement).value).toBe('100');
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
@@ -102,12 +108,12 @@ describe('App', () => {
 
   it('offers layout strategies and shows the gap field only for allow-gap', () => {
     render(<App />);
-    const select = screen.getByLabelText('Strategy') as HTMLSelectElement;
-    expect([...select.options].map((o) => o.textContent)).toEqual([
+    fireEvent.click(screen.getByLabelText('Strategy'));
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
       'Balanced', 'Largest boards first', 'Same size only', 'No mirroring', 'Allow a gap',
     ]);
     expect(screen.queryByLabelText('Max gap (mm)')).toBeNull();
-    fireEvent.change(select, { target: { value: 'allow-gap' } });
+    fireEvent.click(screen.getByRole('option', { name: 'Allow a gap' }));
     expect((screen.getByLabelText('Max gap (mm)') as HTMLInputElement).value).toBe('40');
     expect(screen.getByText(/12 boards/)).toBeTruthy();
   });
@@ -142,14 +148,14 @@ describe('App', () => {
 
   it('offers mounting systems and links to the mount files', () => {
     render(<App />);
-    const select = screen.getByLabelText('System') as HTMLSelectElement;
-    expect([...select.options].map((o) => o.textContent)).toEqual([
-      'Wall mounts (AU3D)', 'Screw spacers (AU3D)',
-    ]);
     const link = screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement;
     expect(link.href).toBe('https://makerworld.com/en/models/861073#profileId-1609221');
 
-    fireEvent.change(select, { target: { value: 'spacers' } });
+    fireEvent.click(screen.getByLabelText('System'));
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Wall mounts (AU3D)', 'Screw spacers (AU3D)',
+    ]);
+    fireEvent.click(screen.getByRole('option', { name: 'Screw spacers (AU3D)' }));
     expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
       'https://makerworld.com/en/models/418874#profileId-321444',
     );
@@ -165,9 +171,11 @@ describe('App', () => {
 
   it('defaults the wall distance to 10 mm and points every link at that profile', () => {
     render(<App />);
-    const distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
-    expect(distance.value).toBe('10');
-    expect([...distance.options].map((o) => o.textContent)).toEqual(['10 mm', '20 mm']);
+    const distance = screen.getByLabelText('Wall distance');
+    expect(distance.textContent).toBe('10 mm');
+    fireEvent.click(distance);
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['10 mm', '20 mm']);
+    fireEvent.click(screen.getByRole('option', { name: '10 mm' }));
     const single = screen.getByRole('link', { name: 'Print Single wall mount' }) as HTMLAnchorElement;
     expect(single.href).toBe('https://makerworld.com/en/models/420877#profileId-323619');
     const quad = screen.getByRole('link', { name: 'Print Quad wall mount' }) as HTMLAnchorElement;
@@ -182,7 +190,7 @@ describe('App', () => {
 
   it('switches every link when the wall distance changes', () => {
     render(<App />);
-    fireEvent.change(screen.getByLabelText('Wall distance'), { target: { value: '20' } });
+    selectOption('Wall distance', '20 mm');
     expect((screen.getByRole('link', { name: 'Mount files' }) as HTMLAnchorElement).href).toBe(
       'https://makerworld.com/en/models/861073#profileId-811358',
     );
@@ -193,17 +201,17 @@ describe('App', () => {
 
   it('keeps the wall distance across systems when offered and falls back to the default otherwise', () => {
     render(<App />);
-    const system = screen.getByLabelText('System');
-    fireEvent.change(screen.getByLabelText('Wall distance'), { target: { value: '20' } });
-    fireEvent.change(system, { target: { value: 'spacers' } });
-    let distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
-    expect(distance.value).toBe('20');
-    expect([...distance.options].map((o) => o.textContent)).toEqual(['10 mm', '15 mm', '20 mm']);
+    selectOption('Wall distance', '20 mm');
+    selectOption('System', 'Screw spacers (AU3D)');
+    let distance = screen.getByLabelText('Wall distance');
+    expect(distance.textContent).toBe('20 mm');
+    fireEvent.click(distance);
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['10 mm', '15 mm', '20 mm']);
+    fireEvent.click(screen.getByRole('option', { name: '15 mm' }));
 
-    fireEvent.change(distance, { target: { value: '15' } });
-    fireEvent.change(system, { target: { value: 'wall-mounts' } });
-    distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
-    expect(distance.value).toBe('10');
+    selectOption('System', 'Wall mounts (AU3D)');
+    distance = screen.getByLabelText('Wall distance');
+    expect(distance.textContent).toBe('10 mm');
   });
 
   it('shows a screw hole padding field for wall mounts, defaulting to 9mm and feeding the drill point measurements', () => {
@@ -218,7 +226,7 @@ describe('App', () => {
 
   it('hides the screw hole padding field for a system with no node-based mounts', () => {
     render(<App />);
-    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
+    selectOption('System', 'Screw spacers (AU3D)');
     expect(screen.queryByLabelText('Screw hole padding (mm)')).toBeNull();
   });
 
@@ -234,8 +242,8 @@ describe('App', () => {
   it('resets the screw hole padding to the new system\'s default when switching systems', () => {
     render(<App />);
     fireEvent.change(screen.getByLabelText('Screw hole padding (mm)'), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
-    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'wall-mounts' } });
+    selectOption('System', 'Screw spacers (AU3D)');
+    selectOption('System', 'Wall mounts (AU3D)');
     expect((screen.getByLabelText('Screw hole padding (mm)') as HTMLInputElement).value).toBe('9');
   });
 
@@ -249,7 +257,7 @@ describe('App', () => {
   it('draws the mounting hardware markers on the canvas and updates them when the system changes', () => {
     const { container } = render(<App />);
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(24);
-    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
+    selectOption('System', 'Screw spacers (AU3D)');
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(60);
   });
 
