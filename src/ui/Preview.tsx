@@ -1,21 +1,37 @@
 import { useId } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import type { Plan, PlacedBoard } from '../solver';
-import type { HardwareMarker } from '../mounting';
+import {
+  laneChains, overlayLegible, scaleAwareMinGapMm,
+  type DimensionValue, type HardwareMarker, BASE_GAP_MM, LANE_SPACING_MM,
+} from '../mounting';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
-import { IDENTITY, type Viewport } from './viewport';
+import { IDENTITY, fitViewport, type Viewport } from './viewport';
 import { boardMatches, markerMatches, boardsFallback, type Highlight } from './highlight';
+import { formatMm, type Unit } from '../units';
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
-/** Boards with a shorter side under this on screen get no hardware markers. */
-const MIN_MARKER_PX = 32;
 const LABEL_PX = 13;
 const DETAIL_PX = 11;
 const HATCH_PX = 8;
+const DIM_LABEL_PX = 11;
 /** Seam tick length in screen px, split evenly across the seam. */
 const TICK_PX = 12;
+/**
+ * How far (screen px) a dimension label sits back from the point it measures,
+ * along its own line — enough to clear the end tick and stay inside the
+ * reserved margin, but close enough to read as labelling that point. Clamped
+ * to half the line so it never crosses the midpoint on very short lines.
+ */
+export const DIM_LABEL_INSET_PX = 20;
+/**
+ * Screen px a dimension label sits off its own line (perpendicular to it), so
+ * the line's stroke runs beside the label instead of through the middle of
+ * its glyphs.
+ */
+export const DIM_LABEL_LINE_GAP_PX = 12;
 /** Hard cap on markers drawn, to bound SVG node count for pathological plans. */
 const MAX_MARKERS = 4000;
 
@@ -92,6 +108,26 @@ const styles = stylex.create({
   },
   tickDim: {
     opacity: 0.25,
+  },
+  dimExt: {
+    stroke: mixes.vizLine,
+    strokeWidth: 1,
+    opacity: 0.6,
+    pointerEvents: 'none',
+  },
+  dimLine: {
+    stroke: mixes.vizLineStrong,
+    strokeWidth: 1,
+    pointerEvents: 'none',
+  },
+  dimTick: {
+    stroke: mixes.vizLineStrong,
+    strokeWidth: 1.5,
+    pointerEvents: 'none',
+  },
+  dimLabel: {
+    fill: colors.text,
+    pointerEvents: 'none',
   },
 });
 
@@ -177,8 +213,132 @@ function MarkerDot({
   );
 }
 
+function XDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
+  const tick = TICK_PX / 2 / scale;
+  return (
+    <g data-dim-line data-axis="x" data-value={value}>
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={0} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimExt)} x1={value} y1={baseY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimLine)} x1={0} y1={lineY} x2={value} y2={lineY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={0} y1={lineY - tick} x2={0} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={value} y1={lineY - tick} x2={value} y2={lineY + tick} vectorEffect="non-scaling-stroke" />
+    </g>
+  );
+}
+
+function XDimensionLabel({
+  value, lane, baseY, scale, unit,
+}: { value: number; lane: number; baseY: number; scale: number; unit: Unit }) {
+  const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
+  const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (x = value), pulled back toward the wall by a
+  // fixed screen distance; never past the midpoint on lines too short for it.
+  const labelX = value - Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  // Sits above the line (toward the boards, away from the outer margin edge)
+  // so the line's stroke doesn't run through the glyphs.
+  const labelY = lineY - DIM_LABEL_LINE_GAP_PX / scale;
+  const display = formatMm(value, unit);
+  return (
+    <text
+      data-dim-label
+      data-axis="x"
+      data-value={value}
+      {...stylex.props(styles.dimLabel)}
+      x={labelX}
+      y={labelY}
+      fontSize={fs}
+      textAnchor="middle"
+      dominantBaseline="middle"
+    >
+      {display}
+    </text>
+  );
+}
+
+function YDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+  const pointY = baseY - value;
+  const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
+  const tick = TICK_PX / 2 / scale;
+  return (
+    <g data-dim-line data-axis="y" data-value={value}>
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={baseY} x2={lineX} y2={baseY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimExt)} x1={0} y1={pointY} x2={lineX} y2={pointY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimLine)} x1={lineX} y1={baseY} x2={lineX} y2={pointY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={baseY} x2={lineX + tick} y2={baseY} vectorEffect="non-scaling-stroke" />
+      <line {...stylex.props(styles.dimTick)} x1={lineX - tick} y1={pointY} x2={lineX + tick} y2={pointY} vectorEffect="non-scaling-stroke" />
+    </g>
+  );
+}
+
+function YDimensionLabel({
+  value, lane, baseY, scale, unit,
+}: { value: number; lane: number; baseY: number; scale: number; unit: Unit }) {
+  const pointY = baseY - value;
+  const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
+  const fs = DIM_LABEL_PX / scale;
+  // Label at the measured end (y = pointY, above the floor at baseY), pulled
+  // back down toward the floor by a fixed screen distance; never past the
+  // midpoint on lines too short for it.
+  const labelY = pointY + Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
+  // Sits beside the line (toward the boards) rather than centered on it, so
+  // after rotation the line's stroke doesn't run through the glyphs. The
+  // rotation pivots on this same shifted anchor.
+  const labelX = lineX + DIM_LABEL_LINE_GAP_PX / scale;
+  const display = formatMm(value, unit);
+  return (
+    <text
+      data-dim-label
+      data-axis="y"
+      data-value={value}
+      {...stylex.props(styles.dimLabel)}
+      x={labelX}
+      y={labelY}
+      fontSize={fs}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      transform={`rotate(-90 ${labelX} ${labelY})`}
+    >
+      {display}
+    </text>
+  );
+}
+
+function DimensionOverlay({
+  markers, totalHeightMm, scale, minGapMm, unit,
+}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number; minGapMm: number; unit: Unit }) {
+  const { x, y } = laneChains(markers, totalHeightMm, minGapMm);
+  return (
+    <g data-dimensions>
+      {/* All geometry first, then all labels: dimension lines for different
+          values often share a lane and overlap (they all run from 0), so a
+          label painted inside its own value's group could still end up
+          underneath a later, longer line sharing that lane. Drawing every
+          label after every line guarantees labels are always on top. */}
+      <g data-dim-geometry>
+        {x.map((v: DimensionValue) => (
+          <XDimensionGeometry key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+        {y.map((v: DimensionValue) => (
+          <YDimensionGeometry key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+        ))}
+      </g>
+      <g data-dim-labels>
+        {x.map((v: DimensionValue) => (
+          <XDimensionLabel key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} unit={unit} />
+        ))}
+        {y.map((v: DimensionValue) => (
+          <YDimensionLabel key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} unit={unit} />
+        ))}
+      </g>
+    </g>
+  );
+}
+
+export type PreviewMode = 'hardware' | 'measurements';
+
 export function Preview({
-  plan, viewport, width, height, markers, highlight,
+  plan, viewport, width, height, markers, highlight, mode = 'hardware', origin = { x: 0, y: 0 }, unit = 'mm',
 }: {
   plan: Plan | null;
   viewport: Viewport;
@@ -186,6 +346,9 @@ export function Preview({
   height: number;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
+  mode?: PreviewMode;
+  origin?: { x: number; y: number };
+  unit?: Unit;
 }) {
   const hatchId = useId();
   if (!plan) return null;
@@ -196,11 +359,14 @@ export function Preview({
   const s = v.scale;
   const viewBox = hasLayout ? `0 0 ${width} ${height}` : `0 0 ${totalW} ${totalH}`;
   const hatch = HATCH_PX / s;
-  const showMarkers =
-    !!markers &&
-    markers.length > 0 &&
-    markers.length <= MAX_MARKERS &&
-    Math.min(...plan.boards.map((b) => Math.min(b.widthMm, b.heightMm))) * s >= MIN_MARKER_PX;
+  const legible = overlayLegible(plan.boards, s);
+  const showMarkers = !!markers && markers.length > 0 && markers.length <= MAX_MARKERS && legible;
+  const showMeasurements = mode === 'measurements' && !!markers && markers.length > 0 && legible;
+  // Same approximation Canvas.tsx's measurementsMargin uses when sizing the
+  // margin, from the same stage/plan inputs — so the lane count (and thus
+  // gap) this renders with matches what margin was actually reserved for.
+  const baseFit = fitViewport({ width, height }, { width: totalW, height: totalH });
+  const minGapMm = scaleAwareMinGapMm(baseFit.scale);
   const litMarkers = highlight && showMarkers && markers ? markers.filter((m) => markerMatches(highlight, m)) : [];
   const boardsLitFallback = !!highlight && boardsFallback(highlight, litMarkers.length > 0);
   return (
@@ -215,7 +381,7 @@ export function Preview({
           <line {...stylex.props(styles.hatch)} x1={hatch / 2} y1={0} x2={hatch / 2} y2={hatch} strokeWidth={3 / s} />
         </pattern>
       </defs>
-      <g transform={`translate(${v.tx} ${v.ty}) scale(${s})`}>
+      <g transform={`translate(${v.tx} ${v.ty}) scale(${s}) translate(${origin.x} ${origin.y})`}>
         {plan.leftoverWidthMm > 0 && (
           <rect data-leftover x={plan.coveredWidthMm} y={0} width={plan.leftoverWidthMm} height={totalH} fill={`url(#${hatchId})`} />
         )}
@@ -235,6 +401,9 @@ export function Preview({
               return <MarkerDot key={`${m.kind}-${m.x}-${m.y}`} m={m} scale={s} lit={lit} dim={dim} />;
             })}
           </g>
+        )}
+        {showMeasurements && markers && (
+          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} minGapMm={minGapMm} unit={unit} />
         )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
       </g>

@@ -8,6 +8,11 @@ export { MOUNT_SYSTEMS } from './systems';
 export { hardwareList, countNodes } from './hardware';
 export type { HardwareRow } from './hardware';
 export { hardwareMarkers } from './markers';
+export {
+  dimensionAxes, marginMm, laneChains, overlayLegible, scaleAwareMinGapMm,
+  LANE_SPACING_MM, BASE_GAP_MM, MIN_MARKER_PX, LABEL_GAP_PX,
+} from './dimensions';
+export type { DimensionValue } from './dimensions';
 
 export const DEFAULT_MOUNT_ID = 'wall-mounts';
 /** Board-to-wall distance picked until the user changes it, in mm. */
@@ -33,8 +38,13 @@ export function defaultWallDistance(system: MountSystem): number {
   return offered[0];
 }
 
-/** A copy of the system whose url and item links point at the profiles for `mm`, where they exist. */
-export function resolveMountSystem(system: MountSystem, mm: number): MountSystem {
+/**
+ * A copy of the system whose url and item links point at the profiles for
+ * `mm`, where they exist. `nodeInsetMm`, when given, overrides the system's
+ * own default (e.g. from a user-editable form field) — pass `undefined` to
+ * keep the system's default.
+ */
+export function resolveMountSystem(system: MountSystem, mm: number, nodeInsetMm?: number): MountSystem {
   return {
     ...system,
     url: system.profiles?.[mm] ?? system.url,
@@ -42,5 +52,6 @@ export function resolveMountSystem(system: MountSystem, mm: number): MountSystem
       const link = item.profiles?.[mm] ?? item.link;
       return link ? { ...item, link } : item;
     }),
+    ...(nodeInsetMm !== undefined ? { nodeInsetMm } : {}),
   };
 }

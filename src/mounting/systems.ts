@@ -14,6 +14,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     profiles: { 10: `${multiMount}#profileId-1609221`, 20: `${multiMount}#profileId-811358` },
     description: 'One printed mount wherever corners meet.',
     markers: ['nodes'],
+    nodeInsetMm: 9,
     items: [
       { name: 'Quad wall mount', per: { junction: 1 }, source: 'print' },
       { name: 'Double wall mount', per: { edgeNode: 1 }, source: 'print' },
@@ -40,6 +41,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     },
     description: 'A spacer and screw at each board corner.',
     markers: ['boardCorners'],
+    nodeInsetMm: 10,
     items: [
       { name: 'Screw spacer', per: { board: 4 }, source: 'print' },
       { name: 'M4 wall screw (30 mm or longer)', per: { board: 4 }, source: 'buy' },

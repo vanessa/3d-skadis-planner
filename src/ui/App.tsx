@@ -5,9 +5,11 @@ import { Panel } from './Panel';
 import { PanelSection } from './PanelSection';
 import { ThemeToggle } from './ThemeToggle';
 import { ResetButton } from './ResetButton';
+import { MeasurementsToggle } from './MeasurementsToggle';
 import { Canvas } from './Canvas';
+import type { PreviewMode } from './Preview';
 import { PrintList } from './PrintList';
-import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
+import { computePlan, parseNonNegative, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import { readStoredForm, writeStoredForm, clearStoredForm } from './formStorage';
 import { getModel } from '../models';
 import type { Plan } from '../solver';
@@ -92,6 +94,7 @@ const lightThemeClasses = (stylex.props(lightTheme).className ?? '').split(' ').
 export default function App() {
   const [state, setState] = useState<AppState>(() => stateFor(readStoredForm() ?? DEFAULT_FORM, null));
   const [highlight, setHighlight] = useState<Highlight | null>(null);
+  const [mode, setMode] = useState<PreviewMode>('hardware');
   const { preference, resolvedTheme, setPreference } = useTheme();
 
   useEffect(() => {
@@ -120,7 +123,8 @@ export default function App() {
 
   const model = getModel(state.form.modelId);
   const wallDistanceMm = Number(state.form.wallDistance);
-  const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm);
+  const nodePaddingMm = parseNonNegative(state.form.nodePaddingMm) ?? undefined;
+  const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm, nodePaddingMm);
   const markers = state.lastPlan ? hardwareMarkers(state.lastPlan, system, model) : undefined;
   const credits = creditLines(model, system);
 
@@ -133,13 +137,22 @@ export default function App() {
     const heightMm = p.coveredHeightMm + p.leftoverHeightMm;
     downloadText(
       printListFileName(widthMm, heightMm),
-      formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date(), system, wallDistanceMm }),
+      formatPrintList({
+        plan: p, model, printer, widthMm, heightMm, date: new Date(), system, wallDistanceMm, unit: state.form.unit,
+      }),
     );
   };
 
   return (
     <div {...stylex.props(styles.app)}>
-      <Canvas plan={state.lastPlan} error={state.outcome.error} markers={markers} highlight={highlight} />
+      <Canvas
+        plan={state.lastPlan}
+        error={state.outcome.error}
+        markers={markers}
+        highlight={highlight}
+        mode={mode}
+        unit={state.form.unit}
+      />
       <Panel
         title="Skadis Planner"
         headerEnd={
@@ -150,6 +163,7 @@ export default function App() {
         }
         footer={
           <div {...stylex.props(styles.footer)}>
+            <MeasurementsToggle mode={mode} onChange={setMode} />
             <button
               type="button"
               onClick={download}
@@ -158,9 +172,6 @@ export default function App() {
             >
               Download print list
             </button>
-            <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">
-              Open files on MakerWorld
-            </a>
             <p {...stylex.props(styles.credit)}>
               {credits.map((c, i) => (
                 <span key={c.label}>

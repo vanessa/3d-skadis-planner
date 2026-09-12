@@ -38,6 +38,16 @@ export interface MountSystem {
   items: HardwareItem[];
   /** Marker kinds drawn on the 2D preview for this system. */
   markers: MarkerKind[];
+  /**
+   * mm this system's mount screws sit in from the board edge. For `nodes`/
+   * `outerNodes`, applies along whichever axis has no interior board
+   * neighbor (a junction, with a neighbor on every side, needs no inset; an
+   * edge node insets on one axis; an outer corner, with no neighbor on
+   * either, insets on both). For `boardCorners`, overrides the board
+   * model's own `screwInsetMm`. Defaults to 0 for `nodes`/`outerNodes`, or
+   * to `model.screwInsetMm` for `boardCorners`, when unset.
+   */
+  nodeInsetMm?: number;
   /** Profile per wall distance, used in place of `url` once resolved. Its keys are the distances offered. */
   profiles?: WallProfiles;
   /** Who designed the mount files, for the credit line. */

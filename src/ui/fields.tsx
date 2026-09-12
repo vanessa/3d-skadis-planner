@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import * as stylex from '@stylexjs/stylex';
 import { colors, font, radius, space } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
+import { Select } from './Select';
 
 const styles = stylex.create({
   field: {
@@ -53,32 +54,6 @@ const styles = stylex.create({
       margin: 0,
     },
     MozAppearance: 'textfield',
-  },
-  selectWrap: {
-    position: 'relative',
-  },
-  select: {
-    appearance: 'none',
-    paddingInlineEnd: '28px',
-    cursor: 'default',
-  },
-  /**
-   * Native select popups draw options over the OS surface (white on Windows
-   * even in dark mode), so options need an explicit background and colour.
-   */
-  option: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-  },
-  chevron: {
-    position: 'absolute',
-    insetInlineEnd: space.sm,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: '12px',
-    height: '12px',
-    color: colors.muted,
-    pointerEvents: 'none',
   },
   row: {
     display: 'grid',
@@ -137,25 +112,13 @@ export function SelectField({
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
 }) {
+  const id = useId();
   return (
-    <label {...stylex.props(styles.field)}>
-      <span {...stylex.props(styles.label)}>{label}</span>
-      <span {...stylex.props(styles.selectWrap)}>
-        <select
-          {...stylex.props(styles.control, styles.select)}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {options.map((o) => (
-            <option key={o.value} value={o.value} {...stylex.props(styles.option)}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <svg {...stylex.props(styles.chevron)} viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth={1.5} />
-        </svg>
-      </span>
-    </label>
+    <div {...stylex.props(styles.field)}>
+      <label htmlFor={id} {...stylex.props(styles.label)}>
+        {label}
+      </label>
+      <Select id={id} value={value} onChange={onChange} options={options} />
+    </div>
   );
 }

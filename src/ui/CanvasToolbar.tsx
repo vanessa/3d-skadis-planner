@@ -59,7 +59,11 @@ const styles = stylex.create({
 
 export function CanvasToolbar({
   ratio, onFit, children,
-}: { ratio: number; onFit: () => void; children?: ReactNode }) {
+}: {
+  ratio: number;
+  onFit: () => void;
+  children?: ReactNode;
+}) {
   const percent = Math.round(ratio * 100);
   const [announced, setAnnounced] = useState(percent);
   useEffect(() => {

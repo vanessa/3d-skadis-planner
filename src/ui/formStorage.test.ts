@@ -46,6 +46,11 @@ describe('formStorage', () => {
     expect(readStoredForm()?.wallDistance).toBe('10');
   });
 
+  it('restores a stored screw hole padding override', () => {
+    window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ width: '500', nodePaddingMm: '15' }));
+    expect(readStoredForm()?.nodePaddingMm).toBe('15');
+  });
+
   it('ignores a non-string width', () => {
     window.localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ width: 123, height: '700' }));
     const form = readStoredForm();

@@ -60,6 +60,21 @@ describe('mounting registry', () => {
     expect(getMountSystem('wall-mounts').url).toBe('https://makerworld.com/en/models/861073');
   });
 
+  it('keeps the system default nodeInsetMm when no override is given', () => {
+    expect(resolveMountSystem(getMountSystem('wall-mounts'), 10).nodeInsetMm).toBe(9);
+    expect(resolveMountSystem(getMountSystem('wall-mounts'), 10, undefined).nodeInsetMm).toBe(9);
+  });
+
+  it('overrides nodeInsetMm when given, without touching anything else', () => {
+    const resolved = resolveMountSystem(getMountSystem('wall-mounts'), 20, 15);
+    expect(resolved.nodeInsetMm).toBe(15);
+    expect(resolved.url).toBe('https://makerworld.com/en/models/861073#profileId-811358');
+  });
+
+  it('lets an override set nodeInsetMm to 0', () => {
+    expect(resolveMountSystem(getMountSystem('wall-mounts'), 10, 0).nodeInsetMm).toBe(0);
+  });
+
   it('keeps the plain links for a distance the system does not offer', () => {
     const resolved = resolveMountSystem(getMountSystem('wall-mounts'), 15);
     expect(resolved.url).toBe('https://makerworld.com/en/models/861073');
