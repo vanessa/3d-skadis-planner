@@ -73,14 +73,13 @@ export function measurementsMargin(
 }
 
 export function Canvas({
-  plan, error, markers, highlight, mode, onModeChange,
+  plan, error, markers, highlight, mode,
 }: {
   plan: Plan | null;
   error: string | null;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
   mode: PreviewMode;
-  onModeChange: (mode: PreviewMode) => void;
 }) {
   const totalW = plan ? plan.coveredWidthMm + plan.leftoverWidthMm : 0;
   const totalH = plan ? plan.coveredHeightMm + plan.leftoverHeightMm : 0;
@@ -115,7 +114,7 @@ export function Canvas({
             mode={mode}
             origin={{ x: marginLeft, y: 0 }}
           />
-          {plan && <CanvasToolbar ratio={ratio} onFit={refit} mode={mode} onModeChange={onModeChange} />}
+          {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}
         </div>
       </div>
     </main>

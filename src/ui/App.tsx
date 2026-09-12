@@ -5,6 +5,7 @@ import { Panel } from './Panel';
 import { PanelSection } from './PanelSection';
 import { ThemeToggle } from './ThemeToggle';
 import { ResetButton } from './ResetButton';
+import { MeasurementsToggle } from './MeasurementsToggle';
 import { Canvas } from './Canvas';
 import type { PreviewMode } from './Preview';
 import { PrintList } from './PrintList';
@@ -148,13 +149,13 @@ export default function App() {
         markers={markers}
         highlight={highlight}
         mode={mode}
-        onModeChange={setMode}
       />
       <Panel
         title="Skadis Planner"
         headerEnd={
           <div {...stylex.props(styles.headerEnd)}>
             <ResetButton onClick={onReset} disabled={isDefaultForm(state.form)} />
+            <MeasurementsToggle mode={mode} onChange={setMode} />
             <ThemeToggle preference={preference} onChange={setPreference} />
           </div>
         }
