@@ -3,6 +3,7 @@ import * as stylex from '@stylexjs/stylex';
 import type { Plan } from '../solver';
 import type { HardwareMarker } from '../mounting';
 import { laneChains, marginMm, overlayLegible, scaleAwareMinGapMm } from '../mounting';
+import type { Unit } from '../units';
 import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { Preview, type PreviewMode } from './Preview';
@@ -73,13 +74,14 @@ export function measurementsMargin(
 }
 
 export function Canvas({
-  plan, error, markers, highlight, mode,
+  plan, error, markers, highlight, mode, unit,
 }: {
   plan: Plan | null;
   error: string | null;
   markers?: HardwareMarker[];
   highlight?: Highlight | null;
   mode: PreviewMode;
+  unit?: Unit;
 }) {
   const totalW = plan ? plan.coveredWidthMm + plan.leftoverWidthMm : 0;
   const totalH = plan ? plan.coveredHeightMm + plan.leftoverHeightMm : 0;
@@ -112,6 +114,7 @@ export function Canvas({
             markers={markers}
             highlight={highlight}
             mode={mode}
+            unit={unit}
             origin={{ x: marginLeft, y: 0 }}
           />
           {plan && <CanvasToolbar ratio={ratio} onFit={refit} />}

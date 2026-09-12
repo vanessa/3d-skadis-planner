@@ -9,6 +9,7 @@ import { colors } from './tokens.stylex';
 import { mixes } from './mixes.stylex';
 import { IDENTITY, fitViewport, type Viewport } from './viewport';
 import { boardMatches, markerMatches, boardsFallback, type Highlight } from './highlight';
+import { formatMm, type Unit } from '../units';
 
 /** Boards narrower than this on screen get no labels. */
 const MIN_LABEL_PX = 64;
@@ -226,7 +227,9 @@ function XDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane
   );
 }
 
-function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+function XDimensionLabel({
+  value, lane, baseY, scale, unit,
+}: { value: number; lane: number; baseY: number; scale: number; unit: Unit }) {
   const lineY = baseY + BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM;
   const fs = DIM_LABEL_PX / scale;
   // Label at the measured end (x = value), pulled back toward the wall by a
@@ -235,6 +238,7 @@ function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
   // Sits above the line (toward the boards, away from the outer margin edge)
   // so the line's stroke doesn't run through the glyphs.
   const labelY = lineY - DIM_LABEL_LINE_GAP_PX / scale;
+  const display = formatMm(value, unit);
   return (
     <text
       data-dim-label
@@ -247,7 +251,7 @@ function XDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
       textAnchor="middle"
       dominantBaseline="middle"
     >
-      {value} mm
+      {display}
     </text>
   );
 }
@@ -267,7 +271,9 @@ function YDimensionGeometry({ value, lane, baseY, scale }: { value: number; lane
   );
 }
 
-function YDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: number; baseY: number; scale: number }) {
+function YDimensionLabel({
+  value, lane, baseY, scale, unit,
+}: { value: number; lane: number; baseY: number; scale: number; unit: Unit }) {
   const pointY = baseY - value;
   const lineX = -(BASE_GAP_MM + (lane + 1) * LANE_SPACING_MM);
   const fs = DIM_LABEL_PX / scale;
@@ -279,6 +285,7 @@ function YDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
   // after rotation the line's stroke doesn't run through the glyphs. The
   // rotation pivots on this same shifted anchor.
   const labelX = lineX + DIM_LABEL_LINE_GAP_PX / scale;
+  const display = formatMm(value, unit);
   return (
     <text
       data-dim-label
@@ -292,14 +299,14 @@ function YDimensionLabel({ value, lane, baseY, scale }: { value: number; lane: n
       dominantBaseline="middle"
       transform={`rotate(-90 ${labelX} ${labelY})`}
     >
-      {value} mm
+      {display}
     </text>
   );
 }
 
 function DimensionOverlay({
-  markers, totalHeightMm, scale, minGapMm,
-}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number; minGapMm: number }) {
+  markers, totalHeightMm, scale, minGapMm, unit,
+}: { markers: HardwareMarker[]; totalHeightMm: number; scale: number; minGapMm: number; unit: Unit }) {
   const { x, y } = laneChains(markers, totalHeightMm, minGapMm);
   return (
     <g data-dimensions>
@@ -318,10 +325,10 @@ function DimensionOverlay({
       </g>
       <g data-dim-labels>
         {x.map((v: DimensionValue) => (
-          <XDimensionLabel key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+          <XDimensionLabel key={`x-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} unit={unit} />
         ))}
         {y.map((v: DimensionValue) => (
-          <YDimensionLabel key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} />
+          <YDimensionLabel key={`y-${v.mm}`} value={v.mm} lane={v.lane} baseY={totalHeightMm} scale={scale} unit={unit} />
         ))}
       </g>
     </g>
@@ -331,7 +338,7 @@ function DimensionOverlay({
 export type PreviewMode = 'hardware' | 'measurements';
 
 export function Preview({
-  plan, viewport, width, height, markers, highlight, mode = 'hardware', origin = { x: 0, y: 0 },
+  plan, viewport, width, height, markers, highlight, mode = 'hardware', origin = { x: 0, y: 0 }, unit = 'mm',
 }: {
   plan: Plan | null;
   viewport: Viewport;
@@ -341,6 +348,7 @@ export function Preview({
   highlight?: Highlight | null;
   mode?: PreviewMode;
   origin?: { x: number; y: number };
+  unit?: Unit;
 }) {
   const hatchId = useId();
   if (!plan) return null;
@@ -395,7 +403,7 @@ export function Preview({
           </g>
         )}
         {showMeasurements && markers && (
-          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} minGapMm={minGapMm} />
+          <DimensionOverlay markers={markers} totalHeightMm={totalH} scale={s} minGapMm={minGapMm} unit={unit} />
         )}
         <rect data-outline {...stylex.props(styles.outline)} x={0} y={0} width={totalW} height={totalH} vectorEffect="non-scaling-stroke" />
       </g>

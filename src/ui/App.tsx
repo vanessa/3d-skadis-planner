@@ -137,7 +137,9 @@ export default function App() {
     const heightMm = p.coveredHeightMm + p.leftoverHeightMm;
     downloadText(
       printListFileName(widthMm, heightMm),
-      formatPrintList({ plan: p, model, printer, widthMm, heightMm, date: new Date(), system, wallDistanceMm }),
+      formatPrintList({
+        plan: p, model, printer, widthMm, heightMm, date: new Date(), system, wallDistanceMm, unit: state.form.unit,
+      }),
     );
   };
 
@@ -149,6 +151,7 @@ export default function App() {
         markers={markers}
         highlight={highlight}
         mode={mode}
+        unit={state.form.unit}
       />
       <Panel
         title="Skadis Planner"

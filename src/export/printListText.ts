@@ -4,6 +4,7 @@ import type { BoardModel } from '../models';
 import type { Printer } from '../printers';
 import type { MountSystem } from '../mounting';
 import { hardwareList, hardwareMarkers, dimensionAxes } from '../mounting';
+import { formatMmValue, type Unit } from '../units';
 
 export interface PrintListInput {
   plan: Plan;
@@ -15,6 +16,8 @@ export interface PrintListInput {
   system: MountSystem;
   /** Board-to-wall distance in mm; omitted when the system offers none. */
   wallDistanceMm?: number;
+  /** Display unit for the drill point measurements block; all other measurements stay in mm. */
+  unit: Unit;
 }
 
 const WRAP = 78;
@@ -100,17 +103,20 @@ function hardwareBlock(plan: Plan, system: MountSystem, wallDistanceMm?: number)
   ];
 }
 
-function measurementsBlock(plan: Plan, system: MountSystem, model: BoardModel, totalHeightMm: number): string[] {
+function measurementsBlock(
+  plan: Plan, system: MountSystem, model: BoardModel, totalHeightMm: number, unit: Unit,
+): string[] {
   const markers = hardwareMarkers(plan, system, model);
   const { x, y } = dimensionAxes(markers, totalHeightMm);
   const nonZero = (values: number[]) => values.filter((v) => v > 0);
   const xVals = nonZero(x);
   const yVals = nonZero(y);
   if (xVals.length === 0 && yVals.length === 0) return [];
+  const fmt = (n: number) => formatMmValue(n, unit);
   return [
-    'Drill point measurements (mm, from the bottom-left corner)',
-    `X: ${xVals.map(mm).join(', ')}`,
-    `Y: ${yVals.map(mm).join(', ')}`,
+    `Drill point measurements (${unit}, from the bottom-left corner)`,
+    `X: ${xVals.map(fmt).join(', ')}`,
+    `Y: ${yVals.map(fmt).join(', ')}`,
   ];
 }
 
@@ -126,7 +132,7 @@ function layout(plan: Plan): string[] {
 }
 
 export function formatPrintList({
-  plan, model, printer, widthMm, heightMm, date, system, wallDistanceMm,
+  plan, model, printer, widthMm, heightMm, date, system, wallDistanceMm, unit,
 }: PrintListInput): string {
   const result = [`${plan.boards.length} ${plan.boards.length === 1 ? 'board' : 'boards'}`,
     `covers ${mm(plan.coveredWidthMm)} x ${mm(plan.coveredHeightMm)} mm`];
@@ -134,7 +140,7 @@ export function formatPrintList({
   if (Math.round(plan.leftoverHeightMm) > 0) result.push(`${mm(plan.leftoverHeightMm)} mm left at the bottom`);
   const hasMirror = plan.groups.some((g) => g.mirrorX || g.mirrorY);
   const title = 'Skadis Planner - print list';
-  const measurements = measurementsBlock(plan, system, model, heightMm);
+  const measurements = measurementsBlock(plan, system, model, heightMm, unit);
   const lines = [
     title,
     '='.repeat(title.length),

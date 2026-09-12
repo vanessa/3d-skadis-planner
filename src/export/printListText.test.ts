@@ -29,7 +29,7 @@ describe('formatPrintList', () => {
   it('formats the default plan', () => {
     const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts, unit: 'mm',
     });
     expect(text).toBe(
       [
@@ -76,7 +76,7 @@ describe('formatPrintList', () => {
     const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
       plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date,
-      system: resolveMountSystem(wallMounts, 20), wallDistanceMm: 20,
+      system: resolveMountSystem(wallMounts, 20), wallDistanceMm: 20, unit: 'mm',
     });
     expect(text).toContain('Hardware (Wall mounts (AU3D), 20 mm from the wall)');
     expect(text).toContain('  4  Single wall mount (model: https://makerworld.com/en/models/420877#profileId-323616)');
@@ -87,7 +87,7 @@ describe('formatPrintList', () => {
     const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     const other: MountSystem = { ...notedSystem, author: { name: 'Someone', url: 'https://example.com/someone' } };
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: other,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: other, unit: 'mm',
     });
     expect(text).toContain('Boards by AU3D - https://makerworld.com/en/@AU3D\nMounts by Someone - https://example.com/someone');
     expect(creditLines(skadisInfinity, notedSystem)).toEqual([
@@ -98,7 +98,7 @@ describe('formatPrintList', () => {
   it('omits the mirror note when no board in the plan needs mirroring', () => {
     const p = plan({ widthMm: 1015, heightMm: 600, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 600, date, system: wallMounts, unit: 'mm',
     });
     expect(text).not.toContain('mirror image');
   });
@@ -106,7 +106,7 @@ describe('formatPrintList', () => {
   it('prints a note in parentheses after the hardware item name', () => {
     const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem, unit: 'mm',
     });
     expect(text).toContain('  1  Widget (Only if needed)');
     expect(text).not.toContain('3D print:');
@@ -116,7 +116,7 @@ describe('formatPrintList', () => {
   it('widens the Qty column in the hardware block to fit a four-digit quantity', () => {
     const p = plan({ widthMm: 10000, heightMm: 10000, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 10000, heightMm: 10000, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 10000, heightMm: 10000, date, system: wallMounts, unit: 'mm',
     });
     expect(text).toContain('7056  M4 x 20 board screw');
     expect(text).toContain('   4  Single wall mount (model: https://makerworld.com/en/models/420877)');
@@ -125,7 +125,7 @@ describe('formatPrintList', () => {
   it('marks mirrored boards in the layout and lists every variant', () => {
     const p = plan({ widthMm: 720, heightMm: 360, model: skadisInfinity, printer: mini });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: mini, widthMm: 720, heightMm: 360, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: mini, widthMm: 720, heightMm: 360, date, system: wallMounts, unit: 'mm',
     });
     expect(text).toContain('8x8   8x8*  8x8   8x8*');
     expect(text).toContain('8x8+  8x8#  8x8+  8x8#');
@@ -137,7 +137,7 @@ describe('formatPrintList', () => {
   it('lists the drill point measurements from the bottom-left corner', () => {
     const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 400, heightMm: 400, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 400, heightMm: 400, date, system: wallMounts, unit: 'mm',
     });
     expect(text).toContain('Drill point measurements (mm, from the bottom-left corner)');
     // Edge nodes and outer corners both touch the outer boundary on this small
@@ -145,6 +145,18 @@ describe('formatPrintList', () => {
     // axis — the raw 0/400 boundary values never appear.
     expect(text).toContain('X: 9, 200, 391');
     expect(text).toContain('Y: 9, 200, 391');
+  });
+
+  it('formats the drill point measurements in cm when unit is cm, header and all', () => {
+    // Same 400x400 wall-mounts fixture as the mm test above (X/Y: 9, 200, 391 mm),
+    // converted by hand: 9/10=0.9, 200/10=20, 391/10=39.1.
+    const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
+    const text = formatPrintList({
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 400, heightMm: 400, date, system: wallMounts, unit: 'cm',
+    });
+    expect(text).toContain('Drill point measurements (cm, from the bottom-left corner)');
+    expect(text).toContain('X: 0.9, 20, 39.1');
+    expect(text).toContain('Y: 0.9, 20, 39.1');
   });
 
   it('flips Y from the total height (covered + leftover), not just the covered height', () => {
@@ -158,7 +170,7 @@ describe('formatPrintList', () => {
     // 240/480/720-derived values instead - a different set, not just reordered.
     const p = plan({ widthMm: 1015, heightMm: 725, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 725, date, system: wallMounts,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 725, date, system: wallMounts, unit: 'mm',
     });
     expect(text).toContain('X: 9, 200, 400, 600, 800, 991');
     expect(text).toContain('Y: 14, 245, 485, 716');
@@ -167,7 +179,7 @@ describe('formatPrintList', () => {
   it('omits the measurements block for a system with no markers', () => {
     const p = plan({ widthMm: 200, heightMm: 200, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
-      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem,
+      plan: p, model: skadisInfinity, printer: a1, widthMm: 200, heightMm: 200, date, system: notedSystem, unit: 'mm',
     });
     expect(text).not.toContain('Drill point measurements');
   });

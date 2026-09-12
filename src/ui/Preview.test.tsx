@@ -407,6 +407,30 @@ describe('Preview measurements mode', () => {
     expect(Number(text.getAttribute('y'))).toBeCloseTo((totalH + pointY) / 2);
   });
 
+  it('formats dimension labels in the given unit while leaving their screen position unchanged', () => {
+    // Same 400x400 wall-mounts fixture used elsewhere in this describe block:
+    // X = Y = [9, 200, 391] mm. In cm: 0.9, 20, 39.1.
+    const { container: mmContainer } = render(
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" />,
+    );
+    const { container: cmContainer } = render(
+      <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} mode="measurements" unit="cm" />,
+    );
+
+    const mmLabels = Array.from(mmContainer.querySelectorAll('[data-dim-label][data-axis="x"]'));
+    const cmLabels = Array.from(cmContainer.querySelectorAll('[data-dim-label][data-axis="x"]'));
+    expect(cmLabels.length).toBe(mmLabels.length);
+    expect(cmLabels.map((l) => l.textContent).sort()).toEqual(['0.9 cm', '20 cm', '39.1 cm'].sort());
+
+    // Position (x/y) is driven by the raw mm value regardless of display unit.
+    for (const mmLabel of mmLabels) {
+      const value = mmLabel.getAttribute('data-value');
+      const cmLabel = cmLabels.find((l) => l.getAttribute('data-value') === value)!;
+      expect(cmLabel.getAttribute('x')).toBe(mmLabel.getAttribute('x'));
+      expect(cmLabel.getAttribute('y')).toBe(mmLabel.getAttribute('y'));
+    }
+  });
+
   it('shifts the drawing by the given origin', () => {
     const { container } = render(
       <Preview plan={p} viewport={IDENTITY} width={800} height={800} markers={markers} origin={{ x: 100, y: 0 }} />,

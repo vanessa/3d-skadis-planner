@@ -52,6 +52,18 @@ describe('App', () => {
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
 
+  it('downloads the print list measurements in the selected unit', () => {
+    render(<App />);
+    selectOption('Unit', 'cm');
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('Drill point measurements (cm, from the bottom-left corner)');
+    // Same default fixture as the mm-unit test above (X: 9, 200, 400, 600, 800, 991 /
+    // Y: 9, 200, 400, 591 mm), converted by hand: divide each by 10.
+    expect(text).toContain('X: 0.9, 20, 40, 60, 80, 99.1');
+    expect(text).toContain('Y: 0.9, 20, 40, 59.1');
+  });
+
   it('does not show a leftover fragment when it rounds to 0 mm', () => {
     render(<App />);
     fireEvent.change(screen.getByLabelText('Width'), { target: { value: '1000.3' } });
