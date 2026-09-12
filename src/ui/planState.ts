@@ -2,7 +2,7 @@ import { plan, PlanError, DEFAULT_STRATEGY_ID, type Plan, type StrategyId } from
 import { getModel, DEFAULT_MODEL_ID } from '../models';
 import { getPrinter, DEFAULT_PRINTER_ID, CUSTOM_PRINTER_ID } from '../printers';
 import { toMm, type Unit } from '../units';
-import { DEFAULT_MOUNT_ID, DEFAULT_WALL_DISTANCE_MM } from '../mounting';
+import { DEFAULT_MOUNT_ID, DEFAULT_WALL_DISTANCE_MM, getMountSystem } from '../mounting';
 
 export interface FormState {
   width: string;
@@ -17,6 +17,8 @@ export interface FormState {
   mountId: string;
   /** Board-to-wall distance in mm, one of the mount system's offered distances. */
   wallDistance: string;
+  /** mm a node-based mount's screw sits in from the true lattice point; overrides the system's default. */
+  nodePaddingMm: string;
 }
 
 export const DEFAULT_FORM: FormState = {
@@ -31,6 +33,7 @@ export const DEFAULT_FORM: FormState = {
   maxGap: '40',
   mountId: DEFAULT_MOUNT_ID,
   wallDistance: String(DEFAULT_WALL_DISTANCE_MM),
+  nodePaddingMm: String(getMountSystem(DEFAULT_MOUNT_ID).nodeInsetMm ?? 0),
 };
 
 export interface PlanOutcome {
@@ -48,6 +51,13 @@ export const MAX_GAP_MM = 1000;
 function parsePositive(raw: string): number | null {
   const n = Number(raw.trim());
   if (raw.trim() === '' || !Number.isFinite(n) || n <= 0) return null;
+  return n;
+}
+
+/** A valid non-negative number (0 allowed), or null for blank/invalid/negative input. */
+export function parseNonNegative(raw: string): number | null {
+  const n = Number(raw.trim());
+  if (raw.trim() === '' || !Number.isFinite(n) || n < 0) return null;
   return n;
 }
 

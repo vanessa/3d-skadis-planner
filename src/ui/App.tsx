@@ -8,7 +8,7 @@ import { ResetButton } from './ResetButton';
 import { Canvas } from './Canvas';
 import type { PreviewMode } from './Preview';
 import { PrintList } from './PrintList';
-import { computePlan, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
+import { computePlan, parseNonNegative, DEFAULT_FORM, type FormState, type PlanOutcome } from './planState';
 import { readStoredForm, writeStoredForm, clearStoredForm } from './formStorage';
 import { getModel } from '../models';
 import type { Plan } from '../solver';
@@ -122,7 +122,8 @@ export default function App() {
 
   const model = getModel(state.form.modelId);
   const wallDistanceMm = Number(state.form.wallDistance);
-  const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm);
+  const nodePaddingMm = parseNonNegative(state.form.nodePaddingMm) ?? undefined;
+  const system = resolveMountSystem(getMountSystem(state.form.mountId), wallDistanceMm, nodePaddingMm);
   const markers = state.lastPlan ? hardwareMarkers(state.lastPlan, system, model) : undefined;
   const credits = creditLines(model, system);
 
@@ -167,9 +168,6 @@ export default function App() {
             >
               Download print list
             </button>
-            <a {...stylex.props(styles.footerLink)} href={model.url} target="_blank" rel="noopener noreferrer">
-              Open files on MakerWorld
-            </a>
             <p {...stylex.props(styles.credit)}>
               {credits.map((c, i) => (
                 <span key={c.label}>

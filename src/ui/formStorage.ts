@@ -33,7 +33,7 @@ export function readStoredForm(): FormState | null {
   const form: FormState = { ...DEFAULT_FORM };
   let any = false;
 
-  const copyString = (key: 'width' | 'height' | 'customBedWidth' | 'customBedDepth' | 'maxGap') => {
+  const copyString = (key: 'width' | 'height' | 'customBedWidth' | 'customBedDepth' | 'maxGap' | 'nodePaddingMm') => {
     const value = stored[key];
     if (typeof value === 'string') {
       form[key] = value;
@@ -45,6 +45,7 @@ export function readStoredForm(): FormState | null {
   copyString('customBedWidth');
   copyString('customBedDepth');
   copyString('maxGap');
+  copyString('nodePaddingMm');
 
   if (typeof stored.unit === 'string' && isUnit(stored.unit)) {
     form.unit = stored.unit;

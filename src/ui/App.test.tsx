@@ -70,9 +70,10 @@ describe('App', () => {
     expect(screen.getByText(/15 boards/)).toBeTruthy();
   });
 
-  it('links to the model files from the panel footer', () => {
+  it('links to the model files below the Board input', () => {
     render(<App />);
-    const link = screen.getByRole('link', { name: /Open files on MakerWorld/ }) as HTMLAnchorElement;
+    fireEvent.click(screen.getByRole('button', { name: 'Board' }));
+    const link = screen.getByRole('link', { name: 'Board files' }) as HTMLAnchorElement;
     expect(link.href).toBe(skadisInfinity.url);
   });
 
@@ -203,6 +204,39 @@ describe('App', () => {
     fireEvent.change(system, { target: { value: 'wall-mounts' } });
     distance = screen.getByLabelText('Wall distance') as HTMLSelectElement;
     expect(distance.value).toBe('10');
+  });
+
+  it('shows a screw hole padding field for wall mounts, defaulting to 9mm and feeding the drill point measurements', () => {
+    render(<App />);
+    const padding = screen.getByLabelText('Screw hole padding (mm)') as HTMLInputElement;
+    expect(padding.value).toBe('9');
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('X: 9, 200, 400, 600, 800, 991');
+    expect(text).toContain('Y: 9, 200, 400, 591');
+  });
+
+  it('hides the screw hole padding field for a system with no node-based mounts', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
+    expect(screen.queryByLabelText('Screw hole padding (mm)')).toBeNull();
+  });
+
+  it('updates the drill point measurements when the screw hole padding changes', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Screw hole padding (mm)'), { target: { value: '20' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    expect(text).toContain('X: 20, 200, 400, 600, 800, 980');
+    expect(text).toContain('Y: 20, 200, 400, 580');
+  });
+
+  it('resets the screw hole padding to the new system\'s default when switching systems', () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Screw hole padding (mm)'), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'spacers' } });
+    fireEvent.change(screen.getByLabelText('System'), { target: { value: 'wall-mounts' } });
+    expect((screen.getByLabelText('Screw hole padding (mm)') as HTMLInputElement).value).toBe('9');
   });
 
   it('includes the mounting hardware in the downloaded print list', () => {

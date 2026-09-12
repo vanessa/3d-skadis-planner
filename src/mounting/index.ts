@@ -38,8 +38,13 @@ export function defaultWallDistance(system: MountSystem): number {
   return offered[0];
 }
 
-/** A copy of the system whose url and item links point at the profiles for `mm`, where they exist. */
-export function resolveMountSystem(system: MountSystem, mm: number): MountSystem {
+/**
+ * A copy of the system whose url and item links point at the profiles for
+ * `mm`, where they exist. `nodeInsetMm`, when given, overrides the system's
+ * own default (e.g. from a user-editable form field) — pass `undefined` to
+ * keep the system's default.
+ */
+export function resolveMountSystem(system: MountSystem, mm: number, nodeInsetMm?: number): MountSystem {
   return {
     ...system,
     url: system.profiles?.[mm] ?? system.url,
@@ -47,5 +52,6 @@ export function resolveMountSystem(system: MountSystem, mm: number): MountSystem
       const link = item.profiles?.[mm] ?? item.link;
       return link ? { ...item, link } : item;
     }),
+    ...(nodeInsetMm !== undefined ? { nodeInsetMm } : {}),
   };
 }

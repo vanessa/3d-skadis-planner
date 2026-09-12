@@ -1,6 +1,6 @@
 import * as stylex from '@stylexjs/stylex';
 import type { FormState } from './planState';
-import { MODELS } from '../models';
+import { MODELS, getModel } from '../models';
 import { PRINTERS, CUSTOM_PRINTER_ID } from '../printers';
 import { UNITS, toMm, fromMm, type Unit } from '../units';
 import { STRATEGIES, getStrategy, type StrategyId } from '../solver';
@@ -10,7 +10,7 @@ import { FieldRow, FieldHint, NumberField, SelectField } from './fields';
 import { colors, font } from './tokens.stylex';
 
 const styles = stylex.create({
-  mountLink: {
+  fileLink: {
     fontSize: font.xs,
     lineHeight: '15px',
     color: colors.muted,
@@ -33,13 +33,19 @@ function convert(value: string, from: Unit, to: Unit): string {
 
 export function InputPanel({ form, onChange }: InputPanelProps) {
   const isCustom = form.printerId === CUSTOM_PRINTER_ID;
+  const model = getModel(form.modelId);
   const mountSystem = getMountSystem(form.mountId);
   const distances = wallDistances(mountSystem);
+  const usesNodePadding = mountSystem.markers.includes('nodes') || mountSystem.markers.includes('outerNodes');
 
   const changeMount = (mountId: string) => {
     const next = getMountSystem(mountId);
     const keep = wallDistances(next).includes(Number(form.wallDistance));
-    onChange({ mountId, wallDistance: keep ? form.wallDistance : String(defaultWallDistance(next)) });
+    onChange({
+      mountId,
+      wallDistance: keep ? form.wallDistance : String(defaultWallDistance(next)),
+      nodePaddingMm: String(next.nodeInsetMm ?? 0),
+    });
   };
 
   const changeUnit = (unit: Unit) => {
@@ -72,6 +78,9 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
           onChange={(modelId) => onChange({ modelId })}
           options={MODELS.map((m) => ({ value: m.id, label: m.name }))}
         />
+        <a {...stylex.props(styles.fileLink)} href={model.url} target="_blank" rel="noopener noreferrer">
+          Board files
+        </a>
       </PanelSection>
 
       <PanelSection title="Printer">
@@ -129,8 +138,18 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
             options={distances.map((mm) => ({ value: String(mm), label: `${mm} mm` }))}
           />
         )}
+        {usesNodePadding && (
+          <>
+            <NumberField
+              label="Screw hole padding (mm)"
+              value={form.nodePaddingMm}
+              onChange={(nodePaddingMm) => onChange({ nodePaddingMm })}
+            />
+            <FieldHint>How far a corner or edge mount's screw sits in from the board edge.</FieldHint>
+          </>
+        )}
         <a
-          {...stylex.props(styles.mountLink)}
+          {...stylex.props(styles.fileLink)}
           href={resolveMountSystem(mountSystem, Number(form.wallDistance)).url}
           target="_blank"
           rel="noopener noreferrer"
