@@ -41,6 +41,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     },
     description: 'A spacer and screw at each board corner.',
     markers: ['boardCorners'],
+    nodeInsetMm: 10,
     items: [
       { name: 'Screw spacer', per: { board: 4 }, source: 'print' },
       { name: 'M4 wall screw (30 mm or longer)', per: { board: 4 }, source: 'buy' },

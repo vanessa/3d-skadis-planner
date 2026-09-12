@@ -36,7 +36,6 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
   const model = getModel(form.modelId);
   const mountSystem = getMountSystem(form.mountId);
   const distances = wallDistances(mountSystem);
-  const usesNodePadding = mountSystem.markers.includes('nodes') || mountSystem.markers.includes('outerNodes');
 
   const changeMount = (mountId: string) => {
     const next = getMountSystem(mountId);
@@ -138,16 +137,12 @@ export function InputPanel({ form, onChange }: InputPanelProps) {
             options={distances.map((mm) => ({ value: String(mm), label: `${mm} mm` }))}
           />
         )}
-        {usesNodePadding && (
-          <>
-            <NumberField
-              label="Screw hole padding (mm)"
-              value={form.nodePaddingMm}
-              onChange={(nodePaddingMm) => onChange({ nodePaddingMm })}
-            />
-            <FieldHint>How far a corner or edge mount's screw sits in from the board edge.</FieldHint>
-          </>
-        )}
+        <NumberField
+          label="Screw hole padding (mm)"
+          value={form.nodePaddingMm}
+          onChange={(nodePaddingMm) => onChange({ nodePaddingMm })}
+        />
+        <FieldHint>How far a corner or edge mount's screw sits in from the board edge.</FieldHint>
         <a
           {...stylex.props(styles.fileLink)}
           href={resolveMountSystem(mountSystem, Number(form.wallDistance)).url}

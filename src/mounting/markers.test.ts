@@ -89,6 +89,28 @@ describe('hardwareMarkers', () => {
     ]);
   });
 
+  it('lets the system nodeInsetMm override boardCorners too, so the same padding field drives both mount types', () => {
+    const overridden = { ...getMountSystem('spacers'), nodeInsetMm: 20 };
+    const markers = hardwareMarkers(p, overridden, skadisInfinity);
+    expect(markers.slice(0, 4)).toEqual([
+      { x: 20, y: 20, kind: 'boardCorners' },
+      { x: 180, y: 20, kind: 'boardCorners' },
+      { x: 20, y: 180, kind: 'boardCorners' },
+      { x: 180, y: 180, kind: 'boardCorners' },
+    ]);
+  });
+
+  it('falls back to the board model\'s own screwInsetMm for boardCorners when the system does not set nodeInsetMm', () => {
+    const noOverride = { ...getMountSystem('spacers'), nodeInsetMm: undefined };
+    const markers = hardwareMarkers(p, noOverride, skadisInfinity);
+    expect(markers.slice(0, 4)).toEqual([
+      { x: skadisInfinity.screwInsetMm, y: skadisInfinity.screwInsetMm, kind: 'boardCorners' },
+      { x: 200 - skadisInfinity.screwInsetMm, y: skadisInfinity.screwInsetMm, kind: 'boardCorners' },
+      { x: skadisInfinity.screwInsetMm, y: 200 - skadisInfinity.screwInsetMm, kind: 'boardCorners' },
+      { x: 200 - skadisInfinity.screwInsetMm, y: 200 - skadisInfinity.screwInsetMm, kind: 'boardCorners' },
+    ]);
+  });
+
   it('places seam midpoints and outer nodes for a seam-based system', () => {
     const markers = hardwareMarkers(p, seamSystem, skadisInfinity);
     const seams = markers.filter((m) => m.kind === 'seams');

@@ -224,10 +224,21 @@ describe('App', () => {
     expect(text).toContain('Y: 9, 200, 400, 591');
   });
 
-  it('hides the screw hole padding field for a system with no node-based mounts', () => {
+  it('shows the screw hole padding field for screw spacers too, defaulting to its own 10mm', () => {
     render(<App />);
     selectOption('System', 'Screw spacers (AU3D)');
-    expect(screen.queryByLabelText('Screw hole padding (mm)')).toBeNull();
+    expect((screen.getByLabelText('Screw hole padding (mm)') as HTMLInputElement).value).toBe('10');
+  });
+
+  it('updates the screw spacers drill point measurements when the screw hole padding changes', () => {
+    render(<App />);
+    selectOption('System', 'Screw spacers (AU3D)');
+    fireEvent.change(screen.getByLabelText('Screw hole padding (mm)'), { target: { value: '20' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Download print list' }));
+    const [, text] = (downloadText as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string, string];
+    // Board corners now inset 20mm instead of 10mm from each 200mm board's edge.
+    expect(text).toContain('X: 20, 180, 220, 380, 420, 580, 620, 780, 820, 980');
+    expect(text).toContain('Y: 20, 180, 220, 380, 420, 580');
   });
 
   it('updates the drill point measurements when the screw hole padding changes', () => {

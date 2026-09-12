@@ -94,10 +94,13 @@ export function hardwareMarkers(plan: Plan, system: MountSystem, model: BoardMod
   const rowB = boundaries(plan.rows.map((h) => model.sizeMm(h)));
   const markers: HardwareMarker[] = [];
   const nodeInsetMm = system.nodeInsetMm ?? 0;
+  // boardCorners falls back to the board's own physical screw-hole inset when
+  // the system (and so the user-editable padding field) doesn't override it.
+  const boardCornerInsetMm = system.nodeInsetMm ?? model.screwInsetMm;
   for (const kind of system.markers) {
     if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB, nodeInsetMm));
     else if (kind === 'outerNodes') markers.push(...outerNodeMarkers(colB, rowB, nodeInsetMm));
-    else if (kind === 'boardCorners') markers.push(...boardCornerMarkers(plan.boards, model.screwInsetMm));
+    else if (kind === 'boardCorners') markers.push(...boardCornerMarkers(plan.boards, boardCornerInsetMm));
     else if (kind === 'seams') markers.push(...seamMarkers(plan.boards, c, r, colB, rowB));
   }
   return markers;
