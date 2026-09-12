@@ -231,8 +231,9 @@ describe('Preview measurements mode', () => {
     // The dots stay visible so it's still clear what each dimension line is measuring.
     expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
     const lines = container.querySelectorAll('[data-dim-line]');
-    // 400x400 wall-mounts: X = [200, 400], Y = [200, 400] once the origin corner is dropped.
-    expect(lines).toHaveLength(4);
+    // 400x400 wall-mounts: X = [9, 200, 391, 400], Y = [9, 200, 391, 400] once the
+    // origin is dropped (9/391 are the outer corners' 9mm inset from the true corner).
+    expect(lines).toHaveLength(8);
   });
 
   it('paints every dimension label after every dimension line, so a longer shared-lane line never covers a shorter one\'s label', () => {
@@ -329,8 +330,9 @@ describe('Preview measurements mode', () => {
         const labelX = Number(text.getAttribute('x'));
         const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
         expect(labelX).toBeCloseTo(value - inset);
-        // Closer to the point than to the origin, i.e. not the old midpoint.
-        expect(labelX).toBeGreaterThan(value / 2);
+        // At least as close to the point as to the origin — never past the
+        // old midpoint (the very short 9mm outer-corner line clamps exactly to it).
+        expect(labelX).toBeGreaterThanOrEqual(value / 2);
       }
 
       const yLabels = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'));
@@ -342,8 +344,9 @@ describe('Preview measurements mode', () => {
         const labelY = Number(text.getAttribute('y'));
         const inset = Math.min(DIM_LABEL_INSET_PX / scale, value / 2);
         expect(labelY).toBeCloseTo(pointY + inset);
-        // Between the point and the floor, closer to the point than the old midpoint.
-        expect(labelY).toBeLessThan((totalH + pointY) / 2);
+        // At least as close to the point as to the floor — never past the old
+        // midpoint (the very short 9mm outer-corner line clamps exactly to it).
+        expect(labelY).toBeLessThanOrEqual((totalH + pointY) / 2);
         // The rotation must pivot on the label's own anchor or it drifts sideways.
         expect(text.getAttribute('transform')).toBe(`rotate(-90 ${labelX} ${labelY})`);
       }

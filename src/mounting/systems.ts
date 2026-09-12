@@ -14,6 +14,7 @@ export const MOUNT_SYSTEMS: MountSystem[] = [
     profiles: { 10: `${multiMount}#profileId-1609221`, 20: `${multiMount}#profileId-811358` },
     description: 'One printed mount wherever corners meet.',
     markers: ['nodes'],
+    outerCornerInsetMm: 9,
     items: [
       { name: 'Quad wall mount', per: { junction: 1 }, source: 'print' },
       { name: 'Double wall mount', per: { edgeNode: 1 }, source: 'print' },

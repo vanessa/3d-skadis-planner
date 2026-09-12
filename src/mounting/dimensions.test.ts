@@ -21,12 +21,12 @@ describe('dimensionAxes', () => {
     expect(dimensionAxes(markers, 200)).toEqual({ x: [10, 190], y: [5, 195] });
   });
 
-  it('matches the lattice for a real wall-mounts plan', () => {
+  it('matches the lattice for a real wall-mounts plan, plus the 9mm-inset outer corners', () => {
     const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     expect(dimensionAxes(markers, 600)).toEqual({
-      x: [0, 200, 400, 600, 800, 1000],
-      y: [0, 200, 400, 600],
+      x: [0, 9, 200, 400, 600, 800, 991, 1000],
+      y: [0, 9, 200, 400, 591, 600],
     });
   });
 });
@@ -100,7 +100,7 @@ describe('laneChains', () => {
     const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     const chains = laneChains(markers, 400);
-    expect(chains.x.map((v) => v.mm)).toEqual([200, 400]);
-    expect(chains.y.map((v) => v.mm)).toEqual([200, 400]);
+    expect(chains.x.map((v) => v.mm)).toEqual([9, 200, 391, 400]);
+    expect(chains.y.map((v) => v.mm)).toEqual([9, 200, 391, 400]);
   });
 });

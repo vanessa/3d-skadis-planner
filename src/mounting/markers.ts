@@ -13,8 +13,15 @@ function boundaries(sizes: number[]): number[] {
   return result;
 }
 
-/** Every lattice point, with its role by position. */
-function nodeMarkers(colB: number[], rowB: number[]): HardwareMarker[] {
+/**
+ * Every lattice point, with its role by position. A junction or edge node is
+ * the shared meeting point of 2-4 boards' corners, so the mount's own screw
+ * sits right there. An outer corner belongs to a single board with no
+ * neighbor to share the point with, so its mount uses that board's own screw
+ * hole — inset from the true corner the same way `boardCorners` insets from
+ * each board's edge, not placed exactly at the corner.
+ */
+function nodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number): HardwareMarker[] {
   const c = colB.length - 1;
   const r = rowB.length - 1;
   const markers: HardwareMarker[] = [];
@@ -23,15 +30,17 @@ function nodeMarkers(colB: number[], rowB: number[]): HardwareMarker[] {
       const xInterior = i > 0 && i < c;
       const yInterior = j > 0 && j < r;
       const role = xInterior && yInterior ? 'junction' : xInterior !== yInterior ? 'edgeNode' : 'outerCorner';
-      markers.push({ x: colB[i], y: rowB[j], kind: 'nodes', role });
+      const x = role === 'outerCorner' ? colB[i] + (i === 0 ? outerCornerInsetMm : -outerCornerInsetMm) : colB[i];
+      const y = role === 'outerCorner' ? rowB[j] + (j === 0 ? outerCornerInsetMm : -outerCornerInsetMm) : rowB[j];
+      markers.push({ x, y, kind: 'nodes', role });
     }
   }
   return markers;
 }
 
 /** Lattice points on the outer edge only: edge nodes and the four corners. */
-function outerNodeMarkers(colB: number[], rowB: number[]): HardwareMarker[] {
-  return nodeMarkers(colB, rowB)
+function outerNodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number): HardwareMarker[] {
+  return nodeMarkers(colB, rowB, outerCornerInsetMm)
     .filter((m) => m.role !== 'junction')
     .map((m) => ({ ...m, kind: 'outerNodes' as const }));
 }
@@ -81,9 +90,10 @@ export function hardwareMarkers(plan: Plan, system: MountSystem, model: BoardMod
   const colB = boundaries(plan.columns.map((h) => model.sizeMm(h)));
   const rowB = boundaries(plan.rows.map((h) => model.sizeMm(h)));
   const markers: HardwareMarker[] = [];
+  const outerCornerInsetMm = system.outerCornerInsetMm ?? 0;
   for (const kind of system.markers) {
-    if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB));
-    else if (kind === 'outerNodes') markers.push(...outerNodeMarkers(colB, rowB));
+    if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB, outerCornerInsetMm));
+    else if (kind === 'outerNodes') markers.push(...outerNodeMarkers(colB, rowB, outerCornerInsetMm));
     else if (kind === 'boardCorners') markers.push(...boardCornerMarkers(plan.boards, model.screwInsetMm));
     else if (kind === 'seams') markers.push(...seamMarkers(plan.boards, c, r, colB, rowB));
   }
