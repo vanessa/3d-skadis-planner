@@ -231,9 +231,10 @@ describe('Preview measurements mode', () => {
     // The dots stay visible so it's still clear what each dimension line is measuring.
     expect(container.querySelectorAll('[data-marker]').length).toBeGreaterThan(0);
     const lines = container.querySelectorAll('[data-dim-line]');
-    // 400x400 wall-mounts: X = [9, 200, 391, 400], Y = [9, 200, 391, 400] once the
-    // origin is dropped (9/391 are the outer corners' 9mm inset from the true corner).
-    expect(lines).toHaveLength(8);
+    // 400x400 wall-mounts (2x2 boards): every boundary point (edge nodes and
+    // corners) insets 9mm on the axis with no interior neighbor, so the raw
+    // 0/400 values never appear — only X = Y = [9, 200, 391].
+    expect(lines).toHaveLength(6);
   });
 
   it('paints every dimension label after every dimension line, so a longer shared-lane line never covers a shorter one\'s label', () => {
@@ -256,13 +257,13 @@ describe('Preview measurements mode', () => {
   });
 
   it('labels Y using height from the floor, not raw SVG y', () => {
-    // 400x450 leaves a 10mm leftover row: covered height 440 != total height 450.
-    // That asymmetry matters here — on the square 400x400 fixture above, raw SVG y
-    // values {0,200,400} and floor-relative values {400,200,0} are the same set, so
-    // a test that only checks label text can't tell a flipped implementation from
-    // an unflipped one. Here they're genuinely different sets: raw marker y is
-    // {0,240,440}, so floor-relative (totalHeightMm - y) is {450,210,10}, while an
-    // unflipped implementation would show 240mm/440mm instead of 210mm/450mm.
+    // 400x450 leaves a 10mm leftover row: covered height 440 != total height 450,
+    // with rows [0,240,440] (the middle boundary, y=240, is an interior junction
+    // and stays exact; the top/bottom boundaries at y=0/440 are edge nodes and
+    // corners, so they inset 9mm to raw y=9/431). Floor-relative (450 - raw):
+    // 450-9=441, 450-240=210, 450-431=19. An unflipped implementation would
+    // show 9mm/431mm instead of 441mm/19mm — genuinely different sets, not
+    // just reordered, so a text-only check can still tell them apart.
     const asym = plan({ widthMm: 400, heightMm: 450, model: skadisInfinity, printer: a1 });
     const asymMarkers = hardwareMarkers(asym, getMountSystem('wall-mounts'), skadisInfinity);
     const { container } = render(
@@ -270,12 +271,12 @@ describe('Preview measurements mode', () => {
     );
     const yLabelEls = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'));
     const yLabels = yLabelEls.map((el) => el.textContent);
-    expect(yLabels).toContain('10 mm');
+    expect(yLabels).toContain('19 mm');
     expect(yLabels).toContain('210 mm');
-    expect(yLabels).toContain('450 mm');
+    expect(yLabels).toContain('441 mm');
     // These would appear instead if the raw (unflipped) SVG y were used.
-    expect(yLabels).not.toContain('240 mm');
-    expect(yLabels).not.toContain('440 mm');
+    expect(yLabels).not.toContain('9 mm');
+    expect(yLabels).not.toContain('431 mm');
   });
 
   it('keeps the outermost dimension line on each axis exactly at the margin marginMm reserves for it', () => {
@@ -388,9 +389,10 @@ describe('Preview measurements mode', () => {
   });
 
   it('never insets a label past the midpoint of a very short line', () => {
-    // 400x450 leaves a 10 mm leftover row, so the lowest Y marker is 10 mm from
-    // the floor: a line only 10 mm long, shorter than the 2 * inset it would need.
-    // The label falls back to the midpoint instead of crossing it.
+    // 400x450's bottom-edge outer corner/edge nodes inset 9mm from the true
+    // 440mm row boundary to raw y=431, which floor-relative is 450-431=19: a
+    // line only 19 mm long, shorter than the 2 * inset it would need. The
+    // label falls back to the midpoint instead of crossing it.
     const asym = plan({ widthMm: 400, heightMm: 450, model: skadisInfinity, printer: a1 });
     const asymMarkers = hardwareMarkers(asym, getMountSystem('wall-mounts'), skadisInfinity);
     const totalH = asym.coveredHeightMm + asym.leftoverHeightMm;
@@ -398,10 +400,10 @@ describe('Preview measurements mode', () => {
       <Preview plan={asym} viewport={IDENTITY} width={800} height={800} markers={asymMarkers} mode="measurements" />,
     );
     const text = Array.from(container.querySelectorAll('[data-dim-label][data-axis="y"]'))
-      .find((el) => el.getAttribute('data-value') === '10')!;
+      .find((el) => el.getAttribute('data-value') === '19')!;
     expect(text).toBeDefined();
-    expect(10 / 2).toBeLessThan(DIM_LABEL_INSET_PX); // the fixture really is the short case
-    const pointY = totalH - 10;
+    expect(19 / 2).toBeLessThan(DIM_LABEL_INSET_PX); // the fixture really is the short case
+    const pointY = totalH - 19;
     expect(Number(text.getAttribute('y'))).toBeCloseTo((totalH + pointY) / 2);
   });
 

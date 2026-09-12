@@ -21,12 +21,16 @@ describe('dimensionAxes', () => {
     expect(dimensionAxes(markers, 200)).toEqual({ x: [10, 190], y: [5, 195] });
   });
 
-  it('matches the lattice for a real wall-mounts plan, plus the 9mm-inset outer corners', () => {
+  it('matches the lattice for a real wall-mounts plan, insetting the edges and corners that touch the outer boundary', () => {
+    // Every point along the outer boundary (edge nodes and corners) insets on
+    // whichever axis has no interior board neighbor, so the raw 0/600/1000
+    // boundary values never appear — only interior junction/edge-node values
+    // (200,400,600,800 on x; 200,400 on y) and the inset 9/591/991 values do.
     const p = plan({ widthMm: 1000, heightMm: 600, model: skadisInfinity, printer: a1 });
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     expect(dimensionAxes(markers, 600)).toEqual({
-      x: [0, 9, 200, 400, 600, 800, 991, 1000],
-      y: [0, 9, 200, 400, 591, 600],
+      x: [9, 200, 400, 600, 800, 991],
+      y: [9, 200, 400, 591],
     });
   });
 });
@@ -100,7 +104,7 @@ describe('laneChains', () => {
     const p = plan({ widthMm: 400, heightMm: 400, model: skadisInfinity, printer: a1 });
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     const chains = laneChains(markers, 400);
-    expect(chains.x.map((v) => v.mm)).toEqual([9, 200, 391, 400]);
-    expect(chains.y.map((v) => v.mm)).toEqual([9, 200, 391, 400]);
+    expect(chains.x.map((v) => v.mm)).toEqual([9, 200, 391]);
+    expect(chains.y.map((v) => v.mm)).toEqual([9, 200, 391]);
   });
 });

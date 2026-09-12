@@ -14,14 +14,17 @@ function boundaries(sizes: number[]): number[] {
 }
 
 /**
- * Every lattice point, with its role by position. A junction or edge node is
- * the shared meeting point of 2-4 boards' corners, so the mount's own screw
- * sits right there. An outer corner belongs to a single board with no
- * neighbor to share the point with, so its mount uses that board's own screw
- * hole — inset from the true corner the same way `boardCorners` insets from
- * each board's edge, not placed exactly at the corner.
+ * Every lattice point, with its role by position. A junction is the shared
+ * meeting point of 4 boards' corners — symmetric on every side, so the
+ * mount's own screw sits right there. An edge node (2 boards, along the outer
+ * boundary) or an outer corner (1 board, no neighbor) each has at least one
+ * side with no board beyond it, so on that side the mount uses the board's
+ * own screw hole instead — inset along whichever axis has no interior
+ * neighbor, the same way `boardCorners` insets from each board's own edge.
+ * An edge node insets on a single axis (it has an interior neighbor on the
+ * other); an outer corner insets on both.
  */
-function nodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number): HardwareMarker[] {
+function nodeMarkers(colB: number[], rowB: number[], insetMm: number): HardwareMarker[] {
   const c = colB.length - 1;
   const r = rowB.length - 1;
   const markers: HardwareMarker[] = [];
@@ -30,8 +33,8 @@ function nodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number)
       const xInterior = i > 0 && i < c;
       const yInterior = j > 0 && j < r;
       const role = xInterior && yInterior ? 'junction' : xInterior !== yInterior ? 'edgeNode' : 'outerCorner';
-      const x = role === 'outerCorner' ? colB[i] + (i === 0 ? outerCornerInsetMm : -outerCornerInsetMm) : colB[i];
-      const y = role === 'outerCorner' ? rowB[j] + (j === 0 ? outerCornerInsetMm : -outerCornerInsetMm) : rowB[j];
+      const x = xInterior ? colB[i] : colB[i] + (i === 0 ? insetMm : -insetMm);
+      const y = yInterior ? rowB[j] : rowB[j] + (j === 0 ? insetMm : -insetMm);
       markers.push({ x, y, kind: 'nodes', role });
     }
   }
@@ -39,8 +42,8 @@ function nodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number)
 }
 
 /** Lattice points on the outer edge only: edge nodes and the four corners. */
-function outerNodeMarkers(colB: number[], rowB: number[], outerCornerInsetMm: number): HardwareMarker[] {
-  return nodeMarkers(colB, rowB, outerCornerInsetMm)
+function outerNodeMarkers(colB: number[], rowB: number[], insetMm: number): HardwareMarker[] {
+  return nodeMarkers(colB, rowB, insetMm)
     .filter((m) => m.role !== 'junction')
     .map((m) => ({ ...m, kind: 'outerNodes' as const }));
 }
@@ -90,10 +93,10 @@ export function hardwareMarkers(plan: Plan, system: MountSystem, model: BoardMod
   const colB = boundaries(plan.columns.map((h) => model.sizeMm(h)));
   const rowB = boundaries(plan.rows.map((h) => model.sizeMm(h)));
   const markers: HardwareMarker[] = [];
-  const outerCornerInsetMm = system.outerCornerInsetMm ?? 0;
+  const nodeInsetMm = system.nodeInsetMm ?? 0;
   for (const kind of system.markers) {
-    if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB, outerCornerInsetMm));
-    else if (kind === 'outerNodes') markers.push(...outerNodeMarkers(colB, rowB, outerCornerInsetMm));
+    if (kind === 'nodes') markers.push(...nodeMarkers(colB, rowB, nodeInsetMm));
+    else if (kind === 'outerNodes') markers.push(...outerNodeMarkers(colB, rowB, nodeInsetMm));
     else if (kind === 'boardCorners') markers.push(...boardCornerMarkers(plan.boards, model.screwInsetMm));
     else if (kind === 'seams') markers.push(...seamMarkers(plan.boards, c, r, colB, rowB));
   }

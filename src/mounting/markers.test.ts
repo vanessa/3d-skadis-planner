@@ -26,16 +26,17 @@ describe('hardwareMarkers', () => {
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     expect(markers).toHaveLength(24);
     expect(byRole(markers)).toEqual({ junction: 8, edgeNode: 12, outerCorner: 4 });
-    // Outer corners are inset 9mm from the true corner (system.outerCornerInsetMm) —
-    // that mount uses its lone board's own screw hole, unlike junction/edgeNode
-    // points which sit at the shared meeting point of 2-4 boards' corners.
+    // Outer corners are inset 9mm on both axes (system.nodeInsetMm) — that mount
+    // uses its lone board's own screw hole. Edge nodes inset on only the axis
+    // with no interior neighbor (here, y — the top edge). Junctions need no
+    // inset: the mount there sits at the shared meeting point of 4 boards.
     expect(markers).toContainEqual({ x: 9, y: 9, kind: 'nodes', role: 'outerCorner' });
-    expect(markers).toContainEqual({ x: 200, y: 0, kind: 'nodes', role: 'edgeNode' });
+    expect(markers).toContainEqual({ x: 200, y: 9, kind: 'nodes', role: 'edgeNode' });
     expect(markers).toContainEqual({ x: 200, y: 200, kind: 'nodes', role: 'junction' });
     expect(markers).toContainEqual({ x: 991, y: 591, kind: 'nodes', role: 'outerCorner' });
   });
 
-  it('insets every outer corner diagonally inward by outerCornerInsetMm, leaving junctions and edge nodes exactly on the lattice', () => {
+  it('insets outer corners on both axes and edge nodes on only the axis with no interior neighbor', () => {
     const markers = hardwareMarkers(p, getMountSystem('wall-mounts'), skadisInfinity);
     const outerCorners = markers.filter((m) => m.role === 'outerCorner');
     expect(outerCorners).toEqual(
@@ -47,20 +48,34 @@ describe('hardwareMarkers', () => {
       ]),
     );
     expect(outerCorners).toHaveLength(4);
-    // Every junction/edgeNode x and y is a lattice boundary value, never one of
-    // the inset outer-corner positions.
-    const junctionsAndEdges = markers.filter((m) => m.role === 'junction' || m.role === 'edgeNode');
-    for (const m of junctionsAndEdges) {
-      expect([0, 200, 400, 600, 800, 1000]).toContain(m.x);
-      expect([0, 200, 400, 600]).toContain(m.y);
+
+    const edgeNodes = markers.filter((m) => m.role === 'edgeNode');
+    expect(edgeNodes).toHaveLength(12);
+    // Top edge (y=0 -> +9) and bottom edge (y=600 -> 591): x stays on the lattice.
+    for (const x of [200, 400, 600, 800]) {
+      expect(edgeNodes).toContainEqual({ x, y: 9, kind: 'nodes', role: 'edgeNode' });
+      expect(edgeNodes).toContainEqual({ x, y: 591, kind: 'nodes', role: 'edgeNode' });
+    }
+    // Left edge (x=0 -> +9) and right edge (x=1000 -> 991): y stays on the lattice.
+    for (const y of [200, 400]) {
+      expect(edgeNodes).toContainEqual({ x: 9, y, kind: 'nodes', role: 'edgeNode' });
+      expect(edgeNodes).toContainEqual({ x: 991, y, kind: 'nodes', role: 'edgeNode' });
+    }
+
+    // Junctions are exactly on the lattice, on both axes.
+    const junctions = markers.filter((m) => m.role === 'junction');
+    for (const m of junctions) {
+      expect([200, 400, 600, 800]).toContain(m.x);
+      expect([200, 400]).toContain(m.y);
     }
   });
 
-  it('defaults the outer-corner inset to 0 for a system that does not set outerCornerInsetMm', () => {
-    const noInsetSystem = { ...getMountSystem('wall-mounts'), outerCornerInsetMm: undefined };
+  it('defaults the node inset to 0 for a system that does not set nodeInsetMm', () => {
+    const noInsetSystem = { ...getMountSystem('wall-mounts'), nodeInsetMm: undefined };
     const markers = hardwareMarkers(p, noInsetSystem, skadisInfinity);
     expect(markers).toContainEqual({ x: 0, y: 0, kind: 'nodes', role: 'outerCorner' });
     expect(markers).toContainEqual({ x: 1000, y: 600, kind: 'nodes', role: 'outerCorner' });
+    expect(markers).toContainEqual({ x: 200, y: 0, kind: 'nodes', role: 'edgeNode' });
   });
 
   it('places a corner marker inset from every board corner for spacers', () => {

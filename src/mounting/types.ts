@@ -39,13 +39,13 @@ export interface MountSystem {
   /** Marker kinds drawn on the 2D preview for this system. */
   markers: MarkerKind[];
   /**
-   * mm the outer-corner mount's screw sits in from the true board corner, for
-   * a lone board with no neighbor to share the point with (junctions and edge
-   * nodes need no inset — the mount there sits at the shared meeting point of
-   * 2-4 boards, not any one board's own hole). Only meaningful when `markers`
-   * includes `nodes`/`outerNodes`. Defaults to 0.
+   * mm a node-based mount's screw sits in from the true lattice point, along
+   * whichever axis has no interior board neighbor (a junction, with a
+   * neighbor on every side, needs no inset). An edge node insets on one axis;
+   * an outer corner, with no neighbor on either, insets on both. Only
+   * meaningful when `markers` includes `nodes`/`outerNodes`. Defaults to 0.
    */
-  outerCornerInsetMm?: number;
+  nodeInsetMm?: number;
   /** Profile per wall distance, used in place of `url` once resolved. Its keys are the distances offered. */
   profiles?: WallProfiles;
   /** Who designed the mount files, for the credit line. */

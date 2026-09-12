@@ -56,8 +56,8 @@ describe('formatPrintList', () => {
         'Mount files: https://makerworld.com/en/models/861073',
         '',
         'Drill point measurements (mm, from the bottom-left corner)',
-        'X: 9, 200, 400, 600, 800, 991, 1000',
-        'Y: 9, 200, 400, 591, 600',
+        'X: 9, 200, 400, 600, 800, 991',
+        'Y: 9, 200, 400, 591',
         '',
         'Layout (columns left to right, rows top to bottom; * mirrored X, + mirrored Y, # mirrored X + Y)',
         '9x9  9x9  9x9  9x9  9x9',
@@ -140,25 +140,28 @@ describe('formatPrintList', () => {
       plan: p, model: skadisInfinity, printer: a1, widthMm: 400, heightMm: 400, date, system: wallMounts,
     });
     expect(text).toContain('Drill point measurements (mm, from the bottom-left corner)');
-    // Outer corners are inset 9mm from the true corner (system.outerCornerInsetMm).
-    expect(text).toContain('X: 9, 200, 391, 400');
-    expect(text).toContain('Y: 9, 200, 391, 400');
+    // Edge nodes and outer corners both touch the outer boundary on this small
+    // 2x2 plan, so every point insets 9mm (system.nodeInsetMm) on at least one
+    // axis — the raw 0/400 boundary values never appear.
+    expect(text).toContain('X: 9, 200, 391');
+    expect(text).toContain('Y: 9, 200, 391');
   });
 
   it('flips Y from the total height (covered + leftover), not just the covered height', () => {
     // Same fixture as plan.test.ts's "board count equals ceil..." case: 1015x725 on
     // an A1 covers 1000x720mm (15 boards of 200x240mm) with 15mm left on the right
     // and 5mm left at the bottom, so coveredHeightMm (720) !== heightMm (725).
-    // rowB = [0,240,480,720]; Y = 725 - rowB = [725,485,245,5], sorted, origin dropped,
-    // plus the 9mm-inset outer corners at raw y = 9 and 711, flipping to 716 and 14.
+    // rowB = [0,240,480,720]; the top/bottom rows are the outer boundary, so their
+    // edge nodes AND the corners both inset 9mm to raw y = 9 / 711 (the interior
+    // rows, 240/480, are junctions and stay exact). Flipped: 725-9=716, 725-711=14.
     // A regression that flipped off coveredHeightMm instead would produce
-    // 240/480/720 in the set instead - a different set, not just a different order.
+    // 240/480/720-derived values instead - a different set, not just reordered.
     const p = plan({ widthMm: 1015, heightMm: 725, model: skadisInfinity, printer: a1 });
     const text = formatPrintList({
       plan: p, model: skadisInfinity, printer: a1, widthMm: 1015, heightMm: 725, date, system: wallMounts,
     });
-    expect(text).toContain('X: 9, 200, 400, 600, 800, 991, 1000');
-    expect(text).toContain('Y: 5, 14, 245, 485, 716, 725');
+    expect(text).toContain('X: 9, 200, 400, 600, 800, 991');
+    expect(text).toContain('Y: 14, 245, 485, 716');
   });
 
   it('omits the measurements block for a system with no markers', () => {

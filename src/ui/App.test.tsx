@@ -262,8 +262,9 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
     expect(container.querySelectorAll('[data-dim-line]').length).toBeGreaterThan(0);
-    expect(container.querySelector('[data-dim-line][data-axis="x"][data-value="1000"]')).toBeTruthy();
-    expect(container.querySelector('[data-dim-line][data-axis="y"][data-value="600"]')).toBeTruthy();
+    // The outer corner mount insets 9mm from the true 1000/600 boundary.
+    expect(container.querySelector('[data-dim-line][data-axis="x"][data-value="991"]')).toBeTruthy();
+    expect(container.querySelector('[data-dim-line][data-axis="y"][data-value="591"]')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Measurements' }));
     expect(container.querySelectorAll('[data-marker]')).toHaveLength(markerCount);
